@@ -1,0 +1,29 @@
+
+The symmetries of the Rubik's Cube without mirroring
+(6 faces * 4 rotations for each face = 24 symmetries)
+       SYM           YOB  BOY
+A  00  none   / I    wob  wrb
+B  01  US     / D    wgo  wgr
+C  02  FS     / B    boy  bry
+D  03  RS     / L    rwb  owb
+E  04  US2    / D2   wrg  wog
+F  05  FS2    / B2   yog  yrg
+G  06  RS2    / L2   yrb  yob
+H  07  DS     / U    wbr  wbo
+I  08  BS     / F    gow  grw
+J  09  LS     / R    oyb  ryb
+K  10  US-FS  / DB   ogy  rgy
+L  11  US-RS  / DL   bwo  bwr
+M  12  FS-RS  / BL   rby  oby
+N  13  RS-US  / LD   rgw  ogw
+O  14  US-FS2 / DB2  ygr  ygo
+P  15  US-RS2 / DL2  ybo  ybr
+Q  16  FS-US2 / BD2  brw  bow
+R  17  FS-RS2 / BL2  gry  goy
+S  18  RS-US2 / LD2  ryg  oyg
+T  19  RS-FS2 / LB2  owg  rwg
+U  20  US-LS  / DR   gyo  gyr
+V  21  FS-DS  / BU   byr  byo
+W  22  RS-BS  / LF   gwr  gwo
+X  23  DS-BS  / UF   obw  rbw
+
