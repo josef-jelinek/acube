@@ -1,25 +1,37 @@
 package acube.transform;
 
-public final class Transform {
-  public final ToTabMove cornTwist;
-  public final ToTabMove edgeFlip;
-  public final ToTabMove midgeLoc;
-  public final ToTabMove midgePos;
-  public final ToTabMove udgePos;
-  public final ToTabMove dedgePos;
-  public final ToTabMove cornPos;
+import acube.Corner;
+import acube.Edge;
+import acube.Turn;
 
-  public static Transform obj(int[] cornMask, int[] edgeMask, int[] cornOriMask, int[] edgeOriMask) {
-    return new Transform(cornMask, edgeMask, cornOriMask, edgeOriMask);
+public final class Transform {
+
+  private final Turn[] turns;
+
+  public final ITableMove cornerTwist;
+  public final ITableMove edgeFlip;
+  public final ITableMove mEdgePositionSet;
+  public final ITableMove mEdgePosition;
+  public final ITableMove uEdgePosition;
+  public final ITableMove dEdgePosition;
+  public final ITableMove cornerPosition;
+
+  public static Transform instance(Corner[] cornerMask, Edge[] edgeMask, Corner[] cornerTwistMask, Edge[] edgeFlipMask, Turn[] turns) {
+    return new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, turns);
   }
 
-  private Transform(int[] cornMask, int[] edgeMask, int[] cornOriMask, int[] edgeOriMask) {
-    cornTwist = MoveKit.cornTwist(cornMask, cornOriMask);
-    edgeFlip = MoveKit.edgeFlip(edgeMask, edgeOriMask);
-    midgeLoc = MoveKit.midgeLoc(edgeMask);
-    midgePos = MoveKit.midgePos(edgeMask);
-    udgePos = MoveKit.udgePos(edgeMask);
-    dedgePos = MoveKit.dedgePos(edgeMask);
-    cornPos = MoveKit.cornPos(cornMask);
+  private Transform(Corner[] cornerMask, Edge[] edgeMask, Corner[] cornerTwistMask, Edge[] edgeFlipMask, Turn[] turns) {
+    this.turns = turns.clone();
+    cornerTwist = MoveKit.cornerTwist(cornerMask, cornerTwistMask, turns.clone());
+    edgeFlip = MoveKit.edgeFlip(edgeMask, edgeFlipMask, turns.clone());
+    mEdgePositionSet = MoveKit.mEdgePositionSet(edgeMask, turns.clone());
+    mEdgePosition = MoveKit.mEdgePosition(edgeMask, turns.clone());
+    uEdgePosition = MoveKit.uEdgePosition(edgeMask, turns.clone());
+    dEdgePosition = MoveKit.dEdgePosition(edgeMask, turns.clone());
+    cornerPosition = MoveKit.cornerPosition(cornerMask, turns.clone());
+  }
+
+  public Turn[] turns() {
+    return turns.clone();
   }
 }

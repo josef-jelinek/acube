@@ -1,19 +1,20 @@
 package acube.prune;
 
 import acube.transform.TransformB;
-import acube.transform.MoveTab2;
+import acube.transform.MoveTableComposed;
 
 public final class PruneB {
-  private final PruneTab midgePosCornPos;
-  private final PruneTab midgePosEdgePos;
-  private final MoveTab2 moveMidgePosCornPos;
-  private final MoveTab2 moveMidgePosEdgePos;
+
+  private final PruneTable mEdgePositionCornerPosition;
+  private final PruneTable mEdgePositionOEdgePosition;
+  private final MoveTableComposed moveMEdgePositionCornerPosition;
+  private final MoveTableComposed moveMEdgePositionOEdgePosition;
 
   public PruneB(TransformB transform) {
-    moveMidgePosCornPos = new MoveTab2(transform.midgePos, transform.cornPos);
-    moveMidgePosEdgePos = new MoveTab2(transform.midgePos, transform.edgePos);
-    midgePosCornPos = new PruneTab(moveMidgePosCornPos);
-    midgePosEdgePos = new PruneTab(moveMidgePosEdgePos);
+    moveMEdgePositionCornerPosition = new MoveTableComposed(transform.mEdgePosition, transform.cornerPosition);
+    moveMEdgePositionOEdgePosition = new MoveTableComposed(transform.mEdgePosition, transform.oEdgePosition);
+    mEdgePositionCornerPosition = new PruneTable(moveMEdgePositionCornerPosition, transform.turns());
+    mEdgePositionOEdgePosition = new PruneTable(moveMEdgePositionOEdgePosition, transform.turns());
   }
 
   private static int max(int a, int b) {
@@ -21,18 +22,20 @@ public final class PruneB {
   }
 
   public int distance(int cp, int ep, int mp) {
-    return max(midgePosCornPos.startDistance(moveMidgePosCornPos.state(mp, cp)), midgePosEdgePos.startDistance(moveMidgePosEdgePos.state(mp, ep)));
+    return max(mEdgePositionCornerPosition.startDistance(moveMEdgePositionCornerPosition.state(mp, cp)),
+      mEdgePositionOEdgePosition.startDistance(moveMEdgePositionOEdgePosition.state(mp, ep)));
   }
 
   public boolean over(int d, int cp, int ep, int mp) {
-    return midgePosCornPos.distance(d, moveMidgePosCornPos.state(mp, cp)) > d || midgePosEdgePos.distance(d, moveMidgePosEdgePos.state(mp, ep)) > d;
+    return mEdgePositionCornerPosition.distance(d, moveMEdgePositionCornerPosition.state(mp, cp)) > d
+      || mEdgePositionOEdgePosition.distance(d, moveMEdgePositionOEdgePosition.state(mp, ep)) > d;
   }
 
   public int maxDistance() {
-    return max(midgePosCornPos.maxDistance(), midgePosEdgePos.maxDistance());
+    return max(mEdgePositionCornerPosition.maxDistance(), mEdgePositionOEdgePosition.maxDistance());
   }
 
-  public int stateN() {
-    return midgePosCornPos.stateN() + midgePosEdgePos.stateN();
+  public int stateSize() {
+    return mEdgePositionCornerPosition.stateSize() + mEdgePositionOEdgePosition.stateSize();
   }
 }

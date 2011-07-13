@@ -1,118 +1,129 @@
 package acube.pack;
 
-public abstract class Pack {
-  final CombPart comb;
-  final int[] arr;
-  final int[] mask;
-  private int[] id = null;
-  final int num;
-  final int used;
+import acube.Tools;
 
-  Pack(CombPart comb, int[] usedmask) {
-    this.comb = comb;
-    num = usedmask.length;
-    arr = new int[num];
-    mask = (int[])usedmask.clone();
-    used = CombPart.used(mask);
+public abstract class Pack {
+  protected final CoderPart coder;
+  protected final int[] values;
+  protected final int[] usedMask;
+  private int[] partIds = null;
+  protected final int used;
+
+  public Pack(final CoderPart coder, final int[] usedMask) {
+    this.coder = coder;
+    this.usedMask = usedMask.clone();
+    values = new int[usedMask.length];
+    used = CoderTools.valuesUsed(usedMask);
   }
 
-  public int len() {
-    return comb.len(num, used);
+  public int size() {
+    return coder.size(values.length, used);
   }
 
   public int pack() {
-    return comb.pack(arr);
+    return coder.encode(values);
   }
 
-  public void unpack(int x) {
-    comb.unpack(arr, used, x);
+  public void unpack(final int x) {
+    coder.decode(values, used, x);
   }
 
-  public int startLen() {
+  public int startSize() {
     return 1;
   }
 
-  public int start(int x) {
+  public int start(final int x) {
     int r = 1;
-    for (int i = 0; i < num; i++)
-      arr[i] = mask[i] == 0 ? 0 : r++;
+    for (int i = 0; i < values.length; i++)
+      values[i] = usedMask[i] == 0 ? 0 : r++;
     return pack();
   }
 
-  void parts(int[] id) {
-    if (this.id != null) throw new IllegalStateException("Double initialization");
-    if (id.length != num) throw new IllegalArgumentException("Argument size does not match the size of the packed array");
-    this.id = (int[])id.clone();
+  void parts(final int[] partIds) {
+    if (this.partIds != null)
+      throw new IllegalStateException("Double initialization");
+    if (partIds.length != values.length)
+      throw new IllegalArgumentException(
+          "Argument size does not match the size of the packed array");
+    this.partIds = partIds.clone();
   }
 
-  public void convert(Pack from) {
-    if (id == null) throw new IllegalArgumentException("Object part ids not initialized");
-    if (from.id == null) throw new IllegalArgumentException("Source part ids not initialized");
-    for (int i = 0; i < num; i++)
-      arr[i] = -1;
-    for (int i = 0; i < from.num; i++) {
+  public void convert(final Pack from) {
+    if (partIds == null)
+      throw new IllegalArgumentException("Object part ids not initialized");
+    if (from.partIds == null)
+      throw new IllegalArgumentException("Source part ids not initialized");
+    for (int i = 0; i < values.length; i++)
+      values[i] = -1;
+    for (int i = 0; i < from.values.length; i++) {
       boolean found = false;
-      for (int j = 0; j < num; j++) {
-        if (id[j] == from.id[i]) {
-          if (arr[j] >= 0) throw new IllegalStateException("Id " + id[j] + " not unique");
-          arr[j] = from.arr[i];
+      for (int j = 0; j < values.length; j++)
+        if (partIds[j] == from.partIds[i]) {
+          if (values[j] >= 0)
+            throw new IllegalStateException("Id " + partIds[j] + " not unique");
+          values[j] = from.values[i];
           found = true;
         }
-      }
-      if (!found && from.arr[i] > 0) throw new IllegalStateException("Unused id " + from.id[i] + " contains non zero item");
+      if (!found && from.values[i] > 0)
+        throw new IllegalStateException("Unused id " + from.partIds[i] + " contains non zero item");
     }
-    for (int i = 0; i < num; i++)
-      if (arr[i] < 0) throw new IllegalStateException("Id " + id[i] + " not used");
+    for (int i = 0; i < values.length; i++)
+      if (values[i] < 0)
+        throw new IllegalStateException("Id " + partIds[i] + " not used");
   }
 
-  public void combine(Pack from) {
+  public void combine(final Pack from) {
     int max = 0;
-   main:
-    for (int i = 0; i < num; i++) {
-      for (int j = 0; j < from.num; j++) {
-        if (id[i] == from.id[j]) {
-          if (from.arr[j] > 0) {
-            if (arr[i] > 0) throw new IllegalStateException("Combine collision");
-            max = Math.max(max, from.arr[j]);
-            arr[i] = from.arr[j];
+    main: for (int i = 0; i < values.length; i++) {
+      for (int j = 0; j < from.values.length; j++)
+        if (partIds[i] == from.partIds[j]) {
+          if (from.values[j] > 0) {
+            if (values[i] > 0)
+              throw new IllegalStateException("Combine collision");
+            max = Math.max(max, from.values[j]);
+            values[i] = from.values[j];
           }
           continue main;
         }
-      }
-      throw new IllegalStateException("Incomplete conversion for id " + id[i]);
+      throw new IllegalStateException("Incomplete conversion for id " + partIds[i]);
     }
-    for (int i = 0; i < num; i++)
-      for (int j = 0; j < from.num; j++)
-        if (id[i] == from.id[j] && arr[i] > 0 && from.arr[j] == 0)
-          arr[i] += max;
+    for (int i = 0; i < values.length; i++)
+      for (int j = 0; j < from.values.length; j++)
+        if (partIds[i] == from.partIds[j] && values[i] > 0 && from.values[j] == 0)
+          values[i] += max;
   }
 
-  public void swap(int i1, int i2) {
-    int t = arr[i1];
-    arr[i1] = arr[i2];
-    arr[i2] = t;
+  public void swap(final int i1, final int i2) {
+    final int t = values[i1];
+    values[i1] = values[i2];
+    values[i2] = t;
   }
 
-  public void cycle(int i1, int i2, int i3, int i4) {
-    int t = arr[i1];
-    arr[i1] = arr[i2];
-    arr[i2] = arr[i3];
-    arr[i3] = arr[i4];
-    arr[i4] = t;
+  public void cycle(final int i1, final int i2, final int i3) {
+    final int t = values[i1];
+    values[i1] = values[i2];
+    values[i2] = values[i3];
+    values[i3] = t;
   }
 
-  protected int unknownPos() {
+  public void cycle(final int i1, final int i2, final int i3, final int i4) {
+    final int t = values[i1];
+    values[i1] = values[i2];
+    values[i2] = values[i3];
+    values[i3] = values[i4];
+    values[i4] = t;
+  }
+
+  protected final int unknownPositions() {
     int n = 0;
-    for (int i = 0; i < num; i++)
-      if (mask[i] == 0) n++;
+    for (int i = 0; i < values.length; i++)
+      if (usedMask[i] == 0)
+        n++;
     return n;
   }
 
+  @Override
   public String toString() {
-    if (arr.length == 0) return "";
-    String s = "" + arr[0];
-    for (int i = 1; i < arr.length; i++)
-      s += " " + arr[i];
-    return s;
+    return Tools.intArrayToString(values);
   }
 }

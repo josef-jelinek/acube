@@ -1,17 +1,29 @@
 package acube.transform;
 
-public final class TransformB {
-  public final ToTabMove midgePos;
-  public final ToTabMove edgePos;
-  public final ToTabMove cornPos;
+import acube.Corner;
+import acube.Edge;
+import acube.Turn;
 
-  public static TransformB obj(int[] cornMask, int[] edgeMask) {
-    return new TransformB(cornMask, edgeMask);
+public final class TransformB {
+
+  private final Turn[] turns;
+
+  public final ITableMove mEdgePosition;
+  public final ITableMove oEdgePosition;
+  public final ITableMove cornerPosition;
+
+  public static TransformB instance(Corner[] cornerMask, Edge[] edgeMask, Turn[] turns) {
+    return new TransformB(cornerMask, edgeMask, turns);
   }
 
-  private TransformB(int[] cornMask, int[] edgeMask) {
-    midgePos = MoveKitB.midgePos(edgeMask);
-    edgePos = MoveKitB.edgePos(edgeMask);
-    cornPos = new MoveTabB(MoveKit.cornPos(cornMask));
+  private TransformB(Corner[] cornerMask, Edge[] edgeMask, Turn[] turns) {
+    this.turns = Turn.getValidB(turns).clone();
+    mEdgePosition = MoveKitB.mEdgePosition(edgeMask, this.turns.clone());
+    oEdgePosition = MoveKitB.oEdgePosition(edgeMask, this.turns.clone());
+    cornerPosition = MoveKit.cornerPosition(cornerMask, this.turns.clone());
+  }
+
+  public Turn[] turns() {
+    return turns.clone();
   }
 }
