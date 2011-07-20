@@ -8,7 +8,9 @@ import acube.pack.PackPositionPartOrdered;
 import acube.pack.PackPositionPartUnordered;
 
 public final class PackPositionPartTest {
-  private void checkPackUnpack(Pack p) {
+  private static final int[] PART_IDS_5 = new int[] { 0, 1, 2, 3, 4 };
+
+  private void checkPackUnpack(final Pack p) {
     for (int i = 0, l = p.size(); i < l; i++) {
       p.unpack(i);
       assertEquals(i, p.pack());
@@ -17,8 +19,8 @@ public final class PackPositionPartTest {
 
   @Test
   public void testPack() {
-    PackPositionPartOrdered p =
-        new PackPositionPartOrdered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 });
+    final PackPositionPartOrdered p =
+        new PackPositionPartOrdered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 }, PART_IDS_5);
     assertEquals(CoderPart.ordered.size(5, 2), p.size());
     p.unpack(0);
     assertEquals("0 0 0 1 2", p.toString());
@@ -33,8 +35,8 @@ public final class PackPositionPartTest {
 
   @Test
   public void testStart() {
-    PackPositionPartOrdered p =
-        new PackPositionPartOrdered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 });
+    final PackPositionPartOrdered p =
+        new PackPositionPartOrdered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 }, PART_IDS_5);
     assertEquals(1, p.startSize());
     p.unpack(p.start(0));
     assertEquals("0 0 1 2 0", p.toString());
@@ -42,8 +44,8 @@ public final class PackPositionPartTest {
 
   @Test
   public void testLocPack() {
-    PackPositionPartUnordered p =
-        new PackPositionPartUnordered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 });
+    final PackPositionPartUnordered p =
+        new PackPositionPartUnordered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 }, PART_IDS_5);
     assertEquals(CoderPart.unordered.size(5, 2), p.size());
     p.unpack(0);
     assertEquals("0 0 0 1 1", p.toString());
@@ -58,8 +60,8 @@ public final class PackPositionPartTest {
 
   @Test
   public void testLocStart() {
-    PackPositionPartUnordered p =
-        new PackPositionPartUnordered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 });
+    final PackPositionPartUnordered p =
+        new PackPositionPartUnordered(new int[] { 0, 1, 1, 1, 0 }, new int[] { 0, 0, 1, 1, 1 }, PART_IDS_5);
     assertEquals(3, p.startSize());
     p.unpack(p.start(0));
     assertEquals("0 0 0 1 1", p.toString());

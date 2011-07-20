@@ -5,10 +5,15 @@ import acube.Turn;
 final class MoveTableLong extends MoveTable {
   private final int[][] turn;
 
-  public MoveTableLong(final ITableMove move, final Turn[][][] base) {
+  public MoveTableLong(final TurnTable move, final Turn[][][] base) {
     super(move);
     turn = new int[move.turns().length][stateSize()];
     fill(base);
+  }
+
+  @Override
+  public int memorySize() {
+    return turn.length * stateSize() * 4;
   }
 
   @Override

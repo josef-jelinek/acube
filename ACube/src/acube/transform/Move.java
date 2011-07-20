@@ -5,7 +5,7 @@ import acube.Edge;
 import acube.Turn;
 import acube.pack.Pack;
 
-abstract class Move implements ITableMove {
+abstract class Move implements TurnTable {
   protected final Pack pack;
   private final int stateSize;
   private final Turn[] turns;
@@ -13,12 +13,12 @@ abstract class Move implements ITableMove {
   protected Move(final Pack pack, final Turn[] turns) {
     this.pack = pack;
     stateSize = pack.size();
-    this.turns = turns.clone();
+    this.turns = turns;
   }
 
   @Override
   public Turn[] turns() {
-    return turns.clone();
+    return turns;
   }
 
   @Override
@@ -31,6 +31,11 @@ abstract class Move implements ITableMove {
   @Override
   public int stateSize() {
     return stateSize;
+  }
+
+  @Override
+  public int memorySize() {
+    throw new RuntimeException("Auxiliary object");
   }
 
   @Override
@@ -103,26 +108,23 @@ abstract class Move implements ITableMove {
     }
   }
 
-  protected final void swap(final Edge edge1, final Edge edge2) {
-    pack.swap(edgeIndex(edge1), edgeIndex(edge2));
+  protected final void swap(final Edge e1, final Edge e2) {
+    pack.swap(getIndex(e1), getIndex(e2));
   }
 
-  protected final void
-      cycle(final Edge edge1, final Edge edge2, final Edge edge3, final Edge edge4) {
-    pack.cycle(edgeIndex(edge1), edgeIndex(edge2), edgeIndex(edge3), edgeIndex(edge4));
+  protected final void cycle(final Edge e1, final Edge e2, final Edge e3, final Edge e4) {
+    pack.cycle(getIndex(e1), getIndex(e2), getIndex(e3), getIndex(e4));
   }
 
-  protected final void cycle(final Corner corner1, final Corner corner2, final Corner corner3,
-      final Corner corner4) {
-    pack.cycle(cornerIndex(corner1), cornerIndex(corner2), cornerIndex(corner3),
-        cornerIndex(corner4));
+  protected final void cycle(final Corner c1, final Corner c2, final Corner c3, final Corner c4) {
+    pack.cycle(getIndex(c1), getIndex(c2), getIndex(c3), getIndex(c4));
   }
 
-  protected int edgeIndex(final Edge edge) {
-    return edge.ordinal();
+  protected int getIndex(final Corner c) {
+    return c.ordinal();
   }
 
-  protected int cornerIndex(final Corner corner) {
-    return corner.ordinal();
+  protected int getIndex(final Edge e) {
+    return e.ordinal();
   }
 }

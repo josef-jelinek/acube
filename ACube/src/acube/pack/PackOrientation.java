@@ -6,27 +6,26 @@ public abstract class PackOrientation extends Pack {
   protected final int order;
   private final int orientationPartSize;
 
-  public static PackOrientation instance(final int[] usedMask, final int[] orientMask,
+  public static PackOrientation instance(final int[] usedMask, final int[] orientMask, final int[] partIds,
       final int order) {
     final int valuesUsed = CoderTools.valuesUsed(orientMask);
-    final int plen = PackOrientation.size(orientMask.length, valuesUsed, order);
-    final int flen = PackOrientationFull.size(orientMask.length, order);
-    return plen < flen ? new PackOrientationPart(usedMask, orientMask, order)
-        : new PackOrientationFull(orientMask, order);
+    final int lengthForPartial = PackOrientation.size(orientMask.length, valuesUsed, order);
+    final int lengthForFull = PackOrientationFull.size(orientMask.length, order);
+    return lengthForPartial < lengthForFull ? new PackOrientationPart(usedMask, orientMask, partIds, order)
+        : new PackOrientationFull(orientMask, partIds, order);
   }
 
-  protected PackOrientation(final int[] usedMask, final int[] orientMask, final int order) {
-    super(CoderPart.unordered, usedMask);
+  protected PackOrientation(final int[] usedMask, final int[] orientMask, final int[] partIds, final int order) {
+    super(CoderPart.unordered, usedMask, partIds);
     if (usedMask.length != orientMask.length)
       throw new IllegalArgumentException("Argument sizes do not match");
     this.order = order;
-    this.orientMask = orientMask.clone();
+    this.orientMask = orientMask;
     orientationsUsed = CoderTools.valuesUsed(this.orientMask);
     orientationPartSize = orientationPartSize(values.length, orientationsUsed, order);
   }
 
-  private static int orientationPartSize(final int length, final int orientationsUsed,
-      final int order) {
+  private static int orientationPartSize(final int length, final int orientationsUsed, final int order) {
     int size = 1;
     for (int i = 0; i < orientationsUsed; i++)
       size *= order;
@@ -36,8 +35,7 @@ public abstract class PackOrientation extends Pack {
   }
 
   protected static int size(final int length, final int orientationsUsed, final int order) {
-    return CoderPart.unordered.size(length, orientationsUsed) *
-        orientationPartSize(length, orientationsUsed, order);
+    return CoderPart.unordered.size(length, orientationsUsed) * orientationPartSize(length, orientationsUsed, order);
   }
 
   @Override
@@ -51,8 +49,7 @@ public abstract class PackOrientation extends Pack {
     for (final int value : values)
       if (value != 0)
         t = order * t + value - 1;
-    return coder.encode(values) * orientationPartSize +
-        (orientationsUsed == values.length ? t / order : t);
+    return coder.encode(values) * orientationPartSize + (orientationsUsed == values.length ? t / order : t);
   }
 
   @Override
@@ -62,8 +59,7 @@ public abstract class PackOrientation extends Pack {
       int total = 0;
       for (int i = 0; i < values.length; i++) {
         total +=
-            i < values.length - 1
-                ? storeOrientation(values.length - i - 2, orientationPart % order)
+            i < values.length - 1 ? storeOrientation(values.length - i - 2, orientationPart % order)
                 : storeOrientation(i, remainingOrientation(total));
         orientationPart /= order;
       }

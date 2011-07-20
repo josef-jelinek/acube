@@ -22,15 +22,17 @@ final class CoderPartUnordered extends CoderPart {
   }
 
   @Override
-  public void decode(final int[] values, int k, int value) {
+  public void decode(final int[] values, final int k, final int value) {
+    int val = value;
+    int count = k;
     for (int i = 0; i < values.length; i++) {
-      final int c = size(values.length - i - 1, k);
-      if (c > value)
+      final int c = size(values.length - i - 1, count);
+      if (c > val)
         values[i] = 0;
       else {
-        value -= c;
+        val -= c;
         values[i] = 1;
-        k--;
+        count--;
       }
     }
   }

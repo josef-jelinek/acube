@@ -6,9 +6,12 @@ import acube.pack.Pack;
 import acube.pack.PackPositionFull;
 
 public final class PackPositionFullTest {
+  private static final int[] PART_IDS_4 = { 0, 1, 2, 3 };
+  private static final int[] PART_IDS_5 = { 0, 1, 2, 3, 4 };
+
   @Test
   public void testPack() {
-    Pack pack = new PackPositionFull(new int[] { 0, 0, 1, 1 });
+    final Pack pack = new PackPositionFull(new int[] { 0, 0, 1, 1 }, PART_IDS_4);
     assertEquals(12, pack.size());
     assertEquals(1, pack.startSize());
     assertEquals(0, pack.start(0));
@@ -20,7 +23,7 @@ public final class PackPositionFullTest {
 
   @Test
   public void testCycle() {
-    Pack pack = new PackPositionFull(new int[] { 0, 1, 1, 1, 1 });
+    final Pack pack = new PackPositionFull(new int[] { 0, 1, 1, 1, 1 }, PART_IDS_5);
     pack.unpack(0);
     assertEquals("0 1 2 3 4", pack.toString());
     pack.swap(2, 4);

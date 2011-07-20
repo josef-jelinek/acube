@@ -5,25 +5,23 @@ import acube.Edge;
 import acube.Turn;
 
 public final class TransformB {
-
   private final Turn[] turns;
+  public final TurnTable mEdgePosition;
+  public final TurnTable oEdgePosition;
+  public final TurnTable cornerPosition;
 
-  public final ITableMove mEdgePosition;
-  public final ITableMove oEdgePosition;
-  public final ITableMove cornerPosition;
-
-  public static TransformB instance(Corner[] cornerMask, Edge[] edgeMask, Turn[] turns) {
+  public static TransformB instance(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
     return new TransformB(cornerMask, edgeMask, turns);
   }
 
-  private TransformB(Corner[] cornerMask, Edge[] edgeMask, Turn[] turns) {
-    this.turns = Turn.getValidB(turns).clone();
-    mEdgePosition = MoveKitB.mEdgePosition(edgeMask, this.turns.clone());
-    oEdgePosition = MoveKitB.oEdgePosition(edgeMask, this.turns.clone());
-    cornerPosition = MoveKit.cornerPosition(cornerMask, this.turns.clone());
+  private TransformB(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
+    this.turns = Turn.getValidB(turns);
+    mEdgePosition = MoveKitB.mEdgePosition(edgeMask, this.turns);
+    oEdgePosition = MoveKitB.oEdgePosition(edgeMask, this.turns);
+    cornerPosition = MoveKit.cornerPosition(cornerMask, this.turns);
   }
 
   public Turn[] turns() {
-    return turns.clone();
+    return turns;
   }
 }

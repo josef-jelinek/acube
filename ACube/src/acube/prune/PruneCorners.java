@@ -4,20 +4,19 @@ import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 
 public class PruneCorners {
-
   private final PruneTable cornerTwistCornerPosition;
   private final MoveTableComposed moveCornerTwistCornerPosition;
 
-  public PruneCorners(Transform transform) {
+  public PruneCorners(final Transform transform) {
     moveCornerTwistCornerPosition = new MoveTableComposed(transform.cornerTwist, transform.cornerPosition);
-    cornerTwistCornerPosition = new PruneTable(moveCornerTwistCornerPosition, transform.turns());
+    cornerTwistCornerPosition = new PruneTable(moveCornerTwistCornerPosition);
   }
 
-  public int distance(int ct, int cp) {
+  public int distance(final int ct, final int cp) {
     return cornerTwistCornerPosition.startDistance(moveCornerTwistCornerPosition.state(ct, cp));
   }
 
-  public boolean over(int d, int ct, int cp) {
+  public boolean over(final int d, final int ct, final int cp) {
     return cornerTwistCornerPosition.distance(d, moveCornerTwistCornerPosition.state(ct, cp)) > d;
   }
 
@@ -25,7 +24,11 @@ public class PruneCorners {
     return cornerTwistCornerPosition.maxDistance();
   }
 
-  public int size() {
+  public int stateSize() {
     return cornerTwistCornerPosition.stateSize();
+  }
+
+  public int memorySize() {
+    return cornerTwistCornerPosition.memorySize();
   }
 }

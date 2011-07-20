@@ -1,12 +1,11 @@
 package acube.pack;
 
 public final class PackPositionPartUnordered extends Pack {
-
   private final int[] careMask;
 
-  public PackPositionPartUnordered(int[] mask, int[] careMask) {
-    super(CoderPart.unordered, CoderTools.maskIntersection(mask, careMask));
-    this.careMask = careMask.clone();
+  public PackPositionPartUnordered(final int[] mask, final int[] careMask, final int[] partIds) {
+    super(CoderPart.unordered, CoderTools.maskIntersection(mask, careMask), partIds);
+    this.careMask = careMask;
   }
 
   @Override
@@ -15,8 +14,8 @@ public final class PackPositionPartUnordered extends Pack {
   }
 
   @Override
-  public int start(int x) {
-    int[] a = new int[care()];
+  public int start(final int x) {
+    final int[] a = new int[care()];
     coder.decode(a, careNotPos(), x);
     for (int i = 0, j = 0; i < values.length; i++)
       values[i] = careMask[i] == 1 ? a[j++] : 0;

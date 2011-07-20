@@ -36,7 +36,7 @@ final class OEdgePositionB extends Move {
   }
 
   @Override
-  protected int edgeIndex(final Edge edge) {
-    return PackKit.oEdgeIndexB(edge);
+  protected int getIndex(final Edge e) {
+    return PackKit.oEdgeIndexB(e);
   }
 }

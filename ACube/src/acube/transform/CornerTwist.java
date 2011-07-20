@@ -3,10 +3,18 @@ package acube.transform;
 import acube.Corner;
 import acube.Turn;
 import acube.pack.PackKit;
+import acube.pack.PackOrientation;
 
-final class CornerTwist extends OrientationMove {
+final class CornerTwist extends Move {
+  private final PackOrientation packOrientation;
+
+  private CornerTwist(final PackOrientation packOrientation, final Turn[] turns) {
+    super(packOrientation, turns);
+    this.packOrientation = packOrientation;
+  }
+
   public CornerTwist(final Corner[] mask, final Corner[] twistMask, final Turn[] turns) {
-    super(PackKit.cornerTwist(mask, twistMask), turns);
+    this(PackKit.cornerTwist(mask, twistMask), turns);
   }
 
   @Override
@@ -27,5 +35,9 @@ final class CornerTwist extends OrientationMove {
       break;
     default:
     }
+  }
+
+  protected void twist(final Corner c1, final Corner c2, final Corner c3, final Corner c4) {
+    packOrientation.changeOrientation(getIndex(c1), getIndex(c2), getIndex(c3), getIndex(c4));
   }
 }

@@ -2,10 +2,16 @@ package acube.transform;
 
 import acube.Turn;
 
-public interface ITableMove extends IDoMove {
-
+public interface TurnTable {
   public int startSize();
+
   public int start(int i);
+
   public int stateSize();
+
+  public int memorySize();
+
+  public int turn(Turn turn, int state);
+
   public Turn[] turns();
 }

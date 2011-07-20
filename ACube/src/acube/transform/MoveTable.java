@@ -3,16 +3,15 @@ package acube.transform;
 import java.util.Arrays;
 import acube.Turn;
 
-abstract class MoveTable implements ITableMove {
-  private final ITableMove move;
+abstract class MoveTable implements TurnTable {
+  private final TurnTable move;
   protected final int[] turnIndices = new int[Turn.size()];
 
-  static final MoveTable instance(final ITableMove move, final Turn[][][] base) {
-    return move.stateSize() <= 65536 ? new MoveTableShort(move, base) : new MoveTableLong(move,
-        base);
+  static final MoveTable instance(final TurnTable move, final Turn[][][] base) {
+    return move.stateSize() <= 65536 ? new MoveTableShort(move, base) : new MoveTableLong(move, base);
   }
 
-  protected MoveTable(final ITableMove move) {
+  protected MoveTable(final TurnTable move) {
     this.move = move;
     Arrays.fill(turnIndices, -1);
   }
@@ -44,10 +43,10 @@ abstract class MoveTable implements ITableMove {
     for (int turnIndex = 0; turnIndex < turns.length; turnIndex++)
       turnIndices[turns[turnIndex].ordinal()] = turnIndex;
     for (final Turn turn : turns) {
-      final Turn[] generator = getGenerator(turn, base);
+      final Turn[] generatorTurns = getGenerator(turn, base);
       for (int stateIndex = 0; stateIndex < move.stateSize(); stateIndex++) {
         int newStateIndex = stateIndex;
-        for (final Turn generatorTurn : generator)
+        for (final Turn generatorTurn : generatorTurns)
           newStateIndex = move.turn(generatorTurn, newStateIndex);
         set(turnIndices[turn.ordinal()], stateIndex, newStateIndex);
       }

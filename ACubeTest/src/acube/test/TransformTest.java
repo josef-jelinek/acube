@@ -1,65 +1,71 @@
 package acube.test;
 
+import static acube.Corner.DBR;
+import static acube.Corner.DFL;
+import static acube.Corner.DLB;
+import static acube.Corner.DRF;
+import static acube.Corner.UBL;
+import static acube.Corner.UFR;
+import static acube.Corner.ULF;
+import static acube.Corner.URB;
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.DL;
+import static acube.Edge.DR;
+import static acube.Edge.FL;
+import static acube.Edge.FR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
+import static acube.Edge.UL;
+import static acube.Edge.UR;
+import static acube.Turn.B2;
+import static acube.Turn.D1;
+import static acube.Turn.D2;
+import static acube.Turn.D3;
+import static acube.Turn.E1;
+import static acube.Turn.E2;
+import static acube.Turn.E3;
+import static acube.Turn.F2;
+import static acube.Turn.L2;
+import static acube.Turn.M2;
+import static acube.Turn.R2;
+import static acube.Turn.S2;
+import static acube.Turn.U1;
+import static acube.Turn.U2;
+import static acube.Turn.U3;
+import static acube.Turn.b2;
+import static acube.Turn.d1;
+import static acube.Turn.d2;
+import static acube.Turn.d3;
+import static acube.Turn.f2;
+import static acube.Turn.l2;
+import static acube.Turn.r2;
+import static acube.Turn.u1;
+import static acube.Turn.u2;
+import static acube.Turn.u3;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import java.util.Arrays;
-import org.junit.Before;
 import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
 import acube.TurnB;
-import acube.transform.ITableMove;
 import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 import acube.transform.TransformB;
+import acube.transform.TurnTable;
 
 public final class TransformTest {
-  private Transform t;
-  private TransformB tB;
-  private Corner[] cornerMask = { Corner.UFR, Corner.URB, Corner.UBL, Corner.ULF };
-  private Edge[] edgeMask = {
-      Edge.UF, Edge.UR, Edge.UB, Edge.UL, Edge.DF, Edge.DR, Edge.FR, Edge.FL };
-  private Corner[] cornerTwistMask = { Corner.ULF, Corner.DRF, Corner.DFL, Corner.DLB, Corner.DBR };
-  private Edge[] edgeFlipMask = { Edge.UL, Edge.DF, Edge.DR, Edge.DB, Edge.DL, Edge.FR, Edge.FL };
-
-  @Before
-  public void setUp() {
-    t = Transform.instance(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
-    tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
-  }
-
-  private void checkTable(ITableMove table, int states) {
-    assertEquals(table.stateSize(), states);
-    // reachability test (depth-first maze walkthrough)
-    Turn[] turns = table.turns();
-    boolean[] usedStates = new boolean[states];
-    int[] previousStates = new int[states];
-    int[] nextTurnIndices = new int[states];
-    int currentState = goFresh(0, -1, previousStates, nextTurnIndices, usedStates);
-    while (currentState >= 0) {
-      while (nextTurnIndices[currentState] < turns.length) {
-        int newState = table.turn(turns[nextTurnIndices[currentState]++], currentState);
-        if (!usedStates[newState])
-          currentState =
-              goFresh(newState, currentState, previousStates, nextTurnIndices, usedStates);
-      }
-      currentState = previousStates[currentState];
-    }
-    for (int i = 0; i < states; i++)
-      assertTrue("unreachable states", usedStates[i]);
-  }
-
-  private static int goFresh(int newState, int currentState, int[] previousStates,
-      int[] nextTurnIndices, boolean[] usedStates) {
-    previousStates[newState] = currentState;
-    usedStates[newState] = true;
-    nextTurnIndices[newState] = 0;
-    return newState;
-  }
+  private final Corner[] cornerMask = { UFR, URB, UBL, ULF };
+  private final Edge[] edgeMask = { UF, UR, UB, UL, DF, DR, FR, FL };
+  private final Corner[] cornerTwistMask = { ULF, DRF, DFL, DLB, DBR };
+  private final Edge[] edgeFlipMask = { UL, DF, DR, DB, DL, FR, FL };
 
   @Test
-  public void test_tables() {
+  public void tables_lengths_matches_combinatorics() {
+    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
     checkTable(t.cornerPosition, 8 * 7 * 6 * 5);
     checkTable(t.cornerTwist, 2187);
     checkTable(t.edgeFlip, 2048);
@@ -71,74 +77,109 @@ public final class TransformTest {
     checkTable(tB.oEdgePosition, 8 * 7 * 6 * 5 * 4 * 3);
   }
 
+  private void checkTable(final TurnTable table, final int states) {
+    assertEquals(table.stateSize(), states);
+    // reachability test (depth-first maze walkthrough)
+    final Turn[] turns = table.turns();
+    final boolean[] usedStates = new boolean[states];
+    final int[] previousStates = new int[states];
+    final int[] nextTurnIndices = new int[states];
+    int currentState = goFresh(0, -1, previousStates, nextTurnIndices, usedStates);
+    while (currentState >= 0) {
+      while (nextTurnIndices[currentState] < turns.length) {
+        final int newState = table.turn(turns[nextTurnIndices[currentState]++], currentState);
+        if (!usedStates[newState])
+          currentState = goFresh(newState, currentState, previousStates, nextTurnIndices, usedStates);
+      }
+      currentState = previousStates[currentState];
+    }
+    for (int i = 0; i < states; i++)
+      assertTrue("unreachable states", usedStates[i]);
+  }
+
+  private static int goFresh(final int newState, final int currentState, final int[] previousStates,
+      final int[] nextTurnIndices, final boolean[] usedStates) {
+    previousStates[newState] = currentState;
+    usedStates[newState] = true;
+    nextTurnIndices[newState] = 0;
+    return newState;
+  }
+
   @Test(expected = IllegalArgumentException.class)
-  public void test_table_2_excepion() {
+  public void composing_incompatible_tables_throws_excepion() {
+    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
     new MoveTableComposed(t.dEdgePosition, tB.mEdgePosition);
   }
 
   @Test
-  public void test_table_2() {
-    MoveTableComposed move = new MoveTableComposed(t.mEdgePositionSet, t.dEdgePosition);
+  public void table_composed_move() {
+    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final MoveTableComposed move = new MoveTableComposed(t.mEdgePositionSet, t.dEdgePosition);
     assertEquals(move.stateSize(), t.mEdgePositionSet.stateSize() * t.dEdgePosition.stateSize());
-    assertTrue(Arrays.equals(move.turns(), t.mEdgePositionSet.turns()));
-    assertTrue(Arrays.equals(move.turns(), t.dEdgePosition.turns()));
+    assertArrayEquals(move.turns(), t.mEdgePositionSet.turns());
+    assertArrayEquals(move.turns(), t.dEdgePosition.turns());
     assertEquals(move.startSize(), t.mEdgePositionSet.startSize() * t.dEdgePosition.startSize());
-    Turn[] turns = move.turns();
-    for (int i = 0; i < move.stateSize(); i++) {
-      for (int j = 0; j < turns.length; j++) {
-        assertEquals(move.turn(turns[j], i) / t.dEdgePosition.stateSize(),
-            t.mEdgePositionSet.turn(turns[j], i / t.dEdgePosition.stateSize()));
-        assertEquals(move.turn(turns[j], i) % t.dEdgePosition.stateSize(),
-            t.dEdgePosition.turn(turns[j], i % t.dEdgePosition.stateSize()));
+    final Turn[] turns = move.turns();
+    for (int i = 0; i < move.stateSize(); i++)
+      for (final Turn turn : turns) {
+        assertEquals(move.turn(turn, i) / t.dEdgePosition.stateSize(),
+            t.mEdgePositionSet.turn(turn, i / t.dEdgePosition.stateSize()));
+        assertEquals(move.turn(turn, i) % t.dEdgePosition.stateSize(),
+            t.dEdgePosition.turn(turn, i % t.dEdgePosition.stateSize()));
       }
-    }
     for (int i = 0; i < move.startSize(); i++) {
       assertEquals(move.start(i) / t.dEdgePosition.stateSize(),
           t.mEdgePositionSet.start(i / t.dEdgePosition.startSize()));
-      assertEquals(move.start(i) % t.dEdgePosition.stateSize(),
-          t.dEdgePosition.start(i % t.dEdgePosition.startSize()));
+      assertEquals(move.start(i) % t.dEdgePosition.stateSize(), t.dEdgePosition.start(i % t.dEdgePosition.startSize()));
     }
   }
 
   @Test
-  public void test_table_B() {
+  public void tables_for_phase_B() {
+    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
     assertEquals(tB.cornerPosition.stateSize(), t.cornerPosition.stateSize());
     assertEquals(t.cornerPosition.turns().length, Turn.size());
     assertEquals(tB.cornerPosition.turns().length, TurnB.size());
     assertEquals(tB.cornerPosition.startSize(), t.cornerPosition.startSize());
-    for (Turn turn : tB.cornerPosition.turns())
+    for (final Turn turn : tB.cornerPosition.turns())
       for (int i = 0; i < tB.cornerPosition.stateSize(); i++)
         assertEquals(t.cornerPosition.turn(turn, i), tB.cornerPosition.turn(turn, i));
     for (int i = 0; i < tB.cornerPosition.startSize(); i++)
       assertEquals(tB.cornerPosition.start(i), t.cornerPosition.start(i));
   }
 
-  Turn[][] revB = {
-      { Turn.U1, Turn.U3 }, { Turn.U2, Turn.U2 }, { Turn.D1, Turn.D3 }, { Turn.D2, Turn.D2 },
-      { Turn.F2, Turn.F2 }, { Turn.B2, Turn.B2 }, { Turn.L2, Turn.L2 }, { Turn.R2, Turn.R2 },
-      { Turn.E1, Turn.E3 }, { Turn.E2, Turn.E2 }, { Turn.S2, Turn.S2 }, { Turn.M2, Turn.M2 },
-      { Turn.u1, Turn.u3 }, { Turn.u2, Turn.u2 }, { Turn.d1, Turn.d3 }, { Turn.d2, Turn.d2 },
-      { Turn.f2, Turn.f2 }, { Turn.b2, Turn.b2 }, { Turn.l2, Turn.l2 }, { Turn.r2, Turn.r2 }, };
+  private static final Turn[][] revB = {
+      { U1, U3 }, { U2, U2 }, { D1, D3 }, { D2, D2 }, { F2, F2 }, { B2, B2 }, { L2, L2 }, { R2, R2 }, { E1, E3 },
+      { E2, E2 }, { S2, S2 }, { M2, M2 }, { u1, u3 }, { u2, u2 }, { d1, d3 }, { d2, d2 }, { f2, f2 }, { b2, b2 },
+      { l2, l2 }, { r2, r2 } };
 
   @Test
-  public void testReverseB() {
-    for (int i = 0; i < tB.mEdgePosition.stateSize(); i++) {
-      for (int j = 0; j < revB.length; j++) {
-        assertEquals(i, tB.mEdgePosition.turn(revB[j][0], tB.mEdgePosition.turn(revB[j][1], i)));
-        assertEquals(i, tB.mEdgePosition.turn(revB[j][1], tB.mEdgePosition.turn(revB[j][0], i)));
+  public void back_and_forth_turn_results_in_identity_in_phase_B() {
+    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    checkBackForthTurns(tB.mEdgePosition);
+    checkBackForthTurns(tB.oEdgePosition);
+    checkBackForthTurns(tB.cornerPosition);
+  }
+
+  private void checkBackForthTurns(final TurnTable tab) {
+    for (int i = 0; i < tab.stateSize(); i++)
+      for (final Turn[] element : revB) {
+        assertEquals(i, tab.turn(element[0], tab.turn(element[1], i)));
+        assertEquals(i, tab.turn(element[1], tab.turn(element[0], i)));
       }
-    }
-    for (int i = 0; i < tB.oEdgePosition.stateSize(); i++) {
-      for (int j = 0; j < revB.length; j++) {
-        assertEquals(i, tB.oEdgePosition.turn(revB[j][0], tB.oEdgePosition.turn(revB[j][1], i)));
-        assertEquals(i, tB.oEdgePosition.turn(revB[j][1], tB.oEdgePosition.turn(revB[j][0], i)));
-      }
-    }
-    for (int i = 0; i < tB.cornerPosition.stateSize(); i++) {
-      for (int j = 0; j < revB.length; j++) {
-        assertEquals(i, tB.cornerPosition.turn(revB[j][0], tB.cornerPosition.turn(revB[j][1], i)));
-        assertEquals(i, tB.cornerPosition.turn(revB[j][1], tB.cornerPosition.turn(revB[j][0], i)));
-      }
-    }
+  }
+
+  @Test
+  public void conversion_to_phase_B() {
+    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TurnTable mep = t.mEdgePosition;
+    final TurnTable uep = t.uEdgePosition;
+    final TurnTable dep = t.dEdgePosition;
+    final TurnTable mepB = tB.mEdgePosition;
+    final TurnTable oepB = tB.oEdgePosition;
+
   }
 }

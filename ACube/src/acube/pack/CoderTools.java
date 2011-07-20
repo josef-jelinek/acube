@@ -49,28 +49,27 @@ public final class CoderTools {
     return 0;
   }
 
-  public static void decodePermutationToUsed(final int[] outValues, int value) {
+  public static void decodePermutationToUsed(final int[] outValues, final int value) {
     int valuesUsed = 0;
+    int val = value;
     for (int i = outValues.length - 1; i >= 0; i--) {
       if (outValues[i] == 0)
         continue;
       valuesUsed++;
-      outValues[i] = value % valuesUsed + 1;
-      value /= valuesUsed;
+      outValues[i] = val % valuesUsed + 1;
+      val /= valuesUsed;
       for (int j = outValues.length - 1; j > i; j--)
         if (outValues[j] != 0 && outValues[j] >= outValues[i])
           outValues[j]++;
     }
   }
 
-  public static void composePermutation(final int[] outValues, final int[] values1,
-      final int[] values2) {
+  public static void composePermutation(final int[] outValues, final int[] values1, final int[] values2) {
     for (int i = 0; i < outValues.length; i++)
       outValues[i] = values1[values2[i]];
   }
 
-  public static void conjugatePermutation(final int[] outValues, final int[] values,
-      final int[] conjugatorValues) {
+  public static void conjugatePermutation(final int[] outValues, final int[] values, final int[] conjugatorValues) {
     for (int i = 0; i < outValues.length; i++)
       outValues[conjugatorValues[i]] = conjugatorValues[values[i]];
   }

@@ -1,19 +1,11 @@
 package acube.io;
 
 public final class StrIn implements ToRead {
-  private String text = null;
+  private final String text;
   private int pos = 0;
   private int lineNumber = 1;
 
-  public StrIn() {
-    this(null);
-  }
-
   public StrIn(final String text) {
-    source(text);
-  }
-
-  public void source(final String text) {
     this.text = text;
     pos = 0;
     lineNumber = 1;
