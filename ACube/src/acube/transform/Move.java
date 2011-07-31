@@ -1,5 +1,25 @@
 package acube.transform;
 
+import static acube.Corner.DBR;
+import static acube.Corner.DFL;
+import static acube.Corner.DLB;
+import static acube.Corner.DRF;
+import static acube.Corner.UBL;
+import static acube.Corner.UFR;
+import static acube.Corner.ULF;
+import static acube.Corner.URB;
+import static acube.Edge.BL;
+import static acube.Edge.BR;
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.DL;
+import static acube.Edge.DR;
+import static acube.Edge.FL;
+import static acube.Edge.FR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
+import static acube.Edge.UL;
+import static acube.Edge.UR;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
@@ -22,7 +42,7 @@ abstract class Move implements TurnTable {
   }
 
   @Override
-  public int turn(final Turn turn, final int state) { // template method (uses pack(), unpack(), turn())
+  public int turn(final Turn turn, final int state) { // template method
     unpack(state);
     turn(turn);
     return pack();
@@ -58,25 +78,40 @@ abstract class Move implements TurnTable {
 
   abstract void turn(Turn turn);
 
+  protected final boolean areUsedIn(final boolean[] allowedMask) {
+    return pack.areUsedIn(allowedMask);
+  }
+
+  public final int convertFrom(final Move move) {
+    pack.convert(move.pack);
+    return pack();
+  }
+
+  public final int convertFrom(final Move move1, final Move move2) {
+    pack.convert(move1.pack);
+    pack.combine(move2.pack);
+    return pack();
+  }
+
   protected final void cycleEdges(final Turn turn) {
     switch (turn) {
     case U1:
-      cycle(Edge.UF, Edge.UR, Edge.UB, Edge.UL);
+      cycle(UF, UR, UB, UL);
       break;
     case D1:
-      cycle(Edge.DF, Edge.DL, Edge.DB, Edge.DR);
+      cycle(DF, DL, DB, DR);
       break;
     case F1:
-      cycle(Edge.FL, Edge.DF, Edge.FR, Edge.UF);
+      cycle(FL, DF, FR, UF);
       break;
     case B1:
-      cycle(Edge.BR, Edge.DB, Edge.BL, Edge.UB);
+      cycle(BR, DB, BL, UB);
       break;
     case L1:
-      cycle(Edge.BL, Edge.DL, Edge.FL, Edge.UL);
+      cycle(BL, DL, FL, UL);
       break;
     case R1:
-      cycle(Edge.FR, Edge.DR, Edge.BR, Edge.UR);
+      cycle(FR, DR, BR, UR);
       break;
     default:
       throw new IllegalArgumentException("Unsupported or non primitive turn");
@@ -86,22 +121,22 @@ abstract class Move implements TurnTable {
   protected final void cycleCorners(final Turn turn) {
     switch (turn) {
     case U1:
-      cycle(Corner.URB, Corner.UBL, Corner.ULF, Corner.UFR);
+      cycle(URB, UBL, ULF, UFR);
       break;
     case D1:
-      cycle(Corner.DFL, Corner.DLB, Corner.DBR, Corner.DRF);
+      cycle(DFL, DLB, DBR, DRF);
       break;
     case F1:
-      cycle(Corner.DFL, Corner.DRF, Corner.UFR, Corner.ULF);
+      cycle(DFL, DRF, UFR, ULF);
       break;
     case B1:
-      cycle(Corner.DBR, Corner.DLB, Corner.UBL, Corner.URB);
+      cycle(DBR, DLB, UBL, URB);
       break;
     case L1:
-      cycle(Corner.DLB, Corner.DFL, Corner.ULF, Corner.UBL);
+      cycle(DLB, DFL, ULF, UBL);
       break;
     case R1:
-      cycle(Corner.DRF, Corner.DBR, Corner.URB, Corner.UFR);
+      cycle(DRF, DBR, URB, UFR);
       break;
     default:
       throw new IllegalArgumentException("Unsupported or non primitive turn");
@@ -126,5 +161,10 @@ abstract class Move implements TurnTable {
 
   protected int getIndex(final Edge e) {
     return e.ordinal();
+  }
+
+  @Override
+  public String toString() {
+    return pack.toString();
   }
 }

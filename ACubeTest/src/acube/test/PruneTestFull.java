@@ -27,7 +27,7 @@ public final class PruneTestFull {
 
   @Test
   public void sizes_of_tables_B() {
-    final TransformB transform = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.values());
     final PruneB tab = new PruneB(transform);
     assertEquals(1935360, tab.stateSize());
     assertEquals(483840, tab.memorySize());

@@ -1,6 +1,8 @@
 package acube;
 
 import static java.lang.Math.max;
+import acube.transform.Transform;
+import acube.transform.TransformB;
 
 public final class Solver {
   private static final int MAX_LENGTH = 50;
@@ -226,19 +228,22 @@ public final class Solver {
     int mep = stackA[0].mEdgePosition;
     int uep = stackA[0].uEdgePosition;
     int dep = stackA[0].dEdgePosition;
+    final Transform transform = state.transform;
     for (int i = 0; i < stackASize; i++) {
       final Turn turn = stackA[i].turn;
-      cp = state.transform.cornerPosition.turn(turn, cp);
-      mep = state.transform.mEdgePosition.turn(turn, mep);
-      uep = state.transform.uEdgePosition.turn(turn, uep);
-      dep = state.transform.dEdgePosition.turn(turn, dep);
+      cp = transform.cornerPosition.turn(turn, cp);
+      mep = transform.mEdgePosition.turn(turn, mep);
+      uep = transform.uEdgePosition.turn(turn, uep);
+      dep = transform.dEdgePosition.turn(turn, dep);
     }
+    final TransformB transformB = state.transformB;
     /* entry to the phase B need not be correct if midges are not completely
      * defined and some U or D edges are in the ring */
-//    if (!state.transformB.edgePos.uInB(uEdgePos) || !transform.edgePos.dInB(dEdgePos))
-//      return;
-//    sol2++;
-//    stackB[0].cornPerm = cornPerm;
+    if (!transformB.isMEdgePositionInB(mep) || !transformB.isUEdgePositionInB(uep) ||
+        !transformB.isDEdgePositionInB(dep))
+      return;
+    sol2++;
+    stackB[0].cornerPosition = cp;
 //    stackB[0].edgePerm = transform.edgePos.udSToPerm(uEdgePos, dEdgePos);
 //    stackB[0].midgePerm = transform.edgePos.midgeToPerm(midgePos);
 //    final int maxBDepth = prune.distanceB(cornPerm, stackB[0].edgePerm, stackB[0].midgePerm);

@@ -1,15 +1,16 @@
 package acube.pack;
 
+import java.util.Arrays;
 import acube.Tools;
 
 public abstract class Pack {
   protected final CoderPart coder;
   protected final int[] values;
-  protected final int[] usedMask;
+  protected final boolean[] usedMask;
   private final int[] partIds;
   protected final int used;
 
-  public Pack(final CoderPart coder, final int[] usedMask, final int[] partIds) {
+  public Pack(final CoderPart coder, final boolean[] usedMask, final int[] partIds) {
     assert partIds.length == usedMask.length;
     this.coder = coder;
     this.usedMask = usedMask;
@@ -37,14 +38,13 @@ public abstract class Pack {
   public int start(@SuppressWarnings("unused") final int _) {
     int r = 1;
     for (int i = 0; i < values.length; i++)
-      values[i] = usedMask[i] == 0 ? 0 : r++;
+      values[i] = !usedMask[i] ? 0 : r++;
     return pack();
   }
 
   public void convert(final Pack from) {
     assert partIds != null && from.partIds != null;
-    for (int i = 0; i < values.length; i++)
-      values[i] = -1;
+    Arrays.fill(values, -1);
     for (int i = 0; i < from.values.length; i++) {
       boolean found = false;
       for (int j = 0; j < values.length; j++)
@@ -91,9 +91,17 @@ public abstract class Pack {
   protected final int unknownPositions() {
     int n = 0;
     for (int i = 0; i < values.length; i++)
-      if (usedMask[i] == 0)
+      if (!usedMask[i])
         n++;
     return n;
+  }
+
+  public final boolean areUsedIn(final boolean[] allowedMask) {
+    assert allowedMask.length == values.length;
+    for (int i = 0; i < values.length; i++)
+      if (!allowedMask[i] && values[i] > 0)
+        return false;
+    return true;
   }
 
   @Override

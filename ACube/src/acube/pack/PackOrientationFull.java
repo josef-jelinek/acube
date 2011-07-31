@@ -1,18 +1,19 @@
 package acube.pack;
 
-public final class PackOrientationFull extends PackOrientation {
-  private final int[] orientationMask;
+import java.util.Arrays;
 
-  public PackOrientationFull(final int[] orientationMask, final int[] partIds, final int order) {
+public final class PackOrientationFull extends PackOrientation {
+  private final boolean[] orientationMask;
+
+  public PackOrientationFull(final boolean[] orientationMask, final int[] partIds, final int order) {
     super(fullmask(orientationMask.length), fullmask(orientationMask.length), partIds, order);
     this.orientationMask = orientationMask;
   }
 
-  private static int[] fullmask(final int length) {
-    final int[] fullMask = new int[length];
-    for (int i = 0; i < length; i++)
-      fullMask[i] = 1;
-    return fullMask;
+  private static boolean[] fullmask(final int length) {
+    final boolean[] mask = new boolean[length];
+    Arrays.fill(mask, true);
+    return mask;
   }
 
   public static int size(final int length, final int order) {
@@ -33,19 +34,20 @@ public final class PackOrientationFull extends PackOrientation {
     int total = 0;
     int remainingUnknownOrientations = unknownOrientations() - 1;
     for (int i = 0; i < values.length; i++)
-      if (orientationMask[i] == 0) {
+      if (orientationMask[i])
+        storeOrientation(i, 0);
+      else {
         total += storeOrientation(i, remainingUnknownOrientations > 0 ? t % order : remainingOrientation(total));
         t /= order;
         remainingUnknownOrientations--;
-      } else
-        storeOrientation(i, 0);
+      }
     return pack();
   }
 
   private int unknownOrientations() {
     int count = 0;
-    for (int i = 0; i < values.length; i++)
-      if (orientationMask[i] == 0)
+    for (final boolean f : orientationMask)
+      if (!f)
         count++;
     return count;
   }

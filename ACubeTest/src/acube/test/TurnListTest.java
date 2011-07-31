@@ -49,8 +49,7 @@ public final class TurnListTest {
 
   @Test
   public void two_allowed_faces_filters_duplicities() {
-    final TurnList tl =
- new TurnList(new Transform(new Turn[] { U1, U2, U3, R1, R2, R3 }));
+    final TurnList tl = new TurnList(new Transform(new Turn[] { U1, U2, U3, R1, R2, R3 }));
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));

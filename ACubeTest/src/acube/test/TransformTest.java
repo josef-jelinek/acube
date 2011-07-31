@@ -45,6 +45,7 @@ import static acube.Turn.u2;
 import static acube.Turn.u3;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import acube.Corner;
@@ -65,7 +66,7 @@ public final class TransformTest {
   @Test
   public void tables_lengths_matches_combinatorics() {
     final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
-    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.values());
     checkTable(t.cornerPosition, 8 * 7 * 6 * 5);
     checkTable(t.cornerTwist, 2187);
     checkTable(t.edgeFlip, 2048);
@@ -108,8 +109,8 @@ public final class TransformTest {
   @Test(expected = IllegalArgumentException.class)
   public void composing_incompatible_tables_throws_excepion() {
     final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
-    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
-    new MoveTableComposed(t.dEdgePosition, tB.mEdgePosition);
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.values());
+    assertTrue(null != new MoveTableComposed(t.dEdgePosition, tB.mEdgePosition));
   }
 
   @Test
@@ -138,7 +139,7 @@ public final class TransformTest {
   @Test
   public void tables_for_phase_B() {
     final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
-    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.values());
     assertEquals(tB.cornerPosition.stateSize(), t.cornerPosition.stateSize());
     assertEquals(t.cornerPosition.turns().length, Turn.size());
     assertEquals(tB.cornerPosition.turns().length, TurnB.size());
@@ -157,7 +158,7 @@ public final class TransformTest {
 
   @Test
   public void back_and_forth_turn_results_in_identity_in_phase_B() {
-    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.values());
     checkBackForthTurns(tB.mEdgePosition);
     checkBackForthTurns(tB.oEdgePosition);
     checkBackForthTurns(tB.cornerPosition);
@@ -174,12 +175,73 @@ public final class TransformTest {
   @Test
   public void conversion_to_phase_B() {
     final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
-    final TransformB tB = TransformB.instance(cornerMask, edgeMask, Turn.values());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.values());
     final TurnTable mep = t.mEdgePosition;
     final TurnTable uep = t.uEdgePosition;
     final TurnTable dep = t.dEdgePosition;
-    final TurnTable mepB = tB.mEdgePosition;
-    final TurnTable oepB = tB.oEdgePosition;
+    m_in_and_out_B(tB, mep);
+    u_in_and_out_B(tB, uep);
+    d_in_and_out_B(tB, dep);
+    m_to_B_sizes(tB, mep);
+    u_to_B_sizes(tB, uep);
+    d_to_B_sizes(tB, dep);
+    assertEquals(0, tB.convertToMEdgePosition(0));
+    assertEquals(1, tB.convertToMEdgePosition(1));
+    assertEquals(4 * 3 - 1, tB.convertToMEdgePosition(4 * 3 - 1));
+    assertEquals(-1, tB.convertToMEdgePosition(4 * 3));
+    assertEquals(-1, tB.convertToMEdgePosition(12 * 11 - 1));
+    assertEquals(-1, tB.convertToOEdgePosition(0, 0));
+    assertEquals(0, tB.convertToOEdgePosition(2514, 7 * 5 * 2));
+    assertEquals(8 * 7 * 6 * 5 * 4 * 3 - 1, tB.convertToOEdgePosition(11879, 55));
+    assertEquals(8 * 7 * 6 * 5 * 4 * 3 - 1 - 1, tB.convertToOEdgePosition(11879, 54));
+    assertEquals(8 * 7 * 6 * 5 * 4 * 3 - 1 - 6, tB.convertToOEdgePosition(11878, 55));
+  }
 
+  private void m_in_and_out_B(final TransformB tB, final TurnTable mep) {
+    assertTrue(tB.isMEdgePositionInB(mep.start(0)));
+    assertFalse(tB.isMEdgePositionInB(mep.turn(Turn.R1, mep.start(0))));
+    assertTrue(tB.isMEdgePositionInB(mep.turn(Turn.R2, mep.start(0))));
+    assertTrue(tB.isMEdgePositionInB(mep.turn(Turn.U1, mep.start(0))));
+  }
+
+  private void u_in_and_out_B(final TransformB tB, final TurnTable uep) {
+    assertTrue(tB.isUEdgePositionInB(uep.start(0)));
+    assertFalse(tB.isUEdgePositionInB(uep.turn(Turn.R1, uep.start(0))));
+    assertTrue(tB.isUEdgePositionInB(uep.turn(Turn.R2, uep.start(0))));
+    assertTrue(tB.isUEdgePositionInB(uep.turn(Turn.U1, uep.start(0))));
+  }
+
+  private void d_in_and_out_B(final TransformB tB, final TurnTable dep) {
+    assertTrue(tB.isDEdgePositionInB(dep.start(0)));
+    assertFalse(tB.isDEdgePositionInB(dep.turn(Turn.R1, dep.start(0))));
+    assertTrue(tB.isDEdgePositionInB(dep.turn(Turn.R2, dep.start(0))));
+    assertTrue(tB.isDEdgePositionInB(dep.turn(Turn.U1, dep.start(0))));
+  }
+
+  private void m_to_B_sizes(final TransformB tB, final TurnTable mep) {
+    int mInB = 0;
+    for (int i = 0; i < mep.stateSize(); i++)
+      if (tB.isMEdgePositionInB(i))
+        mInB++;
+    assertEquals(12 * 11, mep.stateSize());
+    assertEquals(4 * 3, mInB);
+  }
+
+  private void u_to_B_sizes(final TransformB tB, final TurnTable uep) {
+    int uInB = 0;
+    for (int i = 0; i < uep.stateSize(); i++)
+      if (tB.isUEdgePositionInB(i))
+        uInB++;
+    assertEquals(12 * 11 * 10 * 9, uep.stateSize());
+    assertEquals(8 * 7 * 6 * 5, uInB);
+  }
+
+  private void d_to_B_sizes(final TransformB tB, final TurnTable dep) {
+    int dInB = 0;
+    for (int i = 0; i < dep.stateSize(); i++)
+      if (tB.isDEdgePositionInB(i))
+        dInB++;
+    assertEquals(12 * 11, dep.stateSize());
+    assertEquals(8 * 7, dInB);
   }
 }

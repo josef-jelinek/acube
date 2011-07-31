@@ -1,29 +1,41 @@
 package acube.pack;
 
+import static acube.Edge.BL;
+import static acube.Edge.BR;
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.DL;
+import static acube.Edge.DR;
+import static acube.Edge.FL;
+import static acube.Edge.FR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
+import static acube.Edge.UL;
+import static acube.Edge.UR;
 import acube.Corner;
 import acube.Edge;
 
 public final class PackKit {
-  private static final int[] cornerOrdinals = cornerOrdinals(Corner.values());
-  private static final int[] edgeOrdinals = edgeOrdinals(Edge.values());
-  private static final Edge[] mEdgesB = { Edge.FR, Edge.FL, Edge.BR, Edge.BL };
-  private static final Edge[] oEdgesB = { Edge.UF, Edge.UR, Edge.UB, Edge.UL, Edge.DF, Edge.DR, Edge.DB, Edge.DL };
+  private static final int[] cornerOrdinals = getCornerOrdinals(Corner.values());
+  private static final int[] edgeOrdinals = getEdgeOrdinals(Edge.values());
+  private static final Edge[] mEdgesB = { FR, FL, BR, BL };
+  private static final Edge[] oEdgesB = { UF, UR, UB, UL, DF, DR, DB, DL };
   private static final Edge[] maskMEdgesB = mEdgesB;
-  private static final Edge[] maskUEdges = { Edge.UF, Edge.UR, Edge.UB, Edge.UL };
-  private static final Edge[] maskDEdges = { Edge.DF, Edge.DR, Edge.DB, Edge.DL };
-  private static final int[] mEdgeIndicesB = edgeIndicesB(mEdgesB);
-  private static final int[] oEdgeIndicesB = edgeIndicesB(oEdgesB);
+  private static final Edge[] maskUEdges = { UF, UR, UB, UL };
+  private static final Edge[] maskDEdges = { DF, DR, DB, DL };
+  private static final int[] mEdgeIndicesB = getEdgeIndicesIn(mEdgesB);
+  private static final int[] oEdgeIndicesB = getEdgeIndicesIn(oEdgesB);
+  public static final boolean[] mEdgeMaskInB = getEdgeMaskFor(mEdgesB);
+  public static final boolean[] oEdgeMaskInB = getEdgeMaskFor(oEdgesB);
 
   public static int mEdgeIndexB(final Edge edge) {
-    final int i = mEdgeIndicesB[edge.ordinal()];
-    assert i >= 0;
-    return i;
+    assert mEdgeIndicesB[edge.ordinal()] > 0;
+    return mEdgeIndicesB[edge.ordinal()];
   }
 
   public static int oEdgeIndexB(final Edge edge) {
-    final int i = oEdgeIndicesB[edge.ordinal()];
-    assert i >= 0;
-    return i;
+    assert oEdgeIndicesB[edge.ordinal()] > 0;
+    return oEdgeIndicesB[edge.ordinal()];
   }
 
   public static Pack cornerPosition(final Corner[] mask) {
@@ -55,58 +67,65 @@ public final class PackKit {
   }
 
   public static Pack mEdgePositionB(final Edge[] mask) {
-    return new PackPositionFull(mEdgeMaskB(mask), edgeOrdinals(mEdgesB));
+    return new PackPositionFull(mEdgeMaskB(mask), getEdgeOrdinals(mEdgesB));
   }
 
   public static Pack oEdgePositionB(final Edge[] mask) {
-    return new PackPositionFull(oEdgeMaskB(mask), edgeOrdinals(oEdgesB));
+    return new PackPositionFull(oEdgeMaskB(mask), getEdgeOrdinals(oEdgesB));
   }
 
-  private static int[] edgeOrdinals(final Edge[] edges) {
+  private static int[] getEdgeOrdinals(final Edge[] edges) {
     final int[] ordinals = new int[edges.length];
     for (int i = 0; i < edges.length; i++)
       ordinals[i] = edges[i].ordinal();
     return ordinals;
   }
 
-  private static int[] cornerOrdinals(final Corner[] corners) {
+  private static int[] getCornerOrdinals(final Corner[] corners) {
     final int[] ordinals = new int[corners.length];
     for (int i = 0; i < corners.length; i++)
       ordinals[i] = corners[i].ordinal();
     return ordinals;
   }
 
-  private static int[] edgeMask(final Edge[] edges) {
-    final int[] mask = new int[Edge.size()];
+  private static boolean[] edgeMask(final Edge[] edges) {
+    final boolean[] mask = new boolean[Edge.size()];
     for (final Edge edge : edges)
-      mask[edge.ordinal()] = 1;
+      mask[edge.ordinal()] = true;
     return mask;
   }
 
-  private static int[] cornerMask(final Corner[] corners) {
-    final int[] mask = new int[Corner.size()];
+  private static boolean[] cornerMask(final Corner[] corners) {
+    final boolean[] mask = new boolean[Corner.size()];
     for (final Corner corner : corners)
-      mask[corner.ordinal()] = 1;
+      mask[corner.ordinal()] = true;
     return mask;
   }
 
-  private static int[] mEdgeMaskB(final Edge[] edges) {
-    final int[] mask = new int[mEdgesB.length];
+  private static boolean[] getEdgeMaskFor(final Edge[] edges) {
+    final boolean[] mask = new boolean[Edge.size()];
+    for (final Edge edge : edges)
+      mask[edge.ordinal()] = true;
+    return mask;
+  }
+
+  private static boolean[] mEdgeMaskB(final Edge[] edges) {
+    final boolean[] mask = new boolean[mEdgesB.length];
     for (final Edge edge : edges)
       if (mEdgeIndicesB[edge.ordinal()] >= 0)
-        mask[mEdgeIndicesB[edge.ordinal()]] = 1;
+        mask[mEdgeIndicesB[edge.ordinal()]] = true;
     return mask;
   }
 
-  private static int[] oEdgeMaskB(final Edge[] edges) {
-    final int[] mask = new int[oEdgesB.length];
+  private static boolean[] oEdgeMaskB(final Edge[] edges) {
+    final boolean[] mask = new boolean[oEdgesB.length];
     for (final Edge edge : edges)
       if (oEdgeIndicesB[edge.ordinal()] >= 0)
-        mask[oEdgeIndicesB[edge.ordinal()]] = 1;
+        mask[oEdgeIndicesB[edge.ordinal()]] = true;
     return mask;
   }
 
-  private static int[] edgeIndicesB(final Edge[] edges) {
+  private static int[] getEdgeIndicesIn(final Edge[] edges) {
     final int[] indices = new int[Edge.size()];
     for (int i = 0; i < indices.length; i++)
       indices[i] = -1;

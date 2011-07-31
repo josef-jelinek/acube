@@ -1,7 +1,7 @@
 package acube.pack;
 
 public final class PackOrientationPart extends PackOrientation {
-  public PackOrientationPart(final int[] usedMask, final int[] orientMask, final int[] partIds, final int order) {
+  public PackOrientationPart(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds, final int order) {
     super(usedMask, orientMask, partIds, order);
   }
 
@@ -16,14 +16,14 @@ public final class PackOrientationPart extends PackOrientation {
     CoderPart.unordered.decode(a, unknownPositionsKnownOrientations(), index);
     int unusedFound = 0;
     for (int i = 0; i < values.length; i++)
-      values[i] = usedMask[i] == 0 ? a[unusedFound++] : orientMask[i] == 0 ? 0 : 1;
+      values[i] = (!usedMask[i] ? a[unusedFound++] > 0 : orientMask[i]) ? 1 : 0;
     return pack();
   }
 
   private int unknownPositionsKnownOrientations() {
     int count = 0;
     for (int i = 0; i < values.length; i++)
-      if (usedMask[i] == 0 && orientMask[i] != 0)
+      if (!usedMask[i] && orientMask[i])
         count++;
     return count;
   }

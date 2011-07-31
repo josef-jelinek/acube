@@ -37,14 +37,13 @@ public final class PruneTable {
     return filled;
   }
 
-  private int forwardDistanceFill(final int distance,
-      final int lastDistance) {
+  private int forwardDistanceFill(final int distance, final int lastDistance) {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
       if (get(state) == lastDistance)
         for (final Turn turn : move.turns()) {
           final int newState = move.turn(turn, state);
-          if (get(newState) == 3) { // free
+          if (isNotInitialized(newState)) { // free
             put(newState, distance % 3);
             filled++;
           }
@@ -52,11 +51,10 @@ public final class PruneTable {
     return filled;
   }
 
-  private int backwardDistanceFill(final int distance,
-      final int lastDistanceValue) {
+  private int backwardDistanceFill(final int distance, final int lastDistanceValue) {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
-      if (get(state) == 3)
+      if (isNotInitialized(state))
         for (final Turn turn : move.turns())
           if (get(move.turn(turn, state)) == lastDistanceValue) {
             put(state, distance % 3);
@@ -64,6 +62,10 @@ public final class PruneTable {
             break;
           }
     return filled;
+  }
+
+  private boolean isNotInitialized(final int state) {
+    return get(state) == 3;
   }
 
   private void put(final int state, final int val) {
@@ -124,9 +126,8 @@ public final class PruneTable {
     return table.length;
   }
 
-  private static void logLine(final int depth, final int currentSize, final int totalSize, final int stateSize,
+  private static void logLine(final int depth, final int current, final int soFar, final int total,
       final boolean forward) {
-    System.out.printf("%2d%s %8d %10d %3d%%%n", depth, forward ? ">" : "<", currentSize, totalSize, (long)totalSize *
-        100 / stateSize);
+    System.out.printf("%2d%s %8d %10d %3d%%%n", depth, forward ? ">" : "<", current, soFar, (long)soFar * 100 / total);
   }
 }

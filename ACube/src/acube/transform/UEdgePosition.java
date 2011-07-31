@@ -13,4 +13,8 @@ final class UEdgePosition extends Move {
   public void turn(final Turn turn) {
     cycleEdges(turn);
   }
+
+  public boolean isInB() {
+    return areUsedIn(PackKit.oEdgeMaskInB);
+  }
 }

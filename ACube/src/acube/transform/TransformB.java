@@ -9,19 +9,45 @@ public final class TransformB {
   public final TurnTable mEdgePosition;
   public final TurnTable oEdgePosition;
   public final TurnTable cornerPosition;
+  private final boolean[] mEdgePositionInB;
+  private final boolean[] uEdgePositionInB;
+  private final boolean[] dEdgePositionInB;
+  private final short[] mEdgePositionToB;
+  private final short[][] udEdgePositionToB;
 
-  public static TransformB instance(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
-    return new TransformB(cornerMask, edgeMask, turns);
-  }
-
-  private TransformB(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
+  public TransformB(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
     this.turns = Turn.getValidB(turns);
-    mEdgePosition = MoveKitB.mEdgePosition(edgeMask, this.turns);
-    oEdgePosition = MoveKitB.oEdgePosition(edgeMask, this.turns);
+    mEdgePosition = MoveKit.mEdgePositionB(edgeMask, this.turns);
+    oEdgePosition = MoveKit.oEdgePositionB(edgeMask, this.turns);
     cornerPosition = MoveKit.cornerPosition(cornerMask, this.turns);
+    mEdgePositionInB = MoveKit.getIsMEdgePositionInB(edgeMask, turns);
+    uEdgePositionInB = MoveKit.getIsUEdgePositionInB(edgeMask, turns);
+    dEdgePositionInB = MoveKit.getIsDEdgePositionInB(edgeMask, turns);
+    mEdgePositionToB = MoveKit.getMEdgePositionToB(edgeMask, turns);
+    udEdgePositionToB = MoveKit.getUDEdgePositionToB(edgeMask, turns);
   }
 
   public Turn[] turns() {
     return turns;
+  }
+
+  public boolean isMEdgePositionInB(final int state) {
+    return mEdgePositionInB[state];
+  }
+
+  public boolean isUEdgePositionInB(final int state) {
+    return uEdgePositionInB[state];
+  }
+
+  public boolean isDEdgePositionInB(final int state) {
+    return dEdgePositionInB[state];
+  }
+
+  public int convertToMEdgePosition(final int state) {
+    return mEdgePositionToB[state];
+  }
+
+  public int convertToOEdgePosition(final int uState, final int dState) {
+    return udEdgePositionToB[uState][dState];
   }
 }

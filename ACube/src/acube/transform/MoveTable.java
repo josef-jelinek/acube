@@ -38,7 +38,7 @@ abstract class MoveTable implements TurnTable {
 
   protected abstract void set(int turnIndex, int state, int newstate);
 
-  protected final void fill(final Turn[][][] base) { // template method (uses turn(), set())
+  protected final void fill(final Turn[][][] base) { // template method
     final Turn[] turns = move.turns();
     for (int turnIndex = 0; turnIndex < turns.length; turnIndex++)
       turnIndices[turns[turnIndex].ordinal()] = turnIndex;

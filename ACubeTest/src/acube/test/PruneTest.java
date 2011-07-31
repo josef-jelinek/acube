@@ -20,7 +20,7 @@ public final class PruneTest {
   private final Edge[] edgeFlipMask = { Edge.UL, Edge.DF, Edge.DR, Edge.DB, Edge.DL, Edge.FR, Edge.FL };
 
   @Test
-  public void test_tables_A() {
+  public void tables_A() {
     final Transform transform = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
     final Prune tab = new Prune(transform);
     assertEquals(4758486, tab.stateSize());
@@ -28,7 +28,7 @@ public final class PruneTest {
   }
 
   @Test
-  public void test_table_corners_face_metric() {
+  public void table_corners_face_metric() {
     final Transform transform =
         new Transform(Corner.values(), Edge.values(), Corner.values(), Edge.values(),
             Metric.ROTATION_FACE.filterForElementary(Turn.values()));
@@ -38,7 +38,7 @@ public final class PruneTest {
   }
 
   @Test
-  public void test_table_corners_quarter_metric() {
+  public void table_corners_quarter_metric() {
     final Transform transform =
         new Transform(Corner.values(), Edge.values(), Corner.values(), Edge.values(),
             Metric.QUARTER.filterForElementary(Turn.values()));
@@ -48,8 +48,8 @@ public final class PruneTest {
   }
 
   @Test
-  public void test_tables_B() {
-    final TransformB transform = TransformB.instance(cornerMask, edgeMask, Turn.values());
+  public void tables_B() {
+    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.values());
     final PruneB tab = new PruneB(transform);
     assertEquals(262080, tab.stateSize());
     assertEquals(9, tab.maxDistance());

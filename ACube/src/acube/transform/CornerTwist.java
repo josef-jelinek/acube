@@ -1,5 +1,13 @@
 package acube.transform;
 
+import static acube.Corner.DBR;
+import static acube.Corner.DFL;
+import static acube.Corner.DLB;
+import static acube.Corner.DRF;
+import static acube.Corner.UBL;
+import static acube.Corner.UFR;
+import static acube.Corner.ULF;
+import static acube.Corner.URB;
 import acube.Corner;
 import acube.Turn;
 import acube.pack.PackKit;
@@ -22,18 +30,17 @@ final class CornerTwist extends Move {
     cycleCorners(turn);
     switch (turn) {
     case F1:
-      twist(Corner.DFL, Corner.DRF, Corner.UFR, Corner.ULF);
+      twist(DFL, DRF, UFR, ULF);
       break;
     case B1:
-      twist(Corner.DBR, Corner.DLB, Corner.UBL, Corner.URB);
+      twist(DBR, DLB, UBL, URB);
       break;
     case L1:
-      twist(Corner.DLB, Corner.DFL, Corner.ULF, Corner.UBL);
+      twist(DLB, DFL, ULF, UBL);
       break;
     case R1:
-      twist(Corner.DRF, Corner.DBR, Corner.URB, Corner.UFR);
+      twist(DRF, DBR, URB, UFR);
       break;
-    default:
     }
   }
 

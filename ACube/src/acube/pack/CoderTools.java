@@ -8,6 +8,14 @@ public final class CoderTools {
     return size;
   }
 
+  public static int valuesUsed(final boolean[] mask) {
+    int k = 0;
+    for (final boolean flag : mask)
+      if (flag)
+        k++;
+    return k;
+  }
+
   public static int valuesUsed(final int[] values) {
     int k = 0;
     for (final int value : values)
@@ -16,12 +24,11 @@ public final class CoderTools {
     return k;
   }
 
-  public static int[] maskIntersection(final int[] mask1, final int[] mask2) {
-    if (mask1.length != mask2.length)
-      throw new IllegalArgumentException("Agument sizes do not match");
-    final int[] mask = new int[mask1.length];
+  public static boolean[] maskIntersection(final boolean[] mask1, final boolean[] mask2) {
+    assert mask1.length != mask2.length;
+    final boolean[] mask = new boolean[mask1.length];
     for (int i = 0; i < mask.length; i++)
-      mask[i] = mask1[i] != 0 && mask2[i] != 0 ? 1 : 0;
+      mask[i] = mask1[i] && mask2[i];
     return mask;
   }
 

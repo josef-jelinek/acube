@@ -1,12 +1,12 @@
 package acube.pack;
 
 public abstract class PackOrientation extends Pack {
-  protected final int[] orientMask;
+  protected final boolean[] orientMask;
   protected final int orientationsUsed;
   protected final int order;
   private final int orientationPartSize;
 
-  public static PackOrientation instance(final int[] usedMask, final int[] orientMask, final int[] partIds,
+  public static PackOrientation instance(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds,
       final int order) {
     final int valuesUsed = CoderTools.valuesUsed(orientMask);
     final int lengthForPartial = PackOrientation.size(orientMask.length, valuesUsed, order);
@@ -15,7 +15,7 @@ public abstract class PackOrientation extends Pack {
         : new PackOrientationFull(orientMask, partIds, order);
   }
 
-  protected PackOrientation(final int[] usedMask, final int[] orientMask, final int[] partIds, final int order) {
+  protected PackOrientation(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds, final int order) {
     super(CoderPart.unordered, usedMask, partIds);
     if (usedMask.length != orientMask.length)
       throw new IllegalArgumentException("Argument sizes do not match");
