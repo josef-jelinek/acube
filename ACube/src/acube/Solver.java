@@ -29,12 +29,15 @@ public final class Solver {
   static final class BNode {
     public int restDepth;
     public TurnB[] turns;
-    public int turn;
+    public int turnIndex;
+    public TurnB turn;
     public int allowedTurnsState;
     public int symmetry;
     public int cornerPosition;
-    public int edgePosition;
-    public int midgePerm;
+    public int oEdgePosition;
+    public int mEdgePosition;
+    public int mEdgePositionCornerPositionDistance;
+    public int mEdgePositionOEdgePositionDistance;
   }
 
   private final CubeState state;
@@ -243,21 +246,31 @@ public final class Solver {
         !transformB.isDEdgePositionInB(dep))
       return;
     sol2++;
+    final int oepB = transformB.convertToOEdgePosition(uep, dep);
+    final int mepB = transformB.convertToMEdgePosition(mep);
+    bprn++;
+    final int mep_cp_d = state.pruneB.getMEdgePositionCornerCornerPositionStartDistance(mepB, cp);
+    if (mep_cp_d > maxBLength) {
+      bpry++;
+      return;
+    }
+    final int mep_oep_d = state.pruneB.getMEdgePositionOEdgePositionStartDistance(mepB, oepB);
+    if (mep_oep_d > maxBLength) {
+      bpry++;
+      return;
+    }
     stackB[0].cornerPosition = cp;
-//    stackB[0].edgePerm = transform.edgePos.udSToPerm(uEdgePos, dEdgePos);
-//    stackB[0].midgePerm = transform.edgePos.midgeToPerm(midgePos);
-//    final int maxBDepth = prune.distanceB(cornPerm, stackB[0].edgePerm, stackB[0].midgePerm);
-//    bprn++;
-//    if (maxBDepth > maxBLength) {
-//      bpry++;
-//      return;
-//    }
-//    stackB[0].turn = -2; // unused
-//    stackB[0].allowedTurnsState = stackA[stackAn].allowedTurnsState;
-//    stackB[0].symmetry = stackA[stackAn].symmetry;
-//    // iterative deepening depth-first search for Phase B
-//    for (int i = maxBDepth; i <= maxBLength; i++)
-//      searchB(i);
+    stackB[0].oEdgePosition = oepB;
+    stackB[0].mEdgePosition = mepB;
+    stackB[0].mEdgePositionCornerPositionDistance = mep_cp_d;
+    stackB[0].mEdgePositionOEdgePositionDistance = mep_oep_d;
+    stackB[0].turn = null;
+    stackB[0].allowedTurnsState = stackA[stackASize - 1].allowedTurnsState;
+    stackB[0].symmetry = stackA[stackASize - 1].symmetry;
+    stackB[0].turns = state.turnList.getAvailableTurnsB(stackB[0].allowedTurnsState);
+    stackB[0].turnIndex = 0;
+    for (int i = max(mep_cp_d, mep_oep_d); i <= maxBLength; i++)
+      searchB(i);
   }
 
   private void searchB(final int i) {

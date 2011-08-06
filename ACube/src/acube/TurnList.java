@@ -11,6 +11,7 @@ public final class TurnList {
   private static final int MAX_DEPTH = 3;
   // TODO: fill it
   private final Turn[][] turnLists;
+  private final TurnB[][] turnListsB;
   private final int[][] next;
 
   public TurnList(final Transform transform) {
@@ -87,6 +88,7 @@ public final class TurnList {
       }
     assert j == d;
     turnLists = getAllowedTurnsTable(transform);
+    turnListsB = getAllowedTurnsTableB(turnLists);
   }
 
   private boolean[] getActiveStates(final List<int[]> table) {
@@ -115,12 +117,32 @@ public final class TurnList {
     return tl;
   }
 
+  private TurnB[][] getAllowedTurnsTableB(final Turn[][] turns) {
+    final TurnB[][] tl = new TurnB[turns.length][];
+    for (int state = 0; state < next.length; state++) {
+      int turnCount = 0;
+      for (final Turn t : turns[state])
+        if (t.isB())
+          turnCount++;
+      tl[state] = new TurnB[turnCount];
+      int freeTurnIndex = 0;
+      for (final Turn t : turns[state])
+        if (t.isB())
+          tl[state][freeTurnIndex++] = t.toB();
+    }
+    return tl;
+  }
+
   public int getNextState(final int state, final Turn t) {
     return next[state][t.ordinal()];
   }
 
   public Turn[] getAvailableTurns(final int state) {
     return turnLists[state];
+  }
+
+  public TurnB[] getAvailableTurnsB(final int state) {
+    return turnListsB[state];
   }
 
   private static List<int[]> createStateTable(final Transform transform) {

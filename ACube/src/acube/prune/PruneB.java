@@ -1,5 +1,6 @@
 package acube.prune;
 
+import static java.lang.Math.max;
 import acube.transform.MoveTableComposed;
 import acube.transform.TransformB;
 
@@ -16,18 +17,20 @@ public final class PruneB {
     mEdgePositionOEdgePosition = new PruneTable(moveMEdgePositionOEdgePosition);
   }
 
-  private static int max(final int a, final int b) {
-    return Math.max(a, b);
+  public int getMEdgePositionCornerCornerPositionStartDistance(final int mep, final int cp) {
+    return mEdgePositionCornerPosition.startDistance(moveMEdgePositionCornerPosition.state(mep, cp));
   }
 
-  public int distance(final int cp, final int ep, final int mp) {
-    return max(mEdgePositionCornerPosition.startDistance(moveMEdgePositionCornerPosition.state(mp, cp)),
-        mEdgePositionOEdgePosition.startDistance(moveMEdgePositionOEdgePosition.state(mp, ep)));
+  public int getMEdgePositionOEdgePositionStartDistance(final int mep, final int oep) {
+    return mEdgePositionOEdgePosition.startDistance(moveMEdgePositionOEdgePosition.state(mep, oep));
   }
 
-  public boolean over(final int d, final int cp, final int ep, final int mp) {
-    return mEdgePositionCornerPosition.distance(d, moveMEdgePositionCornerPosition.state(mp, cp)) > d ||
-        mEdgePositionOEdgePosition.distance(d, moveMEdgePositionOEdgePosition.state(mp, ep)) > d;
+  public int getMEdgePositionCornerCornerPositionDistance(final int lastDistance, final int mep, final int cp) {
+    return mEdgePositionCornerPosition.distance(lastDistance, moveMEdgePositionCornerPosition.state(mep, cp));
+  }
+
+  public int getMEdgePositionOEdgePositionDistance(final int lastDistance, final int mep, final int oep) {
+    return mEdgePositionOEdgePosition.distance(lastDistance, moveMEdgePositionOEdgePosition.state(mep, oep));
   }
 
   public int maxDistance() {

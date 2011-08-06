@@ -49,6 +49,7 @@ import java.util.Arrays;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
+import acube.pack.PackKit;
 
 public final class MoveKit {
   private static final Turn[][][] TurnBase = {
@@ -145,33 +146,41 @@ public final class MoveKit {
     return t;
   }
 
-  public static short[] getMEdgePositionToB(final Edge[] edges, final Turn[] turns) {
-    final MEdgePosition pack = new MEdgePosition(edges, turns);
-    final MEdgePositionB packB = new MEdgePositionB(edges, turns);
-    final short[] t = new short[pack.stateSize()];
-    Arrays.fill(t, (short)-1);
+  public static int[] getMEdgePositionToB(final Edge[] edges, final Turn[] turns) {
+    return getEdgePositionToB(new MEdgePosition(edges, turns), new MEdgePositionB(edges, turns));
+  }
+
+  public static int[] getUEdgePositionToB(final Edge[] edges, final Turn[] turns) {
+    return getEdgePositionToB(new UEdgePosition(edges, turns), new OEdgePositionB(edges, turns));
+  }
+
+  public static int[] getDEdgePositionToB(final Edge[] edges, final Turn[] turns) {
+    return getEdgePositionToB(new DEdgePosition(edges, turns), new OEdgePositionB(edges, turns));
+  }
+
+  public static int[] getEdgePositionToB(final MoveToB pack, final Move packB) {
+    final int[] t = new int[pack.stateSize()];
+    Arrays.fill(t, -1);
     for (int i = 0; i < t.length; i++) {
       pack.unpack(i);
       if (pack.isInB())
-        t[i] = (short)packB.convertFrom(pack);
+        t[i] = packB.convertFrom(pack);
     }
     return t;
   }
 
-  public static short[][] getUDEdgePositionToB(final Edge[] edges, final Turn[] turns) {
-    final UEdgePosition uPack = new UEdgePosition(edges, turns);
-    final DEdgePosition dPack = new DEdgePosition(edges, turns);
+  public static int[][] getUDEdgePositionBToB(final Edge[] edges, final Turn[] turns) {
+    final OEdgePositionB uPackB = new OEdgePositionB(PackKit.getUEdges(edges), turns);
+    final OEdgePositionB dPackB = new OEdgePositionB(PackKit.getDEdges(edges), turns);
     final OEdgePositionB packB = new OEdgePositionB(edges, turns);
-    final short[][] t = new short[uPack.stateSize()][dPack.stateSize()];
+    final int[][] t = new int[uPackB.stateSize()][dPackB.stateSize()];
     for (int i = 0; i < t.length; i++) {
       Arrays.fill(t[i], (short)-1);
-      uPack.unpack(i);
-      if (uPack.isInB())
-        for (int j = 0; j < t[i].length; j++) {
-          dPack.unpack(j);
-          if (dPack.isInB())
-            t[i][j] = (short)packB.convertFrom(uPack, dPack);
-        }
+      uPackB.unpack(i);
+      for (int j = 0; j < t[i].length; j++) {
+        dPackB.unpack(j);
+        t[i][j] = packB.convertFrom(uPackB, dPackB);
+      }
     }
     return t;
   }

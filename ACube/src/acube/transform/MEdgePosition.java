@@ -4,7 +4,7 @@ import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 
-final class MEdgePosition extends Move {
+final class MEdgePosition extends MoveToB {
   public MEdgePosition(final Edge[] mask, final Turn[] turns) {
     super(PackKit.mEdgePosition(mask), turns);
   }
@@ -14,6 +14,7 @@ final class MEdgePosition extends Move {
     cycleEdges(turn);
   }
 
+  @Override
   public boolean isInB() {
     return areUsedIn(PackKit.mEdgeMaskInB);
   }

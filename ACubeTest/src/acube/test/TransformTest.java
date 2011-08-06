@@ -47,6 +47,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
@@ -190,7 +191,10 @@ public final class TransformTest {
     assertEquals(4 * 3 - 1, tB.convertToMEdgePosition(4 * 3 - 1));
     assertEquals(-1, tB.convertToMEdgePosition(4 * 3));
     assertEquals(-1, tB.convertToMEdgePosition(12 * 11 - 1));
-    assertEquals(-1, tB.convertToOEdgePosition(0, 0));
+    try {
+      tB.convertToOEdgePosition(0, 0);
+      fail();
+    } catch (final RuntimeException e) {}
     assertEquals(0, tB.convertToOEdgePosition(2514, 7 * 5 * 2));
     assertEquals(8 * 7 * 6 * 5 * 4 * 3 - 1, tB.convertToOEdgePosition(11879, 55));
     assertEquals(8 * 7 * 6 * 5 * 4 * 3 - 1 - 1, tB.convertToOEdgePosition(11879, 54));

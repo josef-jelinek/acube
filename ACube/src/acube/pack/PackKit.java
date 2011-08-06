@@ -12,6 +12,7 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
+import java.util.Arrays;
 import acube.Corner;
 import acube.Edge;
 
@@ -132,5 +133,28 @@ public final class PackKit {
     for (int i = 0; i < edges.length; i++)
       indices[edges[i].ordinal()] = i;
     return indices;
+  }
+
+  public static Edge[] getUEdges(final Edge[] edges) {
+    return getFilteredEdges(edges, maskUEdges);
+  }
+
+  public static Edge[] getDEdges(final Edge[] edges) {
+    return getFilteredEdges(edges, maskDEdges);
+  }
+
+  private static Edge[] getFilteredEdges(final Edge[] edges, final Edge[] allowed) {
+    final Edge[] uEdges = allowed.clone();
+    Arrays.sort(uEdges);
+    int n = 0;
+    for (final Edge e : edges)
+      if (Arrays.binarySearch(uEdges, e) >= 0)
+        n++;
+    final Edge[] filteredEdges = new Edge[n];
+    int i = 0;
+    for (final Edge e : edges)
+      if (Arrays.binarySearch(uEdges, e) >= 0)
+        filteredEdges[i++] = e;
+    return filteredEdges;
   }
 }

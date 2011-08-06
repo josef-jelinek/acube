@@ -25,6 +25,14 @@ import acube.Edge;
 import acube.Turn;
 import acube.pack.Pack;
 
+abstract class MoveToB extends Move {
+  protected MoveToB(final Pack pack, final Turn[] turns) {
+    super(pack, turns);
+  }
+
+  public abstract boolean isInB();
+}
+
 abstract class Move implements TurnTable {
   protected final Pack pack;
   private final int stateSize;

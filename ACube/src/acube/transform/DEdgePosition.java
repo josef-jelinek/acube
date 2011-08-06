@@ -4,7 +4,7 @@ import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 
-final class DEdgePosition extends Move {
+final class DEdgePosition extends MoveToB {
   public DEdgePosition(final Edge[] mask, final Turn[] turns) {
     super(PackKit.dEdgePosition(mask), turns);
   }
@@ -14,6 +14,7 @@ final class DEdgePosition extends Move {
     cycleEdges(turn);
   }
 
+  @Override
   public boolean isInB() {
     return areUsedIn(PackKit.oEdgeMaskInB);
   }

@@ -12,8 +12,10 @@ public final class TransformB {
   private final boolean[] mEdgePositionInB;
   private final boolean[] uEdgePositionInB;
   private final boolean[] dEdgePositionInB;
-  private final short[] mEdgePositionToB;
-  private final short[][] udEdgePositionToB;
+  private final int[] uEdgePositionToB;
+  private final int[] dEdgePositionToB;
+  private final int[] mEdgePositionToB;
+  private final int[][] udEdgePositionToB;
 
   public TransformB(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
     this.turns = Turn.getValidB(turns);
@@ -24,7 +26,9 @@ public final class TransformB {
     uEdgePositionInB = MoveKit.getIsUEdgePositionInB(edgeMask, turns);
     dEdgePositionInB = MoveKit.getIsDEdgePositionInB(edgeMask, turns);
     mEdgePositionToB = MoveKit.getMEdgePositionToB(edgeMask, turns);
-    udEdgePositionToB = MoveKit.getUDEdgePositionToB(edgeMask, turns);
+    uEdgePositionToB = MoveKit.getUEdgePositionToB(edgeMask, turns);
+    dEdgePositionToB = MoveKit.getDEdgePositionToB(edgeMask, turns);
+    udEdgePositionToB = MoveKit.getUDEdgePositionBToB(edgeMask, turns);
   }
 
   public Turn[] turns() {
@@ -48,6 +52,6 @@ public final class TransformB {
   }
 
   public int convertToOEdgePosition(final int uState, final int dState) {
-    return udEdgePositionToB[uState][dState];
+    return udEdgePositionToB[uEdgePositionToB[uState]][dEdgePositionToB[dState]];
   }
 }
