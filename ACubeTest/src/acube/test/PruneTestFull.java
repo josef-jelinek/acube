@@ -10,16 +10,10 @@ import acube.prune.PruneB;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
-//@Ignore
 public final class PruneTestFull {
-  private final Corner[] cornerMask = Corner.values();
-  private final Edge[] edgeMask = Edge.values();
-  private final Corner[] cornerTwistMask = Corner.values();
-  private final Edge[] edgeFlipMask = Edge.values();
-
   @Test
   public void sizes_of_tables_A() {
-    final Transform transform = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.values());
+    final Transform transform = new Transform(Turn.valueSet);
     final Prune tab = new Prune(transform);
     assertEquals(6575301, tab.stateSize());
     assertEquals(1643826, tab.memorySize());
@@ -27,7 +21,7 @@ public final class PruneTestFull {
 
   @Test
   public void sizes_of_tables_B() {
-    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.values());
+    final TransformB transform = new TransformB(Corner.valueSet, Edge.valueSet, Turn.valueSet);
     final PruneB tab = new PruneB(transform);
     assertEquals(1935360, tab.stateSize());
     assertEquals(483840, tab.memorySize());

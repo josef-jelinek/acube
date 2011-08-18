@@ -3,13 +3,14 @@ package acube;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import acube.transform.Transform;
 
 public final class TurnList {
+  public static final int INITIAL_STATE = 0;
   private static final int MAX_DEPTH = 3;
-  // TODO: fill it
   private final Turn[][] turnLists;
   private final TurnB[][] turnListsB;
   private final int[][] next;
@@ -30,7 +31,7 @@ public final class TurnList {
           for (int j = i + 1; j < table.size(); j++)
             if (activeStates[j]) {
               boolean eq = true;
-              for (int t = 0; t < Turn.size(); t++)
+              for (int t = 0; t < Turn.size; t++)
                 if (table.get(i)[t] != table.get(j)[t]) {
                   eq = false;
                   break;
@@ -43,14 +44,7 @@ public final class TurnList {
               }
             }
         }
-      // reduce equal states
-      for (int i = 0; i < table.size(); i++)
-        if (activeStates[i])
-          for (int t = 0; t < Turn.size(); t++) {
-            final int x = table.get(i)[t];
-            if (x >= 0 && ind[x] != x)
-              table.get(i)[t] = ind[x];
-          }
+      reduceEqualStates(table, activeStates, ind);
     }
     int d = 0;
     int dup = 0;
@@ -58,24 +52,25 @@ public final class TurnList {
     for (int i = 0; i < table.size(); i++)
       if (activeStates[i]) {
         d++;
-        for (int t = 0; t < Turn.size(); t++) {
+        for (int t = 0; t < Turn.size; t++) {
           tot++;
           if (table.get(i)[t] == -1)
             dup++;
         }
       }
-    int st = 0;
-    // get new numbers for states
-    for (int i = 0; i < ind.length; i++)
-      ind[i] = activeStates[i] ? st++ : -1;
-    next = new int[d][Turn.size()];
-    for (int i = 0; i < Turn.size(); i++)
-      next[0][i] = -1;
+    compactStateIds(ind, activeStates);
+    next = new int[d][Turn.size];
+    Arrays.fill(next[0], -1);
+    renumberStates(table, activeStates, ind, d);
+    turnLists = getAllowedTurnsTable(transform);
+    turnListsB = getAllowedTurnsTableB(turnLists);
+  }
+
+  private void renumberStates(final List<int[]> table, final boolean[] activeStates, final int[] ind, final int d) {
     int j = 0;
-    // renumber states
     for (int i = 0; i < table.size(); i++)
       if (activeStates[i]) {
-        for (int t = 0; t < Turn.size(); t++) {
+        for (int t = 0; t < Turn.size; t++) {
           final int x = table.get(i)[t];
           if (x < 0)
             next[j][t] = -1;
@@ -87,8 +82,22 @@ public final class TurnList {
         j++;
       }
     assert j == d;
-    turnLists = getAllowedTurnsTable(transform);
-    turnListsB = getAllowedTurnsTableB(turnLists);
+  }
+
+  private void compactStateIds(final int[] ind, final boolean[] activeStates) {
+    int st = 0;
+    for (int i = 0; i < ind.length; i++)
+      ind[i] = activeStates[i] ? st++ : -1;
+  }
+
+  private void reduceEqualStates(final List<int[]> table, final boolean[] activeStates, final int[] ind) {
+    for (int i = 0; i < table.size(); i++)
+      if (activeStates[i])
+        for (int t = 0; t < Turn.size; t++) {
+          final int x = table.get(i)[t];
+          if (x >= 0 && ind[x] != x)
+            table.get(i)[t] = ind[x];
+        }
   }
 
   private boolean[] getActiveStates(final List<int[]> table) {
@@ -105,14 +114,15 @@ public final class TurnList {
     final Turn[][] tl = new Turn[next.length][];
     for (int state = 0; state < next.length; state++) {
       int turnCount = 0;
-      for (final Turn t : transform.turns())
+      for (final Turn t : transform.turnMask())
         if (next[state][t.ordinal()] >= 0)
           turnCount++;
       tl[state] = new Turn[turnCount];
       int freeTurnIndex = 0;
-      for (final Turn t : transform.turns())
+      for (final Turn t : transform.turnMask())
         if (next[state][t.ordinal()] >= 0)
           tl[state][freeTurnIndex++] = t;
+      Arrays.sort(tl[state]);
     }
     return tl;
   }
@@ -129,6 +139,7 @@ public final class TurnList {
       for (final Turn t : turns[state])
         if (t.isB())
           tl[state][freeTurnIndex++] = t.toB();
+      Arrays.sort(tl[state]);
     }
     return tl;
   }
@@ -146,25 +157,24 @@ public final class TurnList {
   }
 
   private static List<int[]> createStateTable(final Transform transform) {
-    final HashSet<Turn> turnSet = new HashSet<Turn>(Arrays.asList(transform.turns()));
+    final Set<Turn> turnMask = transform.turnMask();
     final List<State> states = new ArrayList<State>();
-    final HashMap<State, Integer> stateIndices = new HashMap<State, Integer>();
+    final Map<State, Integer> stateIndices = new HashMap<State, Integer>();
     final List<int[]> table = new ArrayList<int[]>();
     final State state0 = State.init(transform);
-    initializeStateTables(transform, turnSet, table, states, stateIndices, state0);
-    linkStates(transform, turnSet, table, states, stateIndices, state0);
+    initializeStateTables(transform, turnMask, table, states, stateIndices, state0);
+    linkStates(transform, turnMask, table, states, stateIndices, state0);
     return table;
   }
 
-  private static void
-      initializeStateTables(final Transform transform, final HashSet<Turn> turnSet, final List<int[]> table,
-          final List<State> states, final HashMap<State, Integer> stateIndices, final State state0) {
+  private static void initializeStateTables(final Transform transform, final Set<Turn> turnMask,
+      final List<int[]> table, final List<State> states, final Map<State, Integer> stateIndices, final State state0) {
     states.add(state0);
     stateIndices.put(state0, 0);
     for (int i = 0; i < states.size(); i++) {
-      final int[] row = new int[Turn.size()];
+      final int[] row = new int[Turn.size];
       for (final Turn turn : Turn.values())
-        if (!turnSet.contains(turn))
+        if (!turnMask.contains(turn))
           row[turn.ordinal()] = -1;
         else {
           final State state = states.get(i).turn(turn, transform);
@@ -180,8 +190,8 @@ public final class TurnList {
     }
   }
 
-  private static void linkStates(final Transform transform, final HashSet<Turn> turnSet, final List<int[]> table,
-      final List<State> states, final HashMap<State, Integer> stateIndices, final State state0) {
+  private static void linkStates(final Transform transform, final Set<Turn> turnSet, final List<int[]> table,
+      final List<State> states, final Map<State, Integer> stateIndices, final State state0) {
     for (int i = 0; i < table.size(); i++) {
       final int[] row = table.get(i);
       final State s = states.get(i);
@@ -251,22 +261,22 @@ final class State {
   public State turn(final Turn turn, final Transform t) {
     final Turn rotatedTurn = SymTransform.getTurn(turn, symmetry);
     final int ct = t.cornerTwist.turn(rotatedTurn, cornerTwist);
-    final int cp = t.cornerPosition.turn(rotatedTurn, cornerPosition);
+    final int cp = t.cornerPos.turn(rotatedTurn, cornerPosition);
     final int ef = t.edgeFlip.turn(rotatedTurn, edgeFlip);
-    final int mep = t.mEdgePosition.turn(rotatedTurn, mEdgePosition);
-    final int uep = t.uEdgePosition.turn(rotatedTurn, uEdgePosition);
-    final int dep = t.dEdgePosition.turn(rotatedTurn, dEdgePosition);
+    final int mep = t.mEdgePos.turn(rotatedTurn, mEdgePosition);
+    final int uep = t.uEdgePos.turn(rotatedTurn, uEdgePosition);
+    final int dep = t.dEdgePos.turn(rotatedTurn, dEdgePosition);
     final int sym = SymTransform.getSymmetry(rotatedTurn, symmetry);
     return new State(ct, cp, ef, mep, uep, dep, sym, turns, turn);
   }
 
   public static State init(final Transform t) {
     final int ct = t.cornerTwist.start(0);
-    final int cp = t.cornerPosition.start(0);
+    final int cp = t.cornerPos.start(0);
     final int ef = t.edgeFlip.start(0);
-    final int mep = t.mEdgePosition.start(0);
-    final int uep = t.uEdgePosition.start(0);
-    final int dep = t.dEdgePosition.start(0);
+    final int mep = t.mEdgePos.start(0);
+    final int uep = t.uEdgePos.start(0);
+    final int dep = t.dEdgePos.start(0);
     return new State(ct, cp, ef, mep, uep, dep, SymTransform.I);
   }
 

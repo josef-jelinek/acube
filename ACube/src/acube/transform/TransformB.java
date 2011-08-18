@@ -1,57 +1,58 @@
 package acube.transform;
 
+import java.util.Set;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
 
 public final class TransformB {
-  private final Turn[] turns;
-  public final TurnTable mEdgePosition;
-  public final TurnTable oEdgePosition;
-  public final TurnTable cornerPosition;
-  private final boolean[] mEdgePositionInB;
-  private final boolean[] uEdgePositionInB;
-  private final boolean[] dEdgePositionInB;
-  private final int[] uEdgePositionToB;
-  private final int[] dEdgePositionToB;
-  private final int[] mEdgePositionToB;
-  private final int[][] udEdgePositionToB;
+  private final Set<Turn> turnMask;
+  public final TurnTable mEdgePos;
+  public final TurnTable oEdgePos;
+  public final TurnTable cornerPos;
+  private final boolean[] mEdgePos_inB;
+  private final boolean[] uEdgePos_inB;
+  private final boolean[] dEdgePos_inB;
+  private final int[] uEdgePos_toB;
+  private final int[] dEdgePos_toB;
+  private final int[] mEdgePos_toB;
+  private final int[][] uEdgePos_dEdgePos_ToB;
 
-  public TransformB(final Corner[] cornerMask, final Edge[] edgeMask, final Turn[] turns) {
-    this.turns = Turn.getValidB(turns);
-    mEdgePosition = MoveKit.mEdgePositionB(edgeMask, this.turns);
-    oEdgePosition = MoveKit.oEdgePositionB(edgeMask, this.turns);
-    cornerPosition = MoveKit.cornerPosition(cornerMask, this.turns);
-    mEdgePositionInB = MoveKit.getIsMEdgePositionInB(edgeMask, turns);
-    uEdgePositionInB = MoveKit.getIsUEdgePositionInB(edgeMask, turns);
-    dEdgePositionInB = MoveKit.getIsDEdgePositionInB(edgeMask, turns);
-    mEdgePositionToB = MoveKit.getMEdgePositionToB(edgeMask, turns);
-    uEdgePositionToB = MoveKit.getUEdgePositionToB(edgeMask, turns);
-    dEdgePositionToB = MoveKit.getDEdgePositionToB(edgeMask, turns);
-    udEdgePositionToB = MoveKit.getUDEdgePositionBToB(edgeMask, turns);
+  public TransformB(final Set<Corner> cornerMask, final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    this.turnMask = Turn.getValidB(turnMask);
+    mEdgePos = MoveKit.mEdgePos_B(edgeMask, this.turnMask);
+    oEdgePos = MoveKit.oEdgePos_B(edgeMask, this.turnMask);
+    cornerPos = MoveKit.cornerPos(cornerMask, this.turnMask);
+    mEdgePos_inB = MoveKit.get_mEdgePos_inB(edgeMask, turnMask);
+    uEdgePos_inB = MoveKit.get_uEdgePos_inB(edgeMask, turnMask);
+    dEdgePos_inB = MoveKit.get_dEdgePos_inB(edgeMask, turnMask);
+    mEdgePos_toB = MoveKit.get_mEdgePos_toB(edgeMask, turnMask);
+    uEdgePos_toB = MoveKit.get_uEdgePos_toB(edgeMask, turnMask);
+    dEdgePos_toB = MoveKit.get_dEdgePos_toB(edgeMask, turnMask);
+    uEdgePos_dEdgePos_ToB = MoveKit.get_uEdgePos_B_dEdgePos_B_toB(edgeMask, turnMask);
   }
 
-  public Turn[] turns() {
-    return turns;
+  public Set<Turn> turnMask() {
+    return turnMask;
   }
 
-  public boolean isMEdgePositionInB(final int state) {
-    return mEdgePositionInB[state];
+  public boolean is_mEdgePos_inB(final int mep) {
+    return mEdgePos_inB[mep];
   }
 
-  public boolean isUEdgePositionInB(final int state) {
-    return uEdgePositionInB[state];
+  public boolean is_uEdgePos_inB(final int uep) {
+    return uEdgePos_inB[uep];
   }
 
-  public boolean isDEdgePositionInB(final int state) {
-    return dEdgePositionInB[state];
+  public boolean is_dEdgePos_inB(final int dep) {
+    return dEdgePos_inB[dep];
   }
 
-  public int convertToMEdgePosition(final int state) {
-    return mEdgePositionToB[state];
+  public int convertTo_mEdgePos(final int mep) {
+    return mEdgePos_toB[mep];
   }
 
-  public int convertToOEdgePosition(final int uState, final int dState) {
-    return udEdgePositionToB[uEdgePositionToB[uState]][dEdgePositionToB[dState]];
+  public int convertTo_oEdgePos(final int uep, final int dep) {
+    return uEdgePos_dEdgePos_ToB[uEdgePos_toB[uep]][dEdgePos_toB[dep]];
   }
 }

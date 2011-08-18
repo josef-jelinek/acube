@@ -8,7 +8,7 @@ public class PruneCorners {
   private final MoveTableComposed moveCornerTwistCornerPosition;
 
   public PruneCorners(final Transform transform) {
-    moveCornerTwistCornerPosition = new MoveTableComposed(transform.cornerTwist, transform.cornerPosition);
+    moveCornerTwistCornerPosition = new MoveTableComposed(transform.cornerTwist, transform.cornerPos);
     cornerTwistCornerPosition = new PruneTable(moveCornerTwistCornerPosition);
   }
 

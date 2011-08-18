@@ -41,7 +41,7 @@ public final class PruneTable {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
       if (get(state) == lastDistance)
-        for (final Turn turn : move.turns()) {
+        for (final Turn turn : move.turnMask()) {
           final int newState = move.turn(turn, state);
           if (isNotInitialized(newState)) { // free
             put(newState, distance % 3);
@@ -55,7 +55,7 @@ public final class PruneTable {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
       if (isNotInitialized(state))
-        for (final Turn turn : move.turns())
+        for (final Turn turn : move.turnMask())
           if (get(move.turn(turn, state)) == lastDistanceValue) {
             put(state, distance % 3);
             filled++;
@@ -102,8 +102,8 @@ public final class PruneTable {
     int distance = 0;
     int lastCode = get(state);
     int lastState = state;
-    for (int turnIndex = 0; turnIndex < move.turns().length; turnIndex++) {
-      final int newState = move.turn(move.turns()[turnIndex], lastState);
+    for (int turnIndex = 0; turnIndex < move.turnMaskArray().length; turnIndex++) {
+      final int newState = move.turn(move.turnMaskArray()[turnIndex], lastState);
       if ((lastCode - get(newState) + 4) % 3 == 2) { // 2->1 1->0 0->2
         distance++;
         lastCode = (lastCode + 2) % 3; // 0->2 1->0 2->1

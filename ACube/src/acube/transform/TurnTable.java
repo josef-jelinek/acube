@@ -1,5 +1,6 @@
 package acube.transform;
 
+import java.util.Set;
 import acube.Turn;
 
 public interface TurnTable {
@@ -13,5 +14,7 @@ public interface TurnTable {
 
   public int turn(Turn turn, int state);
 
-  public Turn[] turns();
+  public Set<Turn> turnMask();
+
+  public Turn[] turnMaskArray();
 }

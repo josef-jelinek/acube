@@ -1,6 +1,7 @@
 package acube.transform;
 
 import java.util.Arrays;
+import java.util.Set;
 import acube.Turn;
 
 public final class MoveTableComposed implements TurnTable {
@@ -12,7 +13,7 @@ public final class MoveTableComposed implements TurnTable {
   private final int startSize2;
 
   public MoveTableComposed(final TurnTable move1, final TurnTable move2) {
-    if (!Arrays.equals(move1.turns(), move2.turns()))
+    if (!Arrays.equals(move1.turnMaskArray(), move2.turnMaskArray()))
       throw new IllegalArgumentException("Incompatible tables");
     this.move1 = move1;
     this.move2 = move2;
@@ -53,7 +54,12 @@ public final class MoveTableComposed implements TurnTable {
   }
 
   @Override
-  public Turn[] turns() {
-    return move1.turns();
+  public Set<Turn> turnMask() {
+    return move1.turnMask();
+  }
+
+  @Override
+  public Turn[] turnMaskArray() {
+    return move1.turnMaskArray();
   }
 }

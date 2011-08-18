@@ -1,12 +1,13 @@
 package acube.transform;
 
+import java.util.Set;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 
-final class MEdgePosition extends MoveToB {
-  public MEdgePosition(final Edge[] mask, final Turn[] turns) {
-    super(PackKit.mEdgePosition(mask), turns);
+final class MEdgePos extends MoveToB {
+  public MEdgePos(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    super(PackKit.mEdgePos(edgeMask), turnMask);
   }
 
   @Override

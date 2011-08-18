@@ -42,36 +42,57 @@ public abstract class Pack {
     return pack();
   }
 
-  public void convert(final Pack from) {
-    assert partIds != null && from.partIds != null;
-    Arrays.fill(values, -1);
-    for (int i = 0; i < from.values.length; i++) {
-      boolean found = false;
-      for (int j = 0; j < values.length; j++)
-        if (partIds[j] == from.partIds[i]) {
-          assert values[j] < 0;
-          values[j] = from.values[i];
-          found = true;
-        }
-      assert found || from.values[i] <= 0;
+  public void convert(final Pack p) {
+    Arrays.fill(values, 0);
+    for (int i = 0; i < values.length; i++) {
+      final int pi = p.findPartIndex(partIds[i]);
+      if (pi >= 0)
+        values[i] = p.values[pi];
     }
-    for (final int value : values)
-      assert value >= 0;
   }
 
-  public void combine(final Pack from) {
-    int max = 0;
+  public boolean combine(final Pack p1, final Pack p2) {
+    Arrays.fill(values, 0);
+    for (int i = 0; i < values.length; i++) {
+      final int p1i = p1.findPartIndex(partIds[i]);
+      final int p2i = p2.findPartIndex(partIds[i]);
+      final boolean is1 = p1i >= 0 && p1.values[p1i] > 0;
+      final boolean is2 = p2i >= 0 && p2.values[p2i] > 0;
+      if (is1 && is2)
+        return false;
+      if (is1)
+        values[i] = p1.valueInOrder(p2, p1i);
+      if (is2)
+        values[i] = p2.valueInOrder(p1, p2i);
+    }
+    return true;
+  }
+
+  private int valueInOrder(final Pack p, final int pi) {
+    int value = values[pi];
+    final int to = nthUsedIndex(value - 1);
+    for (int i = 0; i < to; i++)
+      if (p.usedMask[i])
+        value++;
+    return value;
+  }
+
+  private int nthUsedIndex(final int n) {
+    int count = 0;
+    for (int i = 0; i < usedMask.length; i++)
+      if (usedMask[i]) {
+        if (count == n)
+          return i;
+        count++;
+      }
+    return -1;
+  }
+
+  private int findPartIndex(final int partId) {
     for (int i = 0; i < values.length; i++)
-      for (int j = 0; j < from.values.length; j++)
-        if (partIds[i] == from.partIds[j] && from.values[j] > 0) {
-          assert values[i] <= 0;
-          values[i] = from.values[j];
-          max = Math.max(max, values[i]);
-        }
-    for (int i = 0; i < values.length; i++)
-      for (int j = 0; j < from.values.length; j++)
-        if (partIds[i] == from.partIds[j] && values[i] > 0 && from.values[j] == 0)
-          values[i] += max;
+      if (partId == partIds[i])
+        return i;
+    return -1;
   }
 
   public void swap(final int i1, final int i2) {

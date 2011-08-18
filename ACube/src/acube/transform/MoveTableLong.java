@@ -7,7 +7,7 @@ final class MoveTableLong extends MoveTable {
 
   public MoveTableLong(final TurnTable move, final Turn[][][] base) {
     super(move);
-    turn = new int[move.turns().length][stateSize()];
+    turn = new int[move.turnMask().size()][stateSize()];
     fill(base);
   }
 

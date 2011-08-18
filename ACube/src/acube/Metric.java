@@ -1,9 +1,43 @@
 package acube;
 
-import java.util.ArrayList;
+import static acube.Turn.B2;
+import static acube.Turn.D2;
+import static acube.Turn.E1;
+import static acube.Turn.E2;
+import static acube.Turn.E3;
+import static acube.Turn.F2;
+import static acube.Turn.L2;
+import static acube.Turn.M1;
+import static acube.Turn.M2;
+import static acube.Turn.M3;
+import static acube.Turn.R2;
+import static acube.Turn.S1;
+import static acube.Turn.S2;
+import static acube.Turn.S3;
+import static acube.Turn.U2;
+import static acube.Turn.b1;
+import static acube.Turn.b2;
+import static acube.Turn.b3;
+import static acube.Turn.d1;
+import static acube.Turn.d2;
+import static acube.Turn.d3;
+import static acube.Turn.f1;
+import static acube.Turn.f2;
+import static acube.Turn.f3;
+import static acube.Turn.l1;
+import static acube.Turn.l2;
+import static acube.Turn.l3;
+import static acube.Turn.r1;
+import static acube.Turn.r2;
+import static acube.Turn.r3;
+import static acube.Turn.u1;
+import static acube.Turn.u2;
+import static acube.Turn.u3;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public enum Metric {
   QUARTER, FACE, SLICE, SLICE_QUARTER, ROTATION_QUARTER, ROTATION_FACE;
@@ -13,25 +47,25 @@ public enum Metric {
     return turnLengths[ordinal()][turn.ordinal()];
   }
 
-  public Turn[] filterForElementary(final Turn[] turns) {
-    final List<Turn> list = new ArrayList<Turn>();
+  public Set<Turn> filterForElementary(final Set<Turn> turns) {
+    final Set<Turn> elementary = new HashSet<Turn>();
     for (final Turn turn : turns)
       if (length(turn) == 1)
-        list.add(turn);
-    return list.toArray(new Turn[list.size()]);
+        elementary.add(turn);
+    return elementary;
   }
 
-  private static final int[][] turnLengths = new int[values().length][Turn.size()];
+  private static final int[][] turnLengths = new int[values().length][Turn.size];
   private static final List<Turn> faceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      Turn.U2, Turn.D2, Turn.F2, Turn.B2, Turn.L2, Turn.R2, }));
+      U2, D2, F2, B2, L2, R2 }));
   private static final List<Turn> doubleQuarterTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      Turn.u1, Turn.d1, Turn.f1, Turn.b1, Turn.l1, Turn.r1, Turn.u3, Turn.d3, Turn.f3, Turn.b3, Turn.l3, Turn.r3, }));
+      u1, d1, f1, b1, l1, r1, u3, d3, f3, b3, l3, r3 }));
   private static final List<Turn> doubleFaceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      Turn.u2, Turn.d2, Turn.f2, Turn.b2, Turn.l2, Turn.r2, }));
+      u2, d2, f2, b2, l2, r2 }));
   private static final List<Turn> quarterSliceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      Turn.E1, Turn.E3, Turn.S1, Turn.S3, Turn.M1, Turn.M3, }));
-  private static final List<Turn> halfSliceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      Turn.E2, Turn.S2, Turn.M2, }));
+      E1, E3, S1, S3, M1, M3 }));
+  private static final List<Turn> halfSliceTurns = Collections.unmodifiableList(Arrays
+      .asList(new Turn[] { E2, S2, M2 }));
   static {
     for (final int[] turnLengthMetric : turnLengths)
       for (int t = 0; t < turnLengthMetric.length; t++)

@@ -90,8 +90,8 @@ public final class SymTransform {
   private static final int[][] symL = {
       { I, L, LL, R }, { U, LF, DBB, BU }, { D, DL, DLL, DR }, { DD, LBB, BB, LDD }, { F, LD, BDD, UF },
       { B, BL, BLL, DB }, };
-  private static final Turn[][] output = new Turn[SymmetryCount][Turn.size()];
-  private static final int[][] transition = new int[SymmetryCount][Turn.size()];
+  private static final Turn[][] output = new Turn[SymmetryCount][Turn.size];
+  private static final int[][] transition = new int[SymmetryCount][Turn.size];
   static {
     fillOutputTab(output);
     fillTransitionTab(transition);
@@ -106,9 +106,9 @@ public final class SymTransform {
   }
 
   private static void fillOutputTab(final Turn[][] tab) {
-    final Turn[] tD = new Turn[Turn.size()];
-    final Turn[] tB = new Turn[Turn.size()];
-    final Turn[] tL = new Turn[Turn.size()];
+    final Turn[] tD = new Turn[Turn.size];
+    final Turn[] tB = new Turn[Turn.size];
+    final Turn[] tL = new Turn[Turn.size];
     for (final Turn turn : Turn.values())
       tD[turn.ordinal()] = tB[turn.ordinal()] = tL[turn.ordinal()] = turn;
     for (int t = 0; t < turnD.length; t++)

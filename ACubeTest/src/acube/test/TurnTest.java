@@ -3,6 +3,8 @@ package acube.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import java.util.Arrays;
+import java.util.HashSet;
 import org.junit.Test;
 import acube.Metric;
 import acube.Turn;
@@ -70,24 +72,24 @@ public final class TurnTest {
     assertTrue(Turn.B2.isB());
     assertTrue(Turn.r2.isB());
     assertFalse(Turn.r3.isB());
-    assertEquals(TurnB.size(), Turn.getValidB(Turn.values()).length);
-    assertEquals(TurnB.size(), Turn.getValidB(Turn.getValidB(Turn.values())).length);
-    assertEquals(0, Turn.getValidB(new Turn[] { Turn.R1 }).length);
+    assertEquals(TurnB.size, Turn.getValidB(Turn.valueSet).size());
+    assertEquals(TurnB.size, Turn.getValidB(Turn.getValidB(Turn.valueSet)).size());
+    assertEquals(0, Turn.getValidB(new HashSet<Turn>(Arrays.asList(new Turn[] { Turn.R1 }))).size());
   }
 
   @Test
   public void testMetricFilter() {
-    assertEquals(18 * 2, Metric.FACE.filterForElementary(Turn.values()).length);
-    assertEquals(18, Metric.ROTATION_FACE.filterForElementary(Turn.values()).length);
+    assertEquals(18 * 2, Metric.FACE.filterForElementary(Turn.valueSet).size());
+    assertEquals(18, Metric.ROTATION_FACE.filterForElementary(Turn.valueSet).size());
   }
 
   @Test
   public void testIntConversions() {
     assertEquals(Turn.U1, Turn.turn(0));
     assertEquals(Turn.U2, Turn.turn(1));
-    assertEquals(Turn.r3, Turn.turn(Turn.size() - 1));
+    assertEquals(Turn.r3, Turn.turn(Turn.size - 1));
     assertEquals(TurnB.U1, TurnB.turn(0));
     assertEquals(TurnB.U2, TurnB.turn(1));
-    assertEquals(TurnB.r2, TurnB.turn(TurnB.size() - 1));
+    assertEquals(TurnB.r2, TurnB.turn(TurnB.size - 1));
   }
 }

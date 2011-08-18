@@ -7,7 +7,7 @@ final class MoveTableShort extends MoveTable {
 
   public MoveTableShort(final TurnTable move, final Turn[][][] base) {
     super(move);
-    turn = new short[move.turns().length][stateSize()];
+    turn = new short[move.turnMask().size()][stateSize()];
     fill(base);
   }
 

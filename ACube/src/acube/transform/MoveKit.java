@@ -46,6 +46,7 @@ import static acube.Turn.u1;
 import static acube.Turn.u2;
 import static acube.Turn.u3;
 import java.util.Arrays;
+import java.util.Set;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
@@ -73,51 +74,63 @@ public final class MoveKit {
       { { d3 }, { U1, U1, U1 } }, { { E1 }, { U1, D1, D1, D1 } }, { { E2 }, { U1, U1, D1, D1 } },
       { { E3 }, { U1, U1, U1, D1 } }, { { S2 }, { B2, F2 } }, { { M2 }, { R2, L2 } }, };
 
-  public static TurnTable cornerTwist(final Corner[] mask, final Corner[] twistMask, final Turn[] turns) {
-    return MoveTable.instance(new CornerTwist(mask, twistMask, turns), TurnBase);
+  public static TurnTable cornerTwist(final Set<Corner> cornerMask, final Set<Corner> cornerTwistMask,
+      final Set<Turn> turnMask) {
+    return MoveTable.instance(new CornerTwist(cornerMask, cornerTwistMask, turnMask), TurnBase);
   }
 
-  public static TurnTable edgeFlip(final Edge[] mask, final Edge[] flipMask, final Turn[] turns) {
-    return MoveTable.instance(new EdgeFlip(mask, flipMask, turns), TurnBase);
+  public static TurnTable edgeFlip(final Set<Edge> edgeMask, final Set<Edge> edgeFlipMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new EdgeFlip(edgeMask, edgeFlipMask, turnMask), TurnBase);
   }
 
-  public static TurnTable cornerPosition(final Corner[] mask, final Turn[] turns) {
-    return MoveTable.instance(new CornerPosition(mask, turns), TurnBase);
+  public static TurnTable cornerPos(final Set<Corner> cornerMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new CornerPos(cornerMask, turnMask), TurnBase);
   }
 
-  public static TurnTable mEdgePositionSet(final Edge[] mask, final Turn[] turns) {
-    return MoveTable.instance(new MEdgePositionSet(mask, turns), TurnBase);
+  public static TurnTable mEdgePosSet(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new MEdgePosSet(edgeMask, turnMask), TurnBase);
   }
 
-  public static TurnTable mEdgePosition(final Edge[] mask, final Turn[] turns) {
-    return MoveTable.instance(new MEdgePosition(mask, turns), TurnBase);
+  public static TurnTable mEdgePos(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new MEdgePos(edgeMask, turnMask), TurnBase);
   }
 
-  public static TurnTable uEdgePosition(final Edge[] mask, final Turn[] turns) {
-    return MoveTable.instance(new UEdgePosition(mask, turns), TurnBase);
+  public static TurnTable uEdgePos(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new UEdgePos(edgeMask, turnMask), TurnBase);
   }
 
-  public static TurnTable dEdgePosition(final Edge[] mask, final Turn[] turns) {
-    return MoveTable.instance(new DEdgePosition(mask, turns), TurnBase);
+  public static TurnTable dEdgePos(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return MoveTable.instance(new DEdgePos(edgeMask, turnMask), TurnBase);
   }
 
-  public static TurnTable mEdgePositionB(final Edge[] edgeMask, final Turn[] turns) {
-    assertTurnsAreB(turns);
-    return MoveTable.instance(new MEdgePositionB(edgeMask, turns), TurnBaseB);
+  public static TurnTable mEdgePos_B(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    assertTurnsAreB(turnMask);
+    return MoveTable.instance(new MEdgePosB(edgeMask, turnMask), TurnBaseB);
   }
 
-  public static TurnTable oEdgePositionB(final Edge[] edgeMask, final Turn[] turns) {
-    assertTurnsAreB(turns);
-    return MoveTable.instance(new OEdgePositionB(edgeMask, turns), TurnBaseB);
+  public static TurnTable oEdgePos_B(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    assertTurnsAreB(turnMask);
+    return MoveTable.instance(new OEdgePosB(edgeMask, turnMask), TurnBaseB);
   }
 
-  private static void assertTurnsAreB(final Turn[] turns) {
-    for (final Turn turn : turns)
+  private static void assertTurnsAreB(final Set<Turn> turnMask) {
+    for (final Turn turn : turnMask)
       assert turn.isB();
   }
 
-  public static boolean[] getIsMEdgePositionInB(final Edge[] edges, final Turn[] turns) {
-    final MEdgePosition pack = new MEdgePosition(edges, turns);
+  public static boolean[] get_mEdgePos_inB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_inB(new MEdgePos(edgeMask, turnMask));
+  }
+
+  public static boolean[] get_uEdgePos_inB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_inB(new UEdgePos(edgeMask, turnMask));
+  }
+
+  public static boolean[] get_dEdgePos_inB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_inB(new DEdgePos(edgeMask, turnMask));
+  }
+
+  private static boolean[] get_edgePos_inB(final MoveToB pack) {
     final boolean[] t = new boolean[pack.stateSize()];
     for (int i = 0; i < t.length; i++) {
       pack.unpack(i);
@@ -126,39 +139,19 @@ public final class MoveKit {
     return t;
   }
 
-  public static boolean[] getIsUEdgePositionInB(final Edge[] edges, final Turn[] turns) {
-    final UEdgePosition pack = new UEdgePosition(edges, turns);
-    final boolean[] t = new boolean[pack.stateSize()];
-    for (int i = 0; i < t.length; i++) {
-      pack.unpack(i);
-      t[i] = pack.isInB();
-    }
-    return t;
+  public static int[] get_mEdgePos_toB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_toB(new MEdgePos(edgeMask, turnMask), new MEdgePosB(edgeMask, turnMask));
   }
 
-  public static boolean[] getIsDEdgePositionInB(final Edge[] edges, final Turn[] turns) {
-    final DEdgePosition pack = new DEdgePosition(edges, turns);
-    final boolean[] t = new boolean[pack.stateSize()];
-    for (int i = 0; i < t.length; i++) {
-      pack.unpack(i);
-      t[i] = pack.isInB();
-    }
-    return t;
+  public static int[] get_uEdgePos_toB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_toB(new UEdgePos(edgeMask, turnMask), new OEdgePosB(edgeMask, turnMask));
   }
 
-  public static int[] getMEdgePositionToB(final Edge[] edges, final Turn[] turns) {
-    return getEdgePositionToB(new MEdgePosition(edges, turns), new MEdgePositionB(edges, turns));
+  public static int[] get_dEdgePos_toB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    return get_edgePos_toB(new DEdgePos(edgeMask, turnMask), new OEdgePosB(edgeMask, turnMask));
   }
 
-  public static int[] getUEdgePositionToB(final Edge[] edges, final Turn[] turns) {
-    return getEdgePositionToB(new UEdgePosition(edges, turns), new OEdgePositionB(edges, turns));
-  }
-
-  public static int[] getDEdgePositionToB(final Edge[] edges, final Turn[] turns) {
-    return getEdgePositionToB(new DEdgePosition(edges, turns), new OEdgePositionB(edges, turns));
-  }
-
-  public static int[] getEdgePositionToB(final MoveToB pack, final Move packB) {
+  private static int[] get_edgePos_toB(final MoveToB pack, final Move packB) {
     final int[] t = new int[pack.stateSize()];
     Arrays.fill(t, -1);
     for (int i = 0; i < t.length; i++) {
@@ -169,10 +162,10 @@ public final class MoveKit {
     return t;
   }
 
-  public static int[][] getUDEdgePositionBToB(final Edge[] edges, final Turn[] turns) {
-    final OEdgePositionB uPackB = new OEdgePositionB(PackKit.getUEdges(edges), turns);
-    final OEdgePositionB dPackB = new OEdgePositionB(PackKit.getDEdges(edges), turns);
-    final OEdgePositionB packB = new OEdgePositionB(edges, turns);
+  public static int[][] get_uEdgePos_B_dEdgePos_B_toB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    final OEdgePosB uPackB = new OEdgePosB(PackKit.getUEdges(edgeMask), turnMask);
+    final OEdgePosB dPackB = new OEdgePosB(PackKit.getDEdges(edgeMask), turnMask);
+    final OEdgePosB packB = new OEdgePosB(edgeMask, turnMask);
     final int[][] t = new int[uPackB.stateSize()][dPackB.stateSize()];
     for (int i = 0; i < t.length; i++) {
       Arrays.fill(t[i], (short)-1);
@@ -181,6 +174,17 @@ public final class MoveKit {
         dPackB.unpack(j);
         t[i][j] = packB.convertFrom(uPackB, dPackB);
       }
+    }
+    return t;
+  }
+
+  public static int[] get_mEdgePos_to_mEdgePosSet(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+    final MEdgePos mEdgePos = new MEdgePos(edgeMask, turnMask);
+    final MEdgePosSet mEdgePosSet = new MEdgePosSet(edgeMask, turnMask);
+    final int[] t = new int[mEdgePos.stateSize()];
+    for (int i = 0; i < t.length; i++) {
+      mEdgePos.unpack(i);
+      t[i] = mEdgePosSet.convertFrom(mEdgePos);
     }
     return t;
   }

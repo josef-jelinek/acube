@@ -5,58 +5,56 @@ import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 
 public final class Prune {
-  private final PruneTable cornerTwistEdgeFlip;
-  private final PruneTable cornerTwistMEdgePositionSet;
-  private final PruneTable edgeFlipMEdgePositionSet;
-  private final MoveTableComposed moveCornerTwistEdgeFlip;
-  private final MoveTableComposed moveCornerTwistMEdgePositionSet;
-  private final MoveTableComposed moveEdgeFlipMEdgePositionSet;
+  private final PruneTable cornerTwist_edgeFlip;
+  private final PruneTable cornerTwist_mEdgePosSet;
+  private final PruneTable edgeFlip_mEdgePosSet;
+  private final MoveTableComposed move_cornerTwist_edgeFlip;
+  private final MoveTableComposed move_cornerTwist_mEdgePosSet;
+  private final MoveTableComposed move_edgeFlip_mEdgePosSet;
 
   public Prune(final Transform transform) {
-    moveCornerTwistEdgeFlip = new MoveTableComposed(transform.cornerTwist, transform.edgeFlip);
-    moveCornerTwistMEdgePositionSet = new MoveTableComposed(transform.cornerTwist, transform.mEdgePositionSet);
-    moveEdgeFlipMEdgePositionSet = new MoveTableComposed(transform.edgeFlip, transform.mEdgePositionSet);
-    cornerTwistEdgeFlip = new PruneTable(moveCornerTwistEdgeFlip);
-    cornerTwistMEdgePositionSet = new PruneTable(moveCornerTwistMEdgePositionSet);
-    edgeFlipMEdgePositionSet = new PruneTable(moveEdgeFlipMEdgePositionSet);
+    move_cornerTwist_edgeFlip = new MoveTableComposed(transform.cornerTwist, transform.edgeFlip);
+    move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.cornerTwist, transform.mEdgePosSet);
+    move_edgeFlip_mEdgePosSet = new MoveTableComposed(transform.edgeFlip, transform.mEdgePosSet);
+    cornerTwist_edgeFlip = new PruneTable(move_cornerTwist_edgeFlip);
+    cornerTwist_mEdgePosSet = new PruneTable(move_cornerTwist_mEdgePosSet);
+    edgeFlip_mEdgePosSet = new PruneTable(move_edgeFlip_mEdgePosSet);
   }
 
-  public int getCornerTwistEdgeFlipStartDistance(final int ct, final int ef) {
-    return cornerTwistEdgeFlip.startDistance(moveCornerTwistEdgeFlip.state(ct, ef));
+  public int get_cornerTwist_edgeFlip_startDistance(final int ct, final int ef) {
+    return cornerTwist_edgeFlip.startDistance(move_cornerTwist_edgeFlip.state(ct, ef));
   }
 
-  public int getCornerTwistMEdgePositionSetStartDistance(final int ct, final int meps) {
-    return cornerTwistMEdgePositionSet.startDistance(moveCornerTwistMEdgePositionSet.state(ct, meps));
+  public int get_cornerTwist_mEdgePosSet_startDistance(final int ct, final int meps) {
+    return cornerTwist_mEdgePosSet.startDistance(move_cornerTwist_mEdgePosSet.state(ct, meps));
   }
 
-  public int getEdgeFlipMEdgePositionSetStartDistance(final int ef, final int meps) {
-    return edgeFlipMEdgePositionSet.startDistance(moveEdgeFlipMEdgePositionSet.state(ef, meps));
+  public int get_edgeFlip_mEdgePosSet_startDistance(final int ef, final int meps) {
+    return edgeFlip_mEdgePosSet.startDistance(move_edgeFlip_mEdgePosSet.state(ef, meps));
   }
 
-  public int getCornerTwistEdgeFlipDistance(final int lastDistance, final int ct, final int ef) {
-    return cornerTwistEdgeFlip.distance(lastDistance, moveCornerTwistEdgeFlip.state(ct, ef));
+  public int get_cornerTwist_edgeFlip_distance(final int lastDistance, final int ct, final int ef) {
+    return cornerTwist_edgeFlip.distance(lastDistance, move_cornerTwist_edgeFlip.state(ct, ef));
   }
 
-  public int getCornerTwistMEdgePositionSetDistance(final int lastDistance, final int ct, final int meps) {
-    return cornerTwistMEdgePositionSet.distance(lastDistance, moveCornerTwistMEdgePositionSet.state(ct, meps));
+  public int get_cornerTwist_mEdgePosSet_distance(final int lastDistance, final int ct, final int meps) {
+    return cornerTwist_mEdgePosSet.distance(lastDistance, move_cornerTwist_mEdgePosSet.state(ct, meps));
   }
 
-  public int getEdgeFlipMEdgePositionSetDistance(final int lastDistance, final int ef, final int meps) {
-    return edgeFlipMEdgePositionSet.distance(lastDistance, moveEdgeFlipMEdgePositionSet.state(ef, meps));
+  public int get_edgeFlip_mEdgePosSet_distance(final int lastDistance, final int ef, final int meps) {
+    return edgeFlip_mEdgePosSet.distance(lastDistance, move_edgeFlip_mEdgePosSet.state(ef, meps));
   }
 
   public int maxDistance() {
-    return max(cornerTwistEdgeFlip.maxDistance(),
-        max(cornerTwistMEdgePositionSet.maxDistance(), edgeFlipMEdgePositionSet.maxDistance()));
+    return max(cornerTwist_edgeFlip.maxDistance(),
+        max(cornerTwist_mEdgePosSet.maxDistance(), edgeFlip_mEdgePosSet.maxDistance()));
   }
 
   public int stateSize() {
-    return cornerTwistEdgeFlip.stateSize() + cornerTwistMEdgePositionSet.stateSize() +
-        edgeFlipMEdgePositionSet.stateSize();
+    return cornerTwist_edgeFlip.stateSize() + cornerTwist_mEdgePosSet.stateSize() + edgeFlip_mEdgePosSet.stateSize();
   }
 
   public int memorySize() {
-    return cornerTwistEdgeFlip.memorySize() + cornerTwistMEdgePositionSet.memorySize() +
-        edgeFlipMEdgePositionSet.memorySize();
+    return cornerTwist_edgeFlip.memorySize() + cornerTwist_mEdgePosSet.memorySize() + edgeFlip_mEdgePosSet.memorySize();
   }
 }

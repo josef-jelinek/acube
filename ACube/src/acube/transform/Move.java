@@ -20,14 +20,18 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
+import java.util.Collections;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.Pack;
 
 abstract class MoveToB extends Move {
-  protected MoveToB(final Pack pack, final Turn[] turns) {
-    super(pack, turns);
+  protected MoveToB(final Pack pack, final Set<Turn> turnMask) {
+    super(pack, turnMask);
   }
 
   public abstract boolean isInB();
@@ -36,17 +40,24 @@ abstract class MoveToB extends Move {
 abstract class Move implements TurnTable {
   protected final Pack pack;
   private final int stateSize;
-  private final Turn[] turns;
+  private final SortedSet<Turn> turnMask;
+  private final Turn[] turnMaskArray;
 
-  protected Move(final Pack pack, final Turn[] turns) {
+  protected Move(final Pack pack, final Set<Turn> turnMask) {
     this.pack = pack;
     stateSize = pack.size();
-    this.turns = turns;
+    this.turnMask = Collections.unmodifiableSortedSet(new TreeSet<Turn>(turnMask));
+    turnMaskArray = turnMask.toArray(new Turn[turnMask.size()]);
   }
 
   @Override
-  public Turn[] turns() {
-    return turns;
+  public final Set<Turn> turnMask() {
+    return turnMask;
+  }
+
+  @Override
+  public final Turn[] turnMaskArray() {
+    return turnMaskArray;
   }
 
   @Override
@@ -96,8 +107,7 @@ abstract class Move implements TurnTable {
   }
 
   public final int convertFrom(final Move move1, final Move move2) {
-    pack.convert(move1.pack);
-    pack.combine(move2.pack);
+    pack.combine(move1.pack, move2.pack);
     return pack();
   }
 
