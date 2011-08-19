@@ -88,7 +88,7 @@ public final class Solver {
     }
   }
 
-  private final CubeState state;
+  private CubeState state;
   private final Options options;
   private final Reporter reporter;
   private int minFoundLength;
@@ -101,8 +101,7 @@ public final class Solver {
   private long sol2, sol2x;
   private long aprn, bprn, apry, bpry;
 
-  public Solver(final CubeState state, final Options options, final Reporter reporter) {
-    this.state = state;
+  public Solver(final Options options, final Reporter reporter) {
     this.options = options;
     this.reporter = reporter;
     for (int i = 0; i < stackA.length; i++)
@@ -111,7 +110,8 @@ public final class Solver {
       stackB[i] = new BNode();
   }
 
-  public void solve() {
+  public void solve(final CubeState state) {
+    this.state = state;
     solveA();
   }
 

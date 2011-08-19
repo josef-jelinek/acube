@@ -43,8 +43,12 @@ public class SolverTest {
     state.setCornerPos(t.cornerPos.start(0));
     state.setEdgeFlip(t.edgeFlip.start(0));
     state.setEdgePos(t.mEdgePos.start(0), t.uEdgePos.start(0), t.dEdgePos.start(0));
-    final Solver solver = new Solver(state, options, reporter);
-    solver.solve();
+    final Solver solver = new Solver(options, reporter);
+    solver.solve(state);
     assertEquals(1, found.size());
+    assertEquals(". (0q, 0f, 0s, 0sq)", found.get(0));
+    found.clear();
+    state.setEdgeFlip(t.edgeFlip.stateSize() - 1);
+    solver.solve(state);
   }
 }

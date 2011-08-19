@@ -19,7 +19,7 @@ public final class CubeState {
   public int mEdgePos;
   public int uEdgePos;
   public int dEdgePos;
-  public Metric metric = Metric.FACE;
+  public Metric metric = Metric.SLICE;
   public int symmetry = SymTransform.I;
   public Transform transform;
   public TransformB transformB;
