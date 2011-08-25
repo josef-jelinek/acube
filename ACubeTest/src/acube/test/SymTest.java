@@ -3,19 +3,35 @@ package acube.test;
 import static acube.SymTransform.B;
 import static acube.SymTransform.D;
 import static acube.SymTransform.DL;
+import static acube.SymTransform.DR;
+import static acube.SymTransform.F;
 import static acube.SymTransform.I;
 import static acube.SymTransform.L;
+import static acube.SymTransform.LD;
 import static acube.SymTransform.LF;
 import static acube.SymTransform.SymmetryCount;
 import static acube.SymTransform.U;
 import static acube.SymTransform.getSymmetry;
 import static acube.SymTransform.getTurn;
+import static acube.Turn.B1;
+import static acube.Turn.B2;
 import static acube.Turn.D1;
+import static acube.Turn.D3;
+import static acube.Turn.E1;
 import static acube.Turn.E3;
 import static acube.Turn.F1;
+import static acube.Turn.F2;
+import static acube.Turn.L1;
+import static acube.Turn.L2;
 import static acube.Turn.M1;
+import static acube.Turn.M2;
 import static acube.Turn.R1;
+import static acube.Turn.R2;
 import static acube.Turn.S1;
+import static acube.Turn.S2;
+import static acube.Turn.U1;
+import static acube.Turn.U2;
+import static acube.Turn.U3;
 import static acube.Turn.b1;
 import static acube.Turn.l1;
 import static acube.Turn.r1;
@@ -28,7 +44,7 @@ import acube.Turn;
 
 public final class SymTest {
   @Test
-  public void output() {
+  public void turn_to_turn_for_symmetry() {
     assertEquals(R1, getTurn(R1, I));
     assertEquals(S1, getTurn(S1, I));
     assertEquals(u1, getTurn(u1, I));
@@ -41,16 +57,48 @@ public final class SymTest {
     assertEquals(R1, getTurn(R1, L));
     assertEquals(E3, getTurn(S1, L));
     assertEquals(b1, getTurn(u1, L));
+    assertEquals(F1, getTurn(R1, DR));
+    assertEquals(U1, getTurn(R1, LD));
+    assertEquals(B1, getTurn(U1, LD));
   }
 
   @Test
-  public void testTransition() {
-    assertEquals(I, getSymmetry(R1, I));
-    assertEquals(U, getSymmetry(R1, U));
-    assertEquals(L, getSymmetry(M1, I));
-    assertEquals(LF, getSymmetry(M1, U));
-    assertEquals(DL, getSymmetry(M1, D));
-    assertEquals(DL, getSymmetry(l1, D));
+  public void symmetry_to_symmetry_for_turn() {
+    assertEquals(I, getSymmetry(I, R1));
+    assertEquals(U, getSymmetry(U, R1));
+    assertEquals(L, getSymmetry(I, M1));
+    assertEquals(LF, getSymmetry(U, M1));
+    assertEquals(DL, getSymmetry(D, M1));
+    assertEquals(DL, getSymmetry(D, l1));
+    assertEquals(LD, getSymmetry(F, M1));
+  }
+
+  @Test
+  public void super_flip_solution() {
+    int s = check_transform(I, S1, S1);
+    s = check_transform(s, U1, L1);
+    s = check_transform(s, F2, F2);
+    s = check_transform(s, U2, L2);
+    s = check_transform(s, M1, E1);
+    s = check_transform(s, U1, B1);
+    s = check_transform(s, S1, M1);
+    s = check_transform(s, D3, D3);
+    s = check_transform(s, B2, R2);
+    s = check_transform(s, L2, B2);
+    s = check_transform(s, U3, U3);
+    s = check_transform(s, M2, S2);
+    s = check_transform(s, D3, U3);
+    s = check_transform(s, R2, F2);
+    s = check_transform(s, D3, U3);
+    s = check_transform(s, B2, L2);
+    s = check_transform(s, L2, B2);
+    s = check_transform(s, F2, R2);
+  }
+
+  private int check_transform(final int symmetry, final Turn userTurn, final Turn cubeTurn) {
+    System.out.println("sym=" + symmetry + " turn=" + userTurn + " cubeturn=" + cubeTurn);
+    assertEquals("turn=" + userTurn + " sym=" + symmetry, cubeTurn, getTurn(userTurn, symmetry));
+    return getSymmetry(symmetry, userTurn);
   }
 
   @Test
@@ -76,11 +124,11 @@ public final class SymTest {
     for (final Turn t : Turn.values())
       for (int s1 = 0; s1 < SymmetryCount - 1; s1++)
         for (int s2 = s1 + 1; s2 < SymmetryCount; s2++)
-          assertFalse(getSymmetry(t, s1) == getSymmetry(t, s2));
+          assertFalse(getSymmetry(s1, t) == getSymmetry(s2, t));
     for (int s = 0; s < SymmetryCount; s++)
       for (final Turn[] diffsym : diffsyms)
         for (int t1 = 0; t1 < diffsym.length - 1; t1++)
           for (int t2 = t1 + 1; t2 < diffsym.length; t2++)
-            assertFalse(getSymmetry(diffsym[t1], s) == getSymmetry(diffsym[t2], s));
+            assertFalse(getSymmetry(s, diffsym[t1]) == getSymmetry(s, diffsym[t2]));
   }
 }

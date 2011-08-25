@@ -13,8 +13,8 @@ public final class Prune {
   private final MoveTableComposed move_edgeFlip_mEdgePosSet;
 
   public Prune(final Transform transform) {
-    move_cornerTwist_edgeFlip = new MoveTableComposed(transform.cornerTwist, transform.edgeFlip);
-    move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.cornerTwist, transform.mEdgePosSet);
+    move_cornerTwist_edgeFlip = new MoveTableComposed(transform.twist, transform.edgeFlip);
+    move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.twist, transform.mEdgePosSet);
     move_edgeFlip_mEdgePosSet = new MoveTableComposed(transform.edgeFlip, transform.mEdgePosSet);
     cornerTwist_edgeFlip = new PruneTable(move_cornerTwist_edgeFlip);
     cornerTwist_mEdgePosSet = new PruneTable(move_cornerTwist_mEdgePosSet);

@@ -128,6 +128,6 @@ public final class PruneTable {
 
   private static void logLine(final int depth, final int current, final int soFar, final int total,
       final boolean forward) {
-    System.out.printf("%2d%s %8d %10d %3d%%%n", depth, forward ? ">" : "<", current, soFar, (long)soFar * 100 / total);
+    //System.out.printf("%2d%s %8d %10d %3d%%%n", depth, forward ? ">" : "<", current, soFar, (long)soFar * 100 / total);
   }
 }

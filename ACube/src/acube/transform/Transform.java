@@ -7,7 +7,7 @@ import acube.Turn;
 
 public final class Transform {
   private final Set<Turn> turnMask;
-  public final TurnTable cornerTwist;
+  public final TurnTable twist;
   public final TurnTable edgeFlip;
   public final TurnTable mEdgePosSet;
   public final TurnTable mEdgePos;
@@ -19,7 +19,7 @@ public final class Transform {
   public Transform(final Set<Corner> cornerMask, final Set<Edge> edgeMask, final Set<Corner> cornerTwistMask,
       final Set<Edge> edgeFlipMask, final Set<Turn> turnMask) {
     this.turnMask = turnMask;
-    cornerTwist = MoveKit.cornerTwist(cornerMask, cornerTwistMask, turnMask);
+    twist = MoveKit.cornerTwist(cornerMask, cornerTwistMask, turnMask);
     edgeFlip = MoveKit.edgeFlip(edgeMask, edgeFlipMask, turnMask);
     mEdgePosSet = MoveKit.mEdgePosSet(edgeMask, turnMask);
     mEdgePos = MoveKit.mEdgePos(edgeMask, turnMask);

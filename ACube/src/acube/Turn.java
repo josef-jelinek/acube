@@ -1,11 +1,8 @@
 package acube;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public enum Turn {
   U1, U2, U3, D1, D2, D3, F1, F2, F3, B1, B2, B3, L1, L2, L3, R1, R2, R3, E1, E2, E3, S1, S2, S3, M1, M2, M3, u1, u2,
@@ -13,9 +10,9 @@ public enum Turn {
   private static String[] names =
       "U U2 U' D D2 D' F F2 F' B B2 B' L L2 L' R R2 R' E E2 E' S S2 S' M M2 M' u u2 u' d d2 d' f f2 f' b b2 b' l l2 l' r r2 r'"
           .split(" ");
-  public static final int size = values().length;
-  public static final SortedSet<Turn> valueSet = Collections.unmodifiableSortedSet(new TreeSet<Turn>(Arrays
-      .asList(values())));
+  public static final Turn[] values = values();
+  public static final int size = values.length;
+  public static final EnumSet<Turn> valueSet = EnumSet.allOf(Turn.class);
 
   public static Turn turn(final int turn) {
     return values()[turn];
@@ -38,8 +35,8 @@ public enum Turn {
     return tob[turn];
   }
 
-  public static Set<Turn> getValidB(final Set<Turn> turns) {
-    final Set<Turn> turnsB = new HashSet<Turn>();
+  public static EnumSet<Turn> getValidB(final Set<Turn> turns) {
+    final EnumSet<Turn> turnsB = EnumSet.noneOf(Turn.class);
     for (final Turn turn : turns)
       if (turn.isB())
         turnsB.add(turn);

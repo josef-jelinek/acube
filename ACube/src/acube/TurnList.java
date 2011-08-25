@@ -104,7 +104,7 @@ public final class TurnList {
     final boolean[] activeStates = new boolean[table.size()];
     activeStates[0] = true;
     for (int i = 0; i < table.size(); i++)
-      for (final Turn turn : Turn.values())
+      for (final Turn turn : Turn.values)
         if (table.get(i)[turn.ordinal()] != -1 && !activeStates[table.get(i)[turn.ordinal()]])
           activeStates[table.get(i)[turn.ordinal()]] = true;
     return activeStates;
@@ -173,7 +173,7 @@ public final class TurnList {
     stateIndices.put(state0, 0);
     for (int i = 0; i < states.size(); i++) {
       final int[] row = new int[Turn.size];
-      for (final Turn turn : Turn.values())
+      for (final Turn turn : Turn.values)
         if (!turnMask.contains(turn))
           row[turn.ordinal()] = -1;
         else {
@@ -195,7 +195,7 @@ public final class TurnList {
     for (int i = 0; i < table.size(); i++) {
       final int[] row = table.get(i);
       final State s = states.get(i);
-      for (final Turn t : Turn.values())
+      for (final Turn t : Turn.values)
         if (!turnSet.contains(t))
           row[t.ordinal()] = -1;
         else if (row[t.ordinal()] == 0)
@@ -260,18 +260,18 @@ final class State {
 
   public State turn(final Turn turn, final Transform t) {
     final Turn rotatedTurn = SymTransform.getTurn(turn, symmetry);
-    final int ct = t.cornerTwist.turn(rotatedTurn, cornerTwist);
+    final int ct = t.twist.turn(rotatedTurn, cornerTwist);
     final int cp = t.cornerPos.turn(rotatedTurn, cornerPosition);
     final int ef = t.edgeFlip.turn(rotatedTurn, edgeFlip);
     final int mep = t.mEdgePos.turn(rotatedTurn, mEdgePosition);
     final int uep = t.uEdgePos.turn(rotatedTurn, uEdgePosition);
     final int dep = t.dEdgePos.turn(rotatedTurn, dEdgePosition);
-    final int sym = SymTransform.getSymmetry(rotatedTurn, symmetry);
+    final int sym = SymTransform.getSymmetry(symmetry, rotatedTurn);
     return new State(ct, cp, ef, mep, uep, dep, sym, turns, turn);
   }
 
   public static State init(final Transform t) {
-    final int ct = t.cornerTwist.start(0);
+    final int ct = t.twist.start(0);
     final int cp = t.cornerPos.start(0);
     final int ef = t.edgeFlip.start(0);
     final int mep = t.mEdgePos.start(0);

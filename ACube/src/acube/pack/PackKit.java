@@ -13,28 +13,26 @@ import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import acube.Corner;
 import acube.Edge;
 
 public final class PackKit {
   private static final int[] cornerOrdinals = getCornerOrdinals(Corner.valueSet);
   private static final int[] edgeOrdinals = getEdgeOrdinals(Edge.valueSet);
-  private static final SortedSet<Edge> maskOEdgesB = asSortedSet(new Edge[] { UF, UR, UB, UL, DF, DR, DB, DL });
-  private static final SortedSet<Edge> maskMEdgesB = asSortedSet(new Edge[] { FR, FL, BR, BL });
-  private static final SortedSet<Edge> maskUEdges = asSortedSet(new Edge[] { UF, UR, UB, UL });
-  private static final SortedSet<Edge> maskDEdges = asSortedSet(new Edge[] { DF, DR, DB, DL });
+  private static final EnumSet<Edge> maskOEdgesB = asSortedSet(new Edge[] { UF, UR, UB, UL, DF, DR, DB, DL });
+  private static final EnumSet<Edge> maskMEdgesB = asSortedSet(new Edge[] { FR, FL, BR, BL });
+  private static final EnumSet<Edge> maskUEdges = asSortedSet(new Edge[] { UF, UR, UB, UL });
+  private static final EnumSet<Edge> maskDEdges = asSortedSet(new Edge[] { DF, DR, DB, DL });
   private static final int[] mEdgeIndicesB = getEdgeIndicesIn(maskMEdgesB);
   private static final int[] oEdgeIndicesB = getEdgeIndicesIn(maskOEdgesB);
   public static final boolean[] mEdgeMaskInB = getEdgeMaskFor(maskMEdgesB);
   public static final boolean[] oEdgeMaskInB = getEdgeMaskFor(maskOEdgesB);
 
-  private static <T> SortedSet<T> asSortedSet(final T[] a) {
-    return Collections.unmodifiableSortedSet(new TreeSet<T>(Arrays.asList(a)));
+  private static <T extends Enum<T>> EnumSet<T> asSortedSet(final T[] a) {
+    return EnumSet.copyOf(Arrays.asList(a));
   }
 
   public static int mEdgeIndexB(final Edge edge) {
@@ -83,7 +81,7 @@ public final class PackKit {
     return new PackPositionFull(oEdgeMaskB(edgeMask), getEdgeOrdinals(maskOEdgesB));
   }
 
-  private static int[] getEdgeOrdinals(final SortedSet<Edge> edges) {
+  private static int[] getEdgeOrdinals(final EnumSet<Edge> edges) {
     final int[] ordinals = new int[edges.size()];
     int i = 0;
     for (final Edge e : edges)
@@ -91,7 +89,7 @@ public final class PackKit {
     return ordinals;
   }
 
-  private static int[] getCornerOrdinals(final SortedSet<Corner> corners) {
+  private static int[] getCornerOrdinals(final EnumSet<Corner> corners) {
     final int[] ordinals = new int[corners.size()];
     int i = 0;
     for (final Corner c : corners)

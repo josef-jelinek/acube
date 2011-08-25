@@ -35,7 +35,7 @@ import static acube.Turn.u2;
 import static acube.Turn.u3;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,7 +48,7 @@ public enum Metric {
   }
 
   public Set<Turn> filterForElementary(final Set<Turn> turns) {
-    final Set<Turn> elementary = new HashSet<Turn>();
+    final EnumSet<Turn> elementary = EnumSet.noneOf(Turn.class);
     for (final Turn turn : turns)
       if (length(turn) == 1)
         elementary.add(turn);

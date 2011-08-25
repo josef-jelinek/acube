@@ -101,7 +101,7 @@ public final class SymTransform {
     return output[symmetry][turn.ordinal()];
   }
 
-  public static int getSymmetry(final Turn turn, final int symmetry) {
+  public static int getSymmetry(final int symmetry, final Turn turn) {
     return transition[symmetry][turn.ordinal()];
   }
 
@@ -109,7 +109,7 @@ public final class SymTransform {
     final Turn[] tD = new Turn[Turn.size];
     final Turn[] tB = new Turn[Turn.size];
     final Turn[] tL = new Turn[Turn.size];
-    for (final Turn turn : Turn.values())
+    for (final Turn turn : Turn.values)
       tD[turn.ordinal()] = tB[turn.ordinal()] = tL[turn.ordinal()] = turn;
     for (int t = 0; t < turnD.length; t++)
       for (int i = 0; i < turnD[t].length; i++)
@@ -120,48 +120,51 @@ public final class SymTransform {
     for (int t = 0; t < turnL.length; t++)
       for (int i = 0; i < turnL[t].length; i++)
         tL[turnL[t][i].ordinal()] = turnL[t][(i + 1) % turnL[t].length];
-    for (final Turn turn : Turn.values()) {
-      tab[I][turn.ordinal()] = turn;
-      tab[D][turn.ordinal()] = tD[turn.ordinal()];
-      tab[B][turn.ordinal()] = tB[turn.ordinal()];
-      tab[L][turn.ordinal()] = tL[turn.ordinal()];
-      tab[DD][turn.ordinal()] = tD[tD[turn.ordinal()].ordinal()];
-      tab[BB][turn.ordinal()] = tB[tB[turn.ordinal()].ordinal()];
-      tab[LL][turn.ordinal()] = tL[tL[turn.ordinal()].ordinal()];
-      tab[U][turn.ordinal()] = tD[tD[tD[turn.ordinal()].ordinal()].ordinal()];
-      tab[F][turn.ordinal()] = tB[tB[tB[turn.ordinal()].ordinal()].ordinal()];
-      tab[R][turn.ordinal()] = tL[tL[tL[turn.ordinal()].ordinal()].ordinal()];
-      tab[DB][turn.ordinal()] = tB[tD[turn.ordinal()].ordinal()];
-      tab[DL][turn.ordinal()] = tL[tD[turn.ordinal()].ordinal()];
-      tab[BL][turn.ordinal()] = tL[tB[turn.ordinal()].ordinal()];
-      tab[LD][turn.ordinal()] = tD[tL[turn.ordinal()].ordinal()];
-      tab[DBB][turn.ordinal()] = tB[tB[tD[turn.ordinal()].ordinal()].ordinal()];
-      tab[DLL][turn.ordinal()] = tL[tL[tD[turn.ordinal()].ordinal()].ordinal()];
-      tab[BDD][turn.ordinal()] = tD[tD[tB[turn.ordinal()].ordinal()].ordinal()];
-      tab[BLL][turn.ordinal()] = tL[tL[tB[turn.ordinal()].ordinal()].ordinal()];
-      tab[LDD][turn.ordinal()] = tD[tD[tL[turn.ordinal()].ordinal()].ordinal()];
-      tab[LBB][turn.ordinal()] = tB[tB[tL[turn.ordinal()].ordinal()].ordinal()];
-      tab[DR][turn.ordinal()] = tL[tL[tL[tD[turn.ordinal()].ordinal()].ordinal()].ordinal()];
-      tab[BU][turn.ordinal()] = tD[tD[tD[tB[turn.ordinal()].ordinal()].ordinal()].ordinal()];
-      tab[LF][turn.ordinal()] = tB[tB[tB[tL[turn.ordinal()].ordinal()].ordinal()].ordinal()];
-      tab[UF][turn.ordinal()] =
-          tB[tB[tB[tD[tD[tD[turn.ordinal()].ordinal()].ordinal()].ordinal()].ordinal()].ordinal()];
+    for (final Turn turn : Turn.values) {
+      final int ti = turn.ordinal();
+      final int tDi = tD[ti].ordinal();
+      final int tBi = tB[ti].ordinal();
+      final int tLi = tL[ti].ordinal();
+      tab[I][ti] = turn;
+      tab[D][ti] = tD[ti];
+      tab[B][ti] = tB[ti];
+      tab[L][ti] = tL[ti];
+      tab[DD][ti] = tD[tDi];
+      tab[BB][ti] = tB[tBi];
+      tab[LL][ti] = tL[tLi];
+      tab[U][ti] = tD[tD[tDi].ordinal()];
+      tab[F][ti] = tB[tB[tBi].ordinal()];
+      tab[R][ti] = tL[tL[tLi].ordinal()];
+      tab[DB][ti] = tB[tDi];
+      tab[DL][ti] = tL[tDi];
+      tab[BL][ti] = tL[tBi];
+      tab[LD][ti] = tD[tLi];
+      tab[DBB][ti] = tB[tB[tDi].ordinal()];
+      tab[DLL][ti] = tL[tL[tDi].ordinal()];
+      tab[BDD][ti] = tD[tD[tBi].ordinal()];
+      tab[BLL][ti] = tL[tL[tBi].ordinal()];
+      tab[LDD][ti] = tD[tD[tLi].ordinal()];
+      tab[LBB][ti] = tB[tB[tLi].ordinal()];
+      tab[DR][ti] = tL[tL[tL[tDi].ordinal()].ordinal()];
+      tab[BU][ti] = tD[tD[tD[tBi].ordinal()].ordinal()];
+      tab[LF][ti] = tB[tB[tB[tLi].ordinal()].ordinal()];
+      tab[UF][ti] = tB[tB[tB[tD[tD[tDi].ordinal()].ordinal()].ordinal()].ordinal()];
     }
   }
 
   private static void fillTransitionTab(final int[][] tab) {
     for (int symmetry = 0; symmetry < SymmetryCount; symmetry++)
-      for (final Turn turn : Turn.values())
+      for (final Turn turn : Turn.values)
         tab[symmetry][turn.ordinal()] = symmetry;
     for (int i = 0; i < symD.length; i++)
       for (int j = 0; j < symD[i].length; j++)
-        tab[symD[i][j]][Turn.E1.ordinal()] = symD[i][(j + 1) % symD[i].length];
+        tab[symD[i][j]][E1.ordinal()] = symD[i][(j + 1) % symD[i].length];
     for (int i = 0; i < symF.length; i++)
       for (int j = 0; j < symF[i].length; j++)
-        tab[symF[i][j]][Turn.S1.ordinal()] = symF[i][(j + 1) % symF[i].length];
+        tab[symF[i][j]][S1.ordinal()] = symF[i][(j + 1) % symF[i].length];
     for (int i = 0; i < symL.length; i++)
       for (int j = 0; j < symL[i].length; j++)
-        tab[symL[i][j]][Turn.M1.ordinal()] = symL[i][(j + 1) % symL[i].length];
+        tab[symL[i][j]][M1.ordinal()] = symL[i][(j + 1) % symL[i].length];
     for (int s = 0; s < SymmetryCount; s++) {
       tab[s][E2.ordinal()] = tab[tab[s][E1.ordinal()]][E1.ordinal()];
       tab[s][S2.ordinal()] = tab[tab[s][S1.ordinal()]][S1.ordinal()];

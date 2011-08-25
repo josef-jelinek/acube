@@ -11,6 +11,7 @@ public final class Solver {
     int restDepth;
     Turn[] turns;
     Turn turn;
+    Turn realTurn;
     int allowedTurnsState;
     int symmetry;
     int cornerTwist;
@@ -58,6 +59,7 @@ public final class Solver {
     int restDepth;
     TurnB[] turns;
     TurnB turn;
+    Turn realTurn;
     int allowedTurnsState;
     int symmetry;
     int mEdgePos;
@@ -119,7 +121,7 @@ public final class Solver {
     minFoundLength = MAX_LENGTH; // TODO: set from user
     initStatistics();
     final ANode node = stackA[0];
-    node.setCubeStateA(state.cornerTwist, state.edgeFlip, state.mEdgePosSet);
+    node.setCubeStateA(state.twist, state.flip, state.mEdgePosSet);
     node.setCubeStateAB(state.cornerPos, state.mEdgePos, state.uEdgePos, state.dEdgePos);
     node.setTurnState(state.symmetry, state.turnList, TurnList.INITIAL_STATE);
     final int ct_ef_d = state.prune.get_cornerTwist_edgeFlip_startDistance(node.cornerTwist, node.edgeFlip);
@@ -240,12 +242,13 @@ public final class Solver {
     if (d + 1 >= stackA.length)
       return false;
     final ANode nextNode = stackA[d + 1];
-    for (int i = 0; i < node.turns.length; i++) {
-      node.turn = node.turns[i];
-      final Turn cubeTurn = SymTransform.getTurn(node.turn, node.symmetry);
+    for (final Turn turn : node.turns) {
+      node.turn = turn;
+      final Turn cubeTurn = SymTransform.getTurn(turn, node.symmetry);
+      node.realTurn = cubeTurn;
       nextNode.restDepth = node.restDepth - state.metric.length(cubeTurn);
       if (nextNode.restDepth >= 0) {
-        final int ct = state.transform.cornerTwist.turn(cubeTurn, node.cornerTwist);
+        final int ct = state.transform.twist.turn(cubeTurn, node.cornerTwist);
         final int ef = state.transform.edgeFlip.turn(cubeTurn, node.edgeFlip);
         final int ct_ef_d = state.prune.get_cornerTwist_edgeFlip_distance(node.cornerTwist_edgeFlip_distance, ct, ef);
         if (ct_ef_d <= nextNode.restDepth) {
@@ -258,9 +261,9 @@ public final class Solver {
             if (ef_meps_d <= nextNode.restDepth) {
               nextNode.setCubeStateA(ct, ef, meps);
               nextNode.setDistances(ct_ef_d, ct_meps_d, ef_meps_d);
-              nextNode.symmetry = SymTransform.getSymmetry(cubeTurn, node.symmetry);
-              nextNode.allowedTurnsState = state.turnList.getNextState(node.allowedTurnsState, node.turn);
-              nextNode.turns = state.turnList.getAvailableTurns(nextNode.allowedTurnsState);
+              final int symmetry = SymTransform.getSymmetry(node.symmetry, cubeTurn);
+              final int allowedTurnsState = state.turnList.getNextState(node.allowedTurnsState, node.turn);
+              nextNode.setTurnState(symmetry, state.turnList, allowedTurnsState);
               if (searchA(d + 1))
                 return true;
             }
@@ -332,7 +335,8 @@ public final class Solver {
     final BNode nextNode = stackB[d + 1];
     for (final TurnB turn : node.turns) {
       node.turn = turn;
-      final Turn cubeTurn = SymTransform.getTurn(node.turn.toA(), node.symmetry);
+      final Turn cubeTurn = SymTransform.getTurn(turn.toA(), node.symmetry);
+      node.realTurn = cubeTurn;
       nextNode.restDepth = node.restDepth - state.metric.length(cubeTurn);
       if (nextNode.restDepth >= 0) {
         final int mep = state.transformB.mEdgePos.turn(cubeTurn, node.mEdgePos);
@@ -344,8 +348,9 @@ public final class Solver {
           if (mep_oep_d <= nextNode.restDepth) {
             nextNode.setCubeState(mep, cp, oep);
             nextNode.setDistance(mep_cp_d, mep_oep_d);
-            nextNode.setTurnState(node.symmetry, state.turnList,
-                state.turnList.getNextState(node.allowedTurnsState, node.turn.toA()));
+            final int symmetry = SymTransform.getSymmetry(node.symmetry, cubeTurn);
+            final int allowedTurnsState = state.turnList.getNextState(node.allowedTurnsState, turn.toA());
+            nextNode.setTurnState(symmetry, state.turnList, allowedTurnsState);
             if (searchB(d + 1))
               return true;
           }
@@ -368,7 +373,8 @@ public final class Solver {
       fl += Metric.FACE.length(t);
       sl += Metric.SLICE.length(t);
       sql += Metric.SLICE_QUARTER.length(t);
-      s.append(t.toString()).append(' ');
+      final Turn rt = stackA[i].realTurn;
+      s.append(t.toString()).append(':').append(rt).append(' ');
     }
 //    // print out the lengths in different metrics
 //    if (options.findOptimal)
@@ -396,7 +402,8 @@ public final class Solver {
       fl += Metric.FACE.length(t.toA());
       sl += Metric.SLICE.length(t.toA());
       sql += Metric.SLICE_QUARTER.length(t.toA());
-      s.append(t.toString()).append(' ');
+      final Turn rt = stackB[i].realTurn;
+      s.append(t.toString()).append(':').append(rt).append(' ');
     }
     s.append("(" + ql + "q, " + fl + "f, " + sl + "s, " + sql + "sq)");
 //    }

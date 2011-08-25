@@ -80,6 +80,4 @@ public final class CoderTools {
     for (int i = 0; i < outValues.length; i++)
       outValues[conjugatorValues[i]] = conjugatorValues[values[i]];
   }
-
-  private CoderTools() {}
 }

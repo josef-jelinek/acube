@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
+import acube.Corner;
 import acube.CubeState;
+import acube.Edge;
 import acube.Options;
 import acube.Reporter;
 import acube.Solver;
@@ -36,10 +38,10 @@ public class SolverTest {
       @Override
       public void twoPhaseStatistics(final long checksA, final long hitsA, final long checksB, final long hitsB) {}
     };
-    final CubeState state = new CubeState();
+    final CubeState state = new CubeState(Corner.values(), Edge.values(), new int[8], new int[12]);
     state.prepareTables(options);
     final Transform t = state.transform;
-    state.setCornerTwist(t.cornerTwist.start(0));
+    state.setCornerTwist(t.twist.start(0));
     state.setCornerPos(t.cornerPos.start(0));
     state.setEdgeFlip(t.edgeFlip.start(0));
     state.setEdgePos(t.mEdgePos.start(0), t.uEdgePos.start(0), t.dEdgePos.start(0));

@@ -76,7 +76,7 @@ public final class TransformTest {
     final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
     final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
     checkTable(t.cornerPos, 8 * 7 * 6 * 5);
-    checkTable(t.cornerTwist, 2187);
+    checkTable(t.twist, 2187);
     checkTable(t.edgeFlip, 2048);
     checkTable(t.mEdgePosSet, 12 * 11 / 2);
     checkTable(t.mEdgePos, 12 * 11);

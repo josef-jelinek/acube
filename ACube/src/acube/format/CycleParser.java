@@ -2,6 +2,9 @@ package acube.format;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import acube.Corner;
+import acube.CubeState;
+import acube.Edge;
 import acube.Tools;
 
 /** Supports a notation to directly write cycles and single piece orientations,
@@ -9,49 +12,66 @@ import acube.Tools;
  * also mix cycles and orientations. The changes are executed from left to
  * right. So far there's no way to ignore parts of the cube, but it's very good
  * for finding blindcubing algorithms.
- * 
- * @author Stefan Pochmann */
+ *
+ * @author Stefan Pochmann, Josef Jelinek */
 public class CycleParser {
-  public static State parse(String source) {
-    Matcher matcher =
-        Pattern.compile("\\((.*?)\\)|(\\w+)([-+])").matcher(source.replaceAll("\\s", ""));
-    int[] position = Tools.identityPermutation(20);
-    int[] orientation = new int[20];
-    while (matcher.find()) {
-      if (matcher.group(1) != null) { // cycle
-        String[] cubies = matcher.group(1).split(",");
-        for (int i = cubies.length - 1; i > 0; i--) {
-          String a = cubies[i - 1];
-          String b = cubies[i];
-          int posA = position(a);
-          int posB = position(b);
-          int oriA = orientation(a);
-          int oriB = orientation(b);
-          Tools.swap(position, posA, posB);
-          Tools.swap(orientation, posA, posB);
-          Tools.addMod(orientation, posA, oriB - oriA, a.length());
-          Tools.addMod(orientation, posB, oriA - oriB, b.length());
-        }
-      }
-      if (matcher.group(2) != null) { // orient
-        String cubie = matcher.group(2);
-        int d = matcher.group(3).equals("+") ? 1 : -1;
-        Tools.addMod(orientation, position(cubie), d, cubie.length());
-      }
+  private static final Pattern cyclePattern = Pattern.compile("\\((.*?)\\)");
+  private static final Pattern orientationPattern = Pattern.compile("(\\w+)([-+])");
+
+  public static CubeState parse(final String source) {
+    final Corner[] corners = Corner.values();
+    final Edge[] edges = Edge.values();
+    final int[] twists = new int[Corner.size];
+    final int[] flips = new int[Edge.size];
+    final Matcher cycleMatcher = cyclePattern.matcher(source);
+    while (cycleMatcher.find()) {
+      final String[] cubies = cycleMatcher.group(1).trim().split("[\\s,]+");
+      processCycle(corners, edges, twists, flips, cubies);
     }
-    return new State(position, orientation);
+    final Matcher orientationMatcher = orientationPattern.matcher(cycleMatcher.replaceAll(""));
+    while (orientationMatcher.find()) {
+      final int o = orientationMatcher.group(2).equals("+") ? 1 : -1;
+      processOrientation(twists, flips, orientationMatcher.group(1), o);
+    }
+    return new CubeState(corners, edges, twists, flips);
   }
 
-  private static int position(String cubie) {
-    for (int i = 0; i < Tools.ReidOrder.size(); i++)
-      if (Tools.sortCharacters(cubie).equals(Tools.sortCharacters(Tools.ReidOrder.get(i))))
-        return i;
-    throw new RuntimeException("Invalid symbol '" + cubie + "'");
+  private static void processCycle(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips,
+      final String[] cubies) {
+    if (cubies.length < 2)
+      throw new RuntimeException("Too short cycle");
+    if (Corner.exists(cubies[0]))
+      for (int i = cubies.length - 1; i > 0; i--)
+        updateCorners(corners, twists, cubies[i - 1], cubies[i]);
+    else if (Edge.exists(cubies[0]))
+      for (int i = cubies.length - 1; i > 0; i--)
+        updateEdges(edges, flips, cubies[i - 1], cubies[i]);
+    else
+      throw new RuntimeException("Expected a corner or an edge: " + cubies[0]);
   }
 
-  private static int orientation(String cubie) {
-    return Tools.ReidOrder.get(position(cubie)).indexOf(cubie.charAt(0));
+  private static void updateCorners(final Corner[] corners, final int[] twists, final String a, final String b) {
+    final int twist = Corner.twist(b) - Corner.twist(a);
+    Tools.swap(corners, Corner.index(a), Corner.index(b));
+    Tools.swap(twists, Corner.index(a), Corner.index(b));
+    Tools.addMod(twists, Corner.index(a), twist, a.length());
+    Tools.addMod(twists, Corner.index(b), -twist, b.length());
   }
 
-  private CycleParser() {}
+  private static void updateEdges(final Edge[] edges, final int[] flips, final String a, final String b) {
+    final int flip = Edge.flip(b) - Edge.flip(a);
+    Tools.swap(edges, Edge.index(a), Edge.index(b));
+    Tools.swap(flips, Edge.index(a), Edge.index(b));
+    Tools.addMod(flips, Edge.index(a), flip, a.length());
+    Tools.addMod(flips, Edge.index(b), -flip, b.length());
+  }
+
+  private static void processOrientation(final int[] twists, final int[] flips, final String cubie, final int d) {
+    if (Corner.exists(cubie))
+      Tools.addMod(twists, Corner.index(cubie), d, cubie.length());
+    else if (Edge.exists(cubie))
+      Tools.addMod(flips, Edge.index(cubie), d, cubie.length());
+    else
+      throw new RuntimeException("Expected a corner or an edge: " + cubie);
+  }
 }

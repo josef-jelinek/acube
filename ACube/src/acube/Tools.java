@@ -7,8 +7,6 @@ import java.util.List;
 
 public final class Tools {
 
-  public static final List<String> ReidOrder = joinLists(Edge.names, Corner.names);
-
   public static <T> String arrayToString(final T[] parts) {
     final StringBuilder s = new StringBuilder();
     for (final T part : parts)
@@ -81,6 +79,4 @@ public final class Tools {
     System.arraycopy(a, begin, b, 0, end - begin);
     return b;
   }
-
-  private Tools() { }
 }

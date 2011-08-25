@@ -1,5 +1,13 @@
 package acube.transform;
 
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.DL;
+import static acube.Edge.DR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
+import static acube.Edge.UL;
+import static acube.Edge.UR;
 import java.util.Set;
 import acube.Edge;
 import acube.Turn;
@@ -14,22 +22,22 @@ final class OEdgePosB extends Move {
   public void turn(final Turn turn) {
     switch (turn.toB()) {
     case U1:
-      cycle(Edge.UR, Edge.UB, Edge.UL, Edge.UF);
+      cycle(UR, UB, UL, UF);
       break;
     case D1:
-      cycle(Edge.DL, Edge.DB, Edge.DR, Edge.DF);
+      cycle(DL, DB, DR, DF);
       break;
     case F2:
-      swap(Edge.UF, Edge.DF);
+      swap(UF, DF);
       break;
     case B2:
-      swap(Edge.UB, Edge.DB);
+      swap(UB, DB);
       break;
     case L2:
-      swap(Edge.UL, Edge.DL);
+      swap(UL, DL);
       break;
     case R2:
-      swap(Edge.UR, Edge.DR);
+      swap(UR, DR);
       break;
     default:
       throw new IllegalArgumentException("Unsupported or non primitive turn");
