@@ -33,6 +33,10 @@ public class CycleParser {
       final int o = orientationMatcher.group(2).equals("+") ? 1 : -1;
       processOrientation(twists, flips, orientationMatcher.group(1), o);
     }
+    for (int i = 0; i < twists.length; i++)
+      twists[i]++;
+    for (int i = 0; i < flips.length; i++)
+      flips[i]++;
     return new CubeState(corners, edges, twists, flips);
   }
 

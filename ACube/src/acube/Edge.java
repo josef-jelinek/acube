@@ -47,6 +47,13 @@ public enum Edge {
     return -1;
   }
 
+  public static String name(final Edge edge, final int flip) {
+    assert flip >= 0 && flip <= 2;
+    if (edge == null)
+      return flip == 0 ? "@?" : flip == 2 ? "-?" : "?";
+    return flip == 0 ? "@" + edge.name(0) : edge.name(flip - 1);
+  }
+
   public String name(final int flip) {
     return Tools.rotate(names.get(ordinal()), flip);
   }

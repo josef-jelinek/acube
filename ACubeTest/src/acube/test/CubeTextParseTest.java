@@ -1,28 +1,29 @@
 package acube.test;
 
+import static acube.Corner.UFR;
+import static acube.Edge.UR;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import acube.Corner;
+import acube.Edge;
 import acube.Tools;
 import acube.format.CycleParser;
 
-/** @author Stefan Pochmann */
-public final class CycleParseTest {
+/** @author Stefan Pochmann (original), Josef Jelinek */
+public final class CubeTextParseTest {
   private static final String ReidSource = "UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR";
   private static final String ReidResult = "RD DL BU LU UF DB FL RF BR BL DF UR DBR UBL FRU FDR FUL LDF URB BDL";
 
   // Test a full scramble, the one from Leyan Lo's blindfold world record:
   // R2 B2 F2 U F' D2 F' L2 F2 R' U B2 D2 L' R B' D R F R U2 F U' L2 F'
   @Test
-  public void test_full_scramble() {
+  public void full_scramble() {
     compare(ReidResult, " (  UR  BL FL DB DR,FU, FD RB RF DL ) UL+UB+ (UBL URB  DLB BRD FRU)(RFD FUL)RFD+, DFL-");
   }
 
   // Test each edge-case of my blindcubing method (i.e. swap UFR with URB and UR with any other edge.
   @Test
-  public void test_cycle_blindfold_edges() {
+  public void cycle_blindfold_edges() {
     for (int i = 0; i < 12; i++)
       if (i != 1)
         for (int j = 0; j < 2; j++) {
@@ -39,7 +40,7 @@ public final class CycleParseTest {
 
   // Test each corner-case of my blindcubing method (i.e. swap UL with UB and UBL with any other corner.
   @Test
-  public void test_cycle_blindfold_corners() {
+  public void cycle_blindfold_corners() {
     for (int i = 0; i < 8; i++)
       if (i != 2)
         for (int j = 0; j < 3; j++) {
@@ -55,7 +56,7 @@ public final class CycleParseTest {
   }
 
   @Test
-  public void test_individual_piece_orientations() {
+  public void individual_piece_orientations() {
     for (int i = 0; i < 20; i++) {
       final String[] reid = ReidSource.split(" ");
       for (int j = 1; j < reid[i].length(); j++) {
@@ -67,15 +68,25 @@ public final class CycleParseTest {
     }
   }
 
-  void compare(final String stateReid, final String stateCycle) {
-    assertEquals(CycleParser.parse(stateCycle).toReid(), stateReid);
+  private void compare(final String stateReid, final String stateCycle) {
+    assertEquals(stateReid, CycleParser.parse(stateCycle).toReid());
   }
 
   @Test
-  public void test_enum_values_array_is_defensive() {
-    final Corner[] values = Corner.values();
-    assertTrue(values[0] == Corner.values()[0]);
-    values[0] = values[1];
-    assertFalse(values[0] == Corner.values()[0]);
+  public void corners_edges_string_for_incomplete() {
+    assertEquals("@UR", Edge.name(UR, 0));
+    assertEquals("UR", Edge.name(UR, 1));
+    assertEquals("RU", Edge.name(UR, 2));
+    assertEquals("@?", Edge.name(null, 0));
+    assertEquals("?", Edge.name(null, 1));
+    assertEquals("-?", Edge.name(null, 2));
+    assertEquals("@UFR", Corner.name(UFR, 0));
+    assertEquals("UFR", Corner.name(UFR, 1));
+    assertEquals("FRU", Corner.name(UFR, 2));
+    assertEquals("RUF", Corner.name(UFR, 3));
+    assertEquals("@?", Corner.name(null, 0));
+    assertEquals("?", Corner.name(null, 1));
+    assertEquals("+?", Corner.name(null, 2));
+    assertEquals("-?", Corner.name(null, 3));
   }
 }

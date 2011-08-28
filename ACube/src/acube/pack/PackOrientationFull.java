@@ -29,17 +29,18 @@ public final class PackOrientationFull extends PackOrientation {
   }
 
   @Override
-  public int start(final int index) {
-    int t = index;
+  public int start(int index) {
     int total = 0;
-    int remainingUnknownOrientations = unknownOrientations() - 1;
+    int unknownOrientationsToDo = unknownOrientations() - 1;
     for (int i = 0; i < values.length; i++)
       if (orientationMask[i])
-        storeOrientation(i, 0);
+        values[i] = 0;
       else {
-        total += storeOrientation(i, remainingUnknownOrientations > 0 ? t % order : remainingOrientation(total));
-        t /= order;
-        remainingUnknownOrientations--;
+        final int o = unknownOrientationsToDo > 0 ? index % order : remainingOrientation(total);
+        values[i] = o;
+        total += o;
+        index /= order;
+        unknownOrientationsToDo--;
       }
     return pack();
   }

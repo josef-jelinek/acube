@@ -12,10 +12,11 @@ public final class TurnList {
   public static final int INITIAL_STATE = 0;
   private static final int MAX_DEPTH = 3;
   private final Turn[][] turnLists;
-  private final TurnB[][] turnListsB;
+  private final Turn[][] turnListsB;
   private final int[][] next;
 
-  public TurnList(final Transform transform) {
+  public TurnList(final Transform transform, final Reporter reporter) {
+    reporter.tableCreationStarted("turn transformation and pruning table");
     final List<int[]> table = createStateTable(transform);
     final boolean[] activeStates = getActiveStates(table);
     final int[] ind = new int[table.size()];
@@ -127,18 +128,18 @@ public final class TurnList {
     return tl;
   }
 
-  private TurnB[][] getAllowedTurnsTableB(final Turn[][] turns) {
-    final TurnB[][] tl = new TurnB[turns.length][];
+  private Turn[][] getAllowedTurnsTableB(final Turn[][] turns) {
+    final Turn[][] tl = new Turn[turns.length][];
     for (int state = 0; state < next.length; state++) {
       int turnCount = 0;
       for (final Turn t : turns[state])
         if (t.isB())
           turnCount++;
-      tl[state] = new TurnB[turnCount];
+      tl[state] = new Turn[turnCount];
       int freeTurnIndex = 0;
       for (final Turn t : turns[state])
         if (t.isB())
-          tl[state][freeTurnIndex++] = t.toB();
+          tl[state][freeTurnIndex++] = t;
       Arrays.sort(tl[state]);
     }
     return tl;
@@ -152,7 +153,7 @@ public final class TurnList {
     return turnLists[state];
   }
 
-  public TurnB[] getAvailableTurnsB(final int state) {
+  public Turn[] getAvailableTurnsB(final int state) {
     return turnListsB[state];
   }
 
@@ -262,7 +263,7 @@ final class State {
     final Turn rotatedTurn = SymTransform.getTurn(turn, symmetry);
     final int ct = t.twist.turn(rotatedTurn, cornerTwist);
     final int cp = t.cornerPos.turn(rotatedTurn, cornerPosition);
-    final int ef = t.edgeFlip.turn(rotatedTurn, edgeFlip);
+    final int ef = t.flip.turn(rotatedTurn, edgeFlip);
     final int mep = t.mEdgePos.turn(rotatedTurn, mEdgePosition);
     final int uep = t.uEdgePos.turn(rotatedTurn, uEdgePosition);
     final int dep = t.dEdgePos.turn(rotatedTurn, dEdgePosition);
@@ -273,7 +274,7 @@ final class State {
   public static State init(final Transform t) {
     final int ct = t.twist.start(0);
     final int cp = t.cornerPos.start(0);
-    final int ef = t.edgeFlip.start(0);
+    final int ef = t.flip.start(0);
     final int mep = t.mEdgePos.start(0);
     final int uep = t.uEdgePos.start(0);
     final int dep = t.dEdgePos.start(0);

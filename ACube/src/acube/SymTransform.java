@@ -135,20 +135,20 @@ public final class SymTransform {
       tab[U][ti] = tD[tD[tDi].ordinal()];
       tab[F][ti] = tB[tB[tBi].ordinal()];
       tab[R][ti] = tL[tL[tLi].ordinal()];
-      tab[DB][ti] = tB[tDi];
-      tab[DL][ti] = tL[tDi];
-      tab[BL][ti] = tL[tBi];
-      tab[LD][ti] = tD[tLi];
-      tab[DBB][ti] = tB[tB[tDi].ordinal()];
-      tab[DLL][ti] = tL[tL[tDi].ordinal()];
-      tab[BDD][ti] = tD[tD[tBi].ordinal()];
-      tab[BLL][ti] = tL[tL[tBi].ordinal()];
-      tab[LDD][ti] = tD[tD[tLi].ordinal()];
-      tab[LBB][ti] = tB[tB[tLi].ordinal()];
-      tab[DR][ti] = tL[tL[tL[tDi].ordinal()].ordinal()];
-      tab[BU][ti] = tD[tD[tD[tBi].ordinal()].ordinal()];
-      tab[LF][ti] = tB[tB[tB[tLi].ordinal()].ordinal()];
-      tab[UF][ti] = tB[tB[tB[tD[tD[tDi].ordinal()].ordinal()].ordinal()].ordinal()];
+      tab[DB][ti] = tD[tBi];
+      tab[DL][ti] = tD[tLi];
+      tab[BL][ti] = tB[tLi];
+      tab[LD][ti] = tL[tDi];
+      tab[DBB][ti] = tD[tB[tBi].ordinal()];
+      tab[DLL][ti] = tD[tL[tLi].ordinal()];
+      tab[BDD][ti] = tB[tD[tDi].ordinal()];
+      tab[BLL][ti] = tB[tL[tLi].ordinal()];
+      tab[LDD][ti] = tL[tD[tDi].ordinal()];
+      tab[LBB][ti] = tL[tB[tBi].ordinal()];
+      tab[DR][ti] = tD[tL[tL[tLi].ordinal()].ordinal()];
+      tab[BU][ti] = tB[tD[tD[tDi].ordinal()].ordinal()];
+      tab[LF][ti] = tL[tB[tB[tBi].ordinal()].ordinal()];
+      tab[UF][ti] = tD[tD[tD[tB[tB[tBi].ordinal()].ordinal()].ordinal()].ordinal()];
     }
   }
 

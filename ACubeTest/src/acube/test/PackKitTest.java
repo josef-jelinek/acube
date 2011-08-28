@@ -23,7 +23,7 @@ import java.util.Set;
 import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
-import acube.pack.CoderPart;
+import acube.pack.Coder;
 import acube.pack.Pack;
 import acube.pack.PackKit;
 import acube.pack.PackOrientation;
@@ -73,10 +73,10 @@ public final class PackKitTest {
   public void corner_position() {
     final Set<Corner> corners = asSet(new Corner[] { ULF, DRF, DFL, DLB, DBR });
     final Pack pack = PackKit.cornerPos(corners);
-    checkSize(pack, CoderPart.ordered.size(8, 5));
-    checkFirst(pack, "0 0 0 1 2 3 4 5");
-    checkCycle(pack, new int[] { 0, 1, 4, 5 }, "0 2 0 1 3 0 4 5");
-    checkStart(pack, "0 0 0 1 2 3 4 5");
+    checkSize(pack, Coder.ordered.size(8, 5));
+    checkFirst(pack, ". . . 0 1 2 3 4");
+    checkCycle(pack, new int[] { 0, 1, 4, 5 }, ". 1 . 0 2 . 3 4");
+    checkStart(pack, ". . . 0 1 2 3 4");
   }
 
   @Test
@@ -84,11 +84,11 @@ public final class PackKitTest {
     final Set<Corner> cornersPosition = asSet(new Corner[] { ULF, DRF, DFL });
     final Set<Corner> cornersOrientation = asSet(new Corner[] { DFL, DLB, DBR });
     final PackOrientation pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
-    checkSize(pack, 27 * CoderPart.unordered.size(8, 3));
-    checkFirst(pack, "0 0 0 0 0 1 1 1");
-    checkCycle(pack, new int[] { 3, 4, 5, 6 }, "0 0 0 0 1 1 0 1");
-    checkOrient(pack, new int[] { 3, 4, 5, 6 }, "0 0 0 0 3 2 0 1");
-    checkStart(pack, CoderPart.unordered.size(5, 2), "0 0 0 0 0 1 1 1", "1 1 0 0 0 1 0 0");
+    checkSize(pack, 27 * Coder.unordered.size(8, 3));
+    checkFirst(pack, ". . . . . 0 0 0");
+    checkCycle(pack, new int[] { 3, 4, 5, 6 }, ". . . . 0 0 . 0");
+    checkOrient(pack, new int[] { 3, 4, 5, 6 }, ". . . . 2 1 . 0");
+    checkStart(pack, Coder.unordered.size(5, 2), ". . . . . 0 0 0", "0 0 . . . 0 . .");
   }
 
   @Test
@@ -97,10 +97,10 @@ public final class PackKitTest {
     final Set<Corner> cornersOrientation = asSet(new Corner[] { DRF, DFL, DLB, DBR });
     final PackOrientation pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
     checkSize(pack, 2187);
-    checkFirst(pack, "1 1 1 1 1 1 1 1");
-    checkOrient(pack, new int[] { 3, 4, 5, 6 }, "1 1 1 2 3 2 3 1");
-    checkCycle(pack, new int[] { 2, 3, 4, 5 }, "1 1 2 3 2 1 3 1");
-    checkStart(pack, 27, "1 1 1 1 1 1 1 1", "3 3 3 1 1 1 1 1");
+    checkFirst(pack, "0 0 0 0 0 0 0 0");
+    checkOrient(pack, new int[] { 3, 4, 5, 6 }, "0 0 0 1 2 1 2 0");
+    checkCycle(pack, new int[] { 2, 3, 4, 5 }, "0 0 1 2 1 0 2 0");
+    checkStart(pack, 27, "0 0 0 0 0 0 0 0", "2 2 2 0 0 0 0 0");
   }
 
   @Test
@@ -108,11 +108,11 @@ public final class PackKitTest {
     final Set<Edge> edgesPosition = asSet(new Edge[] { DL, FR, FL });
     final Set<Edge> edgesOrientation = asSet(new Edge[] { FL, BR, BL });
     final PackOrientation pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
-    checkSize(pack, 8 * CoderPart.unordered.size(12, 3));
-    checkFirst(pack, "0 0 0 0 0 0 0 0 0 1 1 1");
-    checkCycle(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 0 1 1 0 1");
-    checkOrient(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 0 2 2 0 1");
-    checkStart(pack, CoderPart.unordered.size(9, 2), "0 0 0 0 0 0 0 0 0 1 1 1", "1 1 0 0 0 0 0 0 0 1 0 0");
+    checkSize(pack, 8 * Coder.unordered.size(12, 3));
+    checkFirst(pack, ". . . . . . . . . 0 0 0");
+    checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . 0 0 . 0");
+    checkOrient(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . 1 1 . 0");
+    checkStart(pack, Coder.unordered.size(9, 2), ". . . . . . . . . 0 0 0", "0 0 . . . . . . . 0 . .");
   }
 
   @Test
@@ -121,39 +121,39 @@ public final class PackKitTest {
     final Set<Edge> edgesOrientation = asSet(new Edge[] { UB, UL, DF, FL, BR, BL });
     final PackOrientation pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
     checkSize(pack, 2048);
-    checkFirst(pack, "1 1 1 1 1 1 1 1 1 1 1 1");
-    checkOrient(pack, new int[] { 7, 8, 9, 10 }, "1 1 1 1 1 1 1 2 2 2 2 1");
-    checkCycle(pack, new int[] { 6, 7, 8, 9 }, "1 1 1 1 1 1 2 2 2 1 2 1");
-    checkStart(pack, 32, "1 1 1 1 1 1 1 1 1 1 1 1", "2 2 1 1 1 2 2 2 2 1 1 1");
+    checkFirst(pack, "0 0 0 0 0 0 0 0 0 0 0 0");
+    checkOrient(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 1 1 1 1 0");
+    checkCycle(pack, new int[] { 6, 7, 8, 9 }, "0 0 0 0 0 0 1 1 1 0 1 0");
+    checkStart(pack, 32, "0 0 0 0 0 0 0 0 0 0 0 0", "1 1 0 0 0 1 1 1 1 0 0 0");
   }
 
   @Test
   public void middle_edge_position_ordered() {
     final Set<Edge> edges = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
     final Pack pack = PackKit.mEdgePos(edges);
-    checkSize(pack, CoderPart.ordered.size(12, 2));
-    checkFirst(pack, "0 0 0 0 0 0 0 0 0 0 1 2");
-    checkCycle(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 0 0 1 0 2");
-    checkStart(pack, "0 0 0 0 0 0 0 0 1 2 0 0");
+    checkSize(pack, Coder.ordered.size(12, 2));
+    checkFirst(pack, ". . . . . . . . . . 0 1");
+    checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . . 0 . 1");
+    checkStart(pack, ". . . . . . . . 0 1 . .");
   }
 
   @Test
   public void middle_edge_position_unordered() {
     final Set<Edge> edges = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
     final Pack pack = PackKit.mEdgePosSet(edges);
-    checkSize(pack, CoderPart.unordered.size(12, 2));
-    checkFirst(pack, "0 0 0 0 0 0 0 0 0 0 1 1");
-    checkCycle(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 0 0 1 0 1");
-    checkStart(pack, CoderPart.unordered.size(4, 2), "0 0 0 0 0 0 0 0 0 0 1 1", "0 0 0 0 0 0 0 0 1 1 0 0");
+    checkSize(pack, Coder.unordered.size(12, 2));
+    checkFirst(pack, ". . . . . . . . . . # #");
+    checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . . # . #");
+    checkStart(pack, Coder.unordered.size(4, 2), ". . . . . . . . . . # #", ". . . . . . . . # # . .");
   }
 
   @Test
   public void middle_edge_position_ordered_in_phase_B() {
     final Set<Edge> edgesB = asSet(new Edge[] { FR, FL });
     final Pack packB = PackKit.mEdgePos_B(edgesB);
-    checkSize(packB, CoderPart.ordered.size(4, 2));
-    checkFirst(packB, "0 0 1 2");
-    checkStart(packB, "1 2 0 0");
+    checkSize(packB, Coder.ordered.size(4, 2));
+    checkFirst(packB, ". . 0 1");
+    checkStart(packB, "0 1 . .");
   }
 
   @Test
@@ -165,28 +165,28 @@ public final class PackKitTest {
     packA.cycle(7, 8, 9, 10);
     final Pack packB = PackKit.mEdgePos_B(edgesB);
     packB.convert(packA);
-    assertEquals("0 1 0 2", packB.toString());
+    assertEquals(". 0 . 1", packB.toString());
   }
 
   @Test
   public void up_edge_position_ordered() {
     final Set<Edge> edges = asSet(new Edge[] { UB, UL, DF, DR, DB, FR, FL });
     final Pack pack = PackKit.uEdgePos(edges);
-    checkSize(pack, CoderPart.ordered.size(12, 2));
-    checkFirst(pack, "0 0 0 0 0 0 0 0 0 0 1 2");
-    checkSwap(pack, 1, 11, "0 2 0 0 0 0 0 0 0 0 1 0");
-    checkSwap(pack, 3, 10, "0 2 0 1 0 0 0 0 0 0 0 0");
+    checkSize(pack, Coder.ordered.size(12, 2));
+    checkFirst(pack, ". . . . . . . . . . 0 1");
+    checkSwap(pack, 1, 11, ". 1 . . . . . . . . 0 .");
+    checkSwap(pack, 3, 10, ". 1 . 0 . . . . . . . .");
   }
 
   @Test
   public void down_edge_position_ordered() {
     final Set<Edge> edges = asSet(new Edge[] { UB, UL, DF, DR, DB, FR, FL });
     final Pack pack = PackKit.dEdgePos(edges);
-    checkSize(pack, CoderPart.ordered.size(12, 3));
-    checkFirst(pack, "0 0 0 0 0 0 0 0 0 1 2 3");
-    checkSwap(pack, 0, 11, "3 0 0 0 0 0 0 0 0 1 2 0");
-    checkSwap(pack, 2, 10, "3 0 2 0 0 0 0 0 0 1 0 0");
-    checkSwap(pack, 4, 9, "3 0 2 0 1 0 0 0 0 0 0 0");
+    checkSize(pack, Coder.ordered.size(12, 3));
+    checkFirst(pack, ". . . . . . . . . 0 1 2");
+    checkSwap(pack, 0, 11, "2 . . . . . . . . 0 1 .");
+    checkSwap(pack, 2, 10, "2 . 1 . . . . . . 0 . .");
+    checkSwap(pack, 4, 9, "2 . 1 . 0 . . . . . . .");
   }
 
   @Test
@@ -204,11 +204,11 @@ public final class PackKitTest {
     final Set<Edge> edgesB = asSet(new Edge[] { UB, UL, DF, DR, DB });
     final Pack packB = PackKit.oEdgePos_B(edgesB);
     assertTrue(packB.combine(packU, packD));
-    assertEquals("0 2 0 1 0 0 0 0 0 0 0 0", packU.toString());
-    assertEquals("3 0 2 0 1 0 0 0 0 0 0 0", packD.toString());
-    assertEquals("5 2 4 1 3 0 0 0", packB.toString());
-    checkSize(packB, CoderPart.ordered.size(8, 5));
-    checkFirst(packB, "0 0 0 1 2 3 4 5");
-    checkStart(packB, "0 0 1 2 3 4 5 0");
+    assertEquals(". 1 . 0 . . . . . . . .", packU.toString());
+    assertEquals("2 . 1 . 0 . . . . . . .", packD.toString());
+    assertEquals("4 1 3 0 2 . . .", packB.toString());
+    checkSize(packB, Coder.ordered.size(8, 5));
+    checkFirst(packB, ". . . 0 1 2 3 4");
+    checkStart(packB, ". . 0 1 2 3 4 .");
   }
 }

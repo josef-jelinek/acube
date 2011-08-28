@@ -3,6 +3,7 @@ package acube.transform;
 import java.util.Set;
 import acube.Corner;
 import acube.Edge;
+import acube.Reporter;
 import acube.Turn;
 
 public final class TransformB {
@@ -18,10 +19,14 @@ public final class TransformB {
   private final int[] mEdgePos_toB;
   private final int[][] uEdgePos_dEdgePos_ToB;
 
-  public TransformB(final Set<Corner> cornerMask, final Set<Edge> edgeMask, final Set<Turn> turnMask) {
+  public TransformB(final Set<Corner> cornerMask, final Set<Edge> edgeMask, final Set<Turn> turnMask,
+      final Reporter reporter) {
     this.turnMask = Turn.getValidB(turnMask);
+    reporter.tableCreationStarted("transformation table (middle edge position B)");
     mEdgePos = MoveKit.mEdgePos_B(edgeMask, this.turnMask);
+    reporter.tableCreationStarted("transformation table (U/D edge position B)");
     oEdgePos = MoveKit.oEdgePos_B(edgeMask, this.turnMask);
+    reporter.tableCreationStarted("transformation table (corner position B)");
     cornerPos = MoveKit.cornerPos(cornerMask, this.turnMask);
     mEdgePos_inB = MoveKit.get_mEdgePos_inB(edgeMask, turnMask);
     uEdgePos_inB = MoveKit.get_uEdgePos_inB(edgeMask, turnMask);
@@ -29,6 +34,7 @@ public final class TransformB {
     mEdgePos_toB = MoveKit.get_mEdgePos_toB(edgeMask, turnMask);
     uEdgePos_toB = MoveKit.get_uEdgePos_toB(edgeMask, turnMask);
     dEdgePos_toB = MoveKit.get_dEdgePos_toB(edgeMask, turnMask);
+    reporter.tableCreationStarted("conversion table (U/D edge position to U/D edge position B)");
     uEdgePos_dEdgePos_ToB = MoveKit.get_uEdgePos_B_dEdgePos_B_toB(edgeMask, turnMask);
   }
 

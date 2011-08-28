@@ -1,4 +1,4 @@
-package acubetextui;
+package acube.console;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

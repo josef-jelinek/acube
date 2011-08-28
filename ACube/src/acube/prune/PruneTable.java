@@ -7,28 +7,26 @@ public final class PruneTable {
   private final byte[] table;
   private final int stateSize;
   private final TurnTable move;
-  private final int maxDistance;
+  private final int maxDist;
 
   public PruneTable(final TurnTable move) {
     this.move = move;
     table = new byte[(move.stateSize() + 3) / 4];
-    int lastFilledSize = startDistanceFill();
+    int lastFilledSize = startDistFill();
     int totalSize = 0;
-    int distance = 0;
+    int dist = 0;
     final int switchSize = move.stateSize() / 2;
     while (lastFilledSize > 0) {
-      logLine(distance, lastFilledSize, totalSize + lastFilledSize, move.stateSize(), totalSize < switchSize);
+      logLine(dist, lastFilledSize, totalSize + lastFilledSize, move.stateSize(), totalSize < switchSize);
       totalSize += lastFilledSize;
-      final int lastDistance = distance++ % 3;
-      lastFilledSize =
-          totalSize < switchSize ? forwardDistanceFill(distance, lastDistance) : backwardDistanceFill(distance,
-              lastDistance);
+      final int lastDist = dist++ % 3;
+      lastFilledSize = totalSize < switchSize ? forwardDistFill(dist, lastDist) : backwardDistFill(dist, lastDist);
     }
     stateSize = totalSize;
-    maxDistance = distance - 1;
+    maxDist = dist - 1;
   }
 
-  private int startDistanceFill() {
+  private int startDistFill() {
     for (int i = 0; i < table.length; i++)
       table[i] = -1;
     int filled = 0;
@@ -37,27 +35,27 @@ public final class PruneTable {
     return filled;
   }
 
-  private int forwardDistanceFill(final int distance, final int lastDistance) {
+  private int forwardDistFill(final int dist, final int lastDist) {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
-      if (get(state) == lastDistance)
+      if (get(state) == lastDist)
         for (final Turn turn : move.turnMask()) {
           final int newState = move.turn(turn, state);
           if (isNotInitialized(newState)) { // free
-            put(newState, distance % 3);
+            put(newState, dist % 3);
             filled++;
           }
         }
     return filled;
   }
 
-  private int backwardDistanceFill(final int distance, final int lastDistanceValue) {
+  private int backwardDistFill(final int dist, final int lastDistValue) {
     int filled = 0;
     for (int state = 0; state < move.stateSize(); state++)
       if (isNotInitialized(state))
         for (final Turn turn : move.turnMask())
-          if (get(move.turn(turn, state)) == lastDistanceValue) {
-            put(state, distance % 3);
+          if (get(move.turn(turn, state)) == lastDistValue) {
+            put(state, dist % 3);
             filled++;
             break;
           }
@@ -78,7 +76,7 @@ public final class PruneTable {
     return table[state >> 2] >> (state << 1 & 7) & 3;
   }
 
-  public int distance(final int lastDepth, final int newState) {
+  public int dist(final int lastDepth, final int newState) {
     //  dist get(state)
     // depth 0 1 2 3
     //     0 0 1 1x3x
@@ -93,29 +91,29 @@ public final class PruneTable {
     // (depth - get(state) + 4) / 3 * 3 + get(state) - 3;
   }
 
-  public int startDistance(final int state) {
+  public int startDist(final int state) {
     //    d get(state)
     // last 0 1 2 3
     //    0 1 0 2 1
     //    1 2 1 0 2
     //    2 0 2 1 0
-    int distance = 0;
+    int dist = 0;
     int lastCode = get(state);
     int lastState = state;
     for (int turnIndex = 0; turnIndex < move.turnMaskArray().length; turnIndex++) {
       final int newState = move.turn(move.turnMaskArray()[turnIndex], lastState);
       if ((lastCode - get(newState) + 4) % 3 == 2) { // 2->1 1->0 0->2
-        distance++;
+        dist++;
         lastCode = (lastCode + 2) % 3; // 0->2 1->0 2->1
         lastState = newState; // restart loop for the new state
         turnIndex = -1;
       }
     }
-    return distance;
+    return dist;
   }
 
-  public int maxDistance() {
-    return maxDistance;
+  public int maxDist() {
+    return maxDist;
   }
 
   public int stateSize() {

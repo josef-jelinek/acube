@@ -1,6 +1,6 @@
 package acube.pack;
 
-final class CoderPartUnordered extends CoderPart {
+public final class CoderUnordered extends Coder {
   @Override
   public int size(final int n, final int k) { // n! / ((n - k)! * k!)
     int nf = 1, kf = 1;
@@ -16,7 +16,7 @@ final class CoderPartUnordered extends CoderPart {
     int value = 0;
     int k = CoderTools.valuesUsed(values);
     for (int i = 0; i < values.length - k; i++)
-      if (values[i] != 0)
+      if (values[i] >= 0)
         value += size(values.length - i - 1, k--);
     return value;
   }
@@ -28,12 +28,21 @@ final class CoderPartUnordered extends CoderPart {
     for (int i = 0; i < values.length; i++) {
       final int c = size(values.length - i - 1, count);
       if (c > val)
-        values[i] = 0;
+        values[i] = -1;
       else {
         val -= c;
-        values[i] = 1;
+        values[i] = 0;
         count--;
       }
     }
+  }
+
+  public static String toString(final int[] values) {
+    if (values.length == 0)
+      return "";
+    final StringBuilder s = new StringBuilder();
+    for (final int value : values)
+      s.append(' ').append(value == 0 ? "#" : value == -1 ? "." : "?");
+    return s.substring(1);
   }
 }

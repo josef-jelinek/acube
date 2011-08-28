@@ -1,10 +1,10 @@
 package acube.pack;
 
-public abstract class CoderPart {
+public abstract class Coder {
 
-  public static final CoderPart ordered = new CoderPartOrdered();
+  public static final Coder ordered = new CoderOrdered();
 
-  public static final CoderPart unordered = new CoderPartUnordered();
+  public static final Coder unordered = new CoderUnordered();
 
   public abstract int size(int n, int k);
 

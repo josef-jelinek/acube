@@ -25,10 +25,12 @@ import static acube.Turn.L1;
 import static acube.Turn.L2;
 import static acube.Turn.M1;
 import static acube.Turn.M2;
+import static acube.Turn.M3;
 import static acube.Turn.R1;
 import static acube.Turn.R2;
 import static acube.Turn.S1;
 import static acube.Turn.S2;
+import static acube.Turn.S3;
 import static acube.Turn.U1;
 import static acube.Turn.U2;
 import static acube.Turn.U3;
@@ -57,9 +59,9 @@ public final class SymTest {
     assertEquals(R1, getTurn(R1, L));
     assertEquals(E3, getTurn(S1, L));
     assertEquals(b1, getTurn(u1, L));
-    assertEquals(F1, getTurn(R1, DR));
     assertEquals(U1, getTurn(R1, LD));
     assertEquals(B1, getTurn(U1, LD));
+    assertEquals(F1, getTurn(R1, DR));
   }
 
   @Test
@@ -78,26 +80,27 @@ public final class SymTest {
     int s = check_transform(I, S1, S1);
     s = check_transform(s, U1, L1);
     s = check_transform(s, F2, F2);
-    s = check_transform(s, U2, L2);
     s = check_transform(s, M1, E1);
-    s = check_transform(s, U1, B1);
-    s = check_transform(s, S1, M1);
-    s = check_transform(s, D3, D3);
-    s = check_transform(s, B2, R2);
-    s = check_transform(s, L2, B2);
-    s = check_transform(s, U3, U3);
-    s = check_transform(s, M2, S2);
-    s = check_transform(s, D3, U3);
-    s = check_transform(s, R2, F2);
-    s = check_transform(s, D3, U3);
-    s = check_transform(s, B2, L2);
-    s = check_transform(s, L2, B2);
-    s = check_transform(s, F2, R2);
+    s = check_transform(s, F2, L2);
+    s = check_transform(s, D1, F1);
+    s = check_transform(s, S3, M3);
+    s = check_transform(s, S2, M2);
+    s = check_transform(s, D1, U1);
+    s = check_transform(s, R2, B2);
+    s = check_transform(s, E3, E1);
+    s = check_transform(s, S2, S2);
+    s = check_transform(s, U2, U2);
+    s = check_transform(s, R2, L2);
+    s = check_transform(s, D1, D1);
+    s = check_transform(s, S2, S2);
+    s = check_transform(s, U1, D1);
+    s = check_transform(s, F2, B2);
+    s = check_transform(s, U3, D3);
+    //S L F2 E L2 F M' M2 U B2 E S2 U2 L2 D S2 D B2 D'
   }
 
   private int check_transform(final int symmetry, final Turn userTurn, final Turn cubeTurn) {
-    System.out.println("sym=" + symmetry + " turn=" + userTurn + " cubeturn=" + cubeTurn);
-    assertEquals("turn=" + userTurn + " sym=" + symmetry, cubeTurn, getTurn(userTurn, symmetry));
+    assertEquals(cubeTurn, getTurn(userTurn, symmetry));
     return getSymmetry(symmetry, userTurn);
   }
 

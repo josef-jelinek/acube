@@ -56,6 +56,7 @@ import acube.Corner;
 import acube.Edge;
 import acube.Turn;
 import acube.TurnB;
+import acube.console.ConsoleReporter;
 import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 import acube.transform.TransformB;
@@ -73,11 +74,12 @@ public final class TransformTest {
 
   @Test
   public void tables_lengths_matches_combinatorics() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
-    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     checkTable(t.cornerPos, 8 * 7 * 6 * 5);
     checkTable(t.twist, 2187);
-    checkTable(t.edgeFlip, 2048);
+    checkTable(t.flip, 2048);
     checkTable(t.mEdgePosSet, 12 * 11 / 2);
     checkTable(t.mEdgePos, 12 * 11);
     checkTable(t.uEdgePos, 12 * 11 * 10 * 9);
@@ -116,14 +118,16 @@ public final class TransformTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void composing_incompatible_tables_throws_excepion() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
-    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     assertTrue(null != new MoveTableComposed(t.dEdgePos, tB.mEdgePos));
   }
 
   @Test
   public void table_composed_move() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
     final MoveTableComposed move = new MoveTableComposed(t.mEdgePosSet, t.dEdgePos);
     assertEquals(move.stateSize(), t.mEdgePosSet.stateSize() * t.dEdgePos.stateSize());
     assertArrayEquals(move.turnMaskArray(), t.mEdgePosSet.turnMaskArray());
@@ -142,8 +146,9 @@ public final class TransformTest {
 
   @Test
   public void tables_for_phase_B() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
-    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     assertEquals(tB.cornerPos.stateSize(), t.cornerPos.stateSize());
     assertEquals(t.cornerPos.turnMask().size(), Turn.size);
     assertEquals(tB.cornerPos.turnMask().size(), TurnB.size);
@@ -162,7 +167,7 @@ public final class TransformTest {
 
   @Test
   public void back_and_forth_turn_results_in_identity_in_phase_B() {
-    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     checkBackForthTurns(tB.mEdgePos);
     checkBackForthTurns(tB.oEdgePos);
     checkBackForthTurns(tB.cornerPos);
@@ -178,7 +183,8 @@ public final class TransformTest {
 
   @Test
   public void conversion_mEdgePos_to_mEdgePosSet() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
     for (int mep = 0; mep < t.mEdgePos.stateSize(); mep++) {
       final int meps = t.convert_mEdgePos_to_mEdgePosSet(mep);
       assertEquals(t.mEdgePosSet.turn(F1, meps), t.convert_mEdgePos_to_mEdgePosSet(t.mEdgePos.turn(F1, mep)));
@@ -193,8 +199,9 @@ public final class TransformTest {
 
   @Test
   public void conversion_to_phase_B() {
-    final Transform t = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
-    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet);
+    final Transform t =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
+    final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     final TurnTable mep = t.mEdgePos;
     final TurnTable uep = t.uEdgePos;
     final TurnTable dep = t.dEdgePos;

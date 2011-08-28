@@ -47,6 +47,13 @@ public enum Corner {
     return -1;
   }
 
+  public static String name(final Corner corner, final int twist) {
+    assert twist >= 0 && twist <= 3;
+    if (corner == null)
+      return twist == 0 ? "@?" : twist == 2 ? "+?" : twist == 3 ? "-?" : "?";
+    return twist == 0 ? "@" + corner.name(0) : corner.name(twist - 1);
+  }
+
   public String name(final int twist) {
     return Tools.rotate(names.get(ordinal()), twist);
   }

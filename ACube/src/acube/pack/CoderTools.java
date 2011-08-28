@@ -19,7 +19,7 @@ public final class CoderTools {
   public static int valuesUsed(final int[] values) {
     int k = 0;
     for (final int value : values)
-      if (value != 0)
+      if (value >= 0)
         k++;
     return k;
   }
@@ -38,37 +38,34 @@ public final class CoderTools {
 
   public static int encodePermutationOfUsed(final int[] values) {
     int value = 0;
-    for (int i = 0; i < values.length - 1; i++) {
-      if (values[i] == 0)
-        continue;
-      int positionsUsed = 0;
-      for (int j = i + 1; j < values.length; j++) {
-        if (values[j] == 0)
-          continue;
-        positionsUsed++;
-        if (values[j] < values[i])
-          value++;
+    for (int i = 0; i < values.length - 1; i++)
+      if (values[i] >= 0) {
+        int positionsUsed = 0;
+        for (int j = i + 1; j < values.length; j++)
+          if (values[j] >= 0) {
+            positionsUsed++;
+            if (values[j] < values[i])
+              value++;
+          }
+        if (positionsUsed <= 1)
+          return value;
+        value *= positionsUsed;
       }
-      if (positionsUsed <= 1)
-        return value;
-      value *= positionsUsed;
-    }
     return 0;
   }
 
   public static void decodePermutationToUsed(final int[] outValues, final int value) {
     int valuesUsed = 0;
     int val = value;
-    for (int i = outValues.length - 1; i >= 0; i--) {
-      if (outValues[i] == 0)
-        continue;
-      valuesUsed++;
-      outValues[i] = val % valuesUsed + 1;
-      val /= valuesUsed;
-      for (int j = outValues.length - 1; j > i; j--)
-        if (outValues[j] != 0 && outValues[j] >= outValues[i])
-          outValues[j]++;
-    }
+    for (int i = outValues.length - 1; i >= 0; i--)
+      if (outValues[i] >= 0) {
+        valuesUsed++;
+        outValues[i] = val % valuesUsed;
+        val /= valuesUsed;
+        for (int j = outValues.length - 1; j > i; j--)
+          if (outValues[j] >= 0 && outValues[j] >= outValues[i])
+            outValues[j]++;
+      }
   }
 
   public static void composePermutation(final int[] outValues, final int[] values1, final int[] values2) {

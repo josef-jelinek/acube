@@ -27,6 +27,7 @@ import acube.Corner;
 import acube.Edge;
 import acube.Metric;
 import acube.Turn;
+import acube.console.ConsoleReporter;
 import acube.prune.Prune;
 import acube.prune.PruneB;
 import acube.prune.PruneCorners;
@@ -45,32 +46,34 @@ public final class PruneTest {
 
   @Test
   public void tables_A() {
-    final Transform transform = new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet);
-    final Prune tab = new Prune(transform);
+    final Transform transform =
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
+    final Prune tab = new Prune(transform, new ConsoleReporter());
     assertEquals(4758486, tab.stateSize());
     assertEquals(6, tab.maxDistance());
   }
 
   @Test
   public void table_corners_face_metric() {
-    final Transform transform = new Transform(Metric.ROTATION_FACE.filterForElementary(Turn.valueSet));
-    final PruneCorners tab = new PruneCorners(transform);
+    final Transform transform =
+        new Transform(Metric.ROTATION_FACE.filterForElementary(Turn.valueSet), new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
     assertEquals(11, tab.maxDistance());
   }
 
   @Test
   public void table_corners_quarter_metric() {
-    final Transform transform = new Transform(Metric.QUARTER.filterForElementary(Turn.valueSet));
-    final PruneCorners tab = new PruneCorners(transform);
+    final Transform transform = new Transform(Metric.QUARTER.filterForElementary(Turn.valueSet), new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
     assertEquals(14, tab.maxDistance());
   }
 
   @Test
   public void tables_B() {
-    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.valueSet);
-    final PruneB tab = new PruneB(transform);
+    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
+    final PruneB tab = new PruneB(transform, new ConsoleReporter());
     assertEquals(262080, tab.stateSize());
     assertEquals(9, tab.maxDistance());
   }

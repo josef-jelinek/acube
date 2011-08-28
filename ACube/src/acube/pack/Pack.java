@@ -1,16 +1,15 @@
 package acube.pack;
 
 import java.util.Arrays;
-import acube.Tools;
 
 public abstract class Pack {
-  protected final CoderPart coder;
+  protected final Coder coder;
   protected final int[] values;
   protected final boolean[] usedMask;
   private final int[] partIds;
   protected final int used;
 
-  public Pack(final CoderPart coder, final boolean[] usedMask, final int[] partIds) {
+  public Pack(final Coder coder, final boolean[] usedMask, final int[] partIds) {
     assert partIds.length == usedMask.length;
     this.coder = coder;
     this.usedMask = usedMask;
@@ -35,15 +34,15 @@ public abstract class Pack {
     return 1;
   }
 
-  public int start(@SuppressWarnings("unused") final int _) {
+  public int start(final int _) {
     int r = 1;
     for (int i = 0; i < values.length; i++)
-      values[i] = !usedMask[i] ? 0 : r++;
+      values[i] = !usedMask[i] ? -1 : r++;
     return pack();
   }
 
   public void convert(final Pack p) {
-    Arrays.fill(values, 0);
+    Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int pi = p.findPartIndex(partIds[i]);
       if (pi >= 0)
@@ -52,12 +51,12 @@ public abstract class Pack {
   }
 
   public boolean combine(final Pack p1, final Pack p2) {
-    Arrays.fill(values, 0);
+    Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int p1i = p1.findPartIndex(partIds[i]);
       final int p2i = p2.findPartIndex(partIds[i]);
-      final boolean is1 = p1i >= 0 && p1.values[p1i] > 0;
-      final boolean is2 = p2i >= 0 && p2.values[p2i] > 0;
+      final boolean is1 = p1i >= 0 && p1.values[p1i] >= 0;
+      final boolean is2 = p2i >= 0 && p2.values[p2i] >= 0;
       if (is1 && is2)
         return false;
       if (is1)
@@ -70,7 +69,7 @@ public abstract class Pack {
 
   private int valueInOrder(final Pack p, final int pi) {
     int value = values[pi];
-    final int to = nthUsedIndex(value - 1);
+    final int to = nthUsedIndex(value);
     for (int i = 0; i < to; i++)
       if (p.usedMask[i])
         value++;
@@ -120,13 +119,8 @@ public abstract class Pack {
   public final boolean areUsedIn(final boolean[] allowedMask) {
     assert allowedMask.length == values.length;
     for (int i = 0; i < values.length; i++)
-      if (!allowedMask[i] && values[i] > 0)
+      if (!allowedMask[i] && values[i] >= 0)
         return false;
     return true;
-  }
-
-  @Override
-  public String toString() {
-    return Tools.intArrayToString(values);
   }
 }

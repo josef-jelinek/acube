@@ -9,8 +9,8 @@ import acube.transform.TransformB;
 public final class CubeState {
   private final Corner[] corners;
   private final Edge[] edges;
-  private final int[] cornerTwists;
-  private final int[] edgeFlips;
+  private final int[] twists;
+  private final int[] flips;
   private final EnumSet<Corner> cornerMask = Corner.valueSet;
   private final EnumSet<Edge> edgeMask = Edge.valueSet;
   private final EnumSet<Corner> twistMask = Corner.valueSet;
@@ -34,26 +34,27 @@ public final class CubeState {
   public CubeState(final Corner[] corners, final Edge[] edges, final int[] cornerTwists, final int[] edgeFlips) {
     this.corners = corners;
     this.edges = edges;
-    this.cornerTwists = cornerTwists;
-    this.edgeFlips = edgeFlips;
+    twists = cornerTwists;
+    flips = edgeFlips;
   }
 
   public String toReid() {
     final StringBuilder s = new StringBuilder();
     for (int i = 0; i < edges.length; i++)
-      s.append(' ').append(edges[i].name(edgeFlips[i]));
+      s.append(' ').append(Edge.name(edges[i], flips[i]));
     for (int i = 0; i < corners.length; i++)
-      s.append(' ').append(corners[i].name(cornerTwists[i]));
+      s.append(' ').append(Corner.name(corners[i], twists[i]));
     return s.substring(1);
   }
 
-  public void prepareTables(final Options options) {
-    transform = new Transform(cornerMask, edgeMask, twistMask, flipMask, turnMask);
-    prune = new Prune(transform);
-    turnList = new TurnList(transform);
+  public void prepareTables(final Options options, final Reporter reporter) {
+    reporter.solvingStarted(toReid());
+    transform = new Transform(cornerMask, edgeMask, twistMask, flipMask, turnMask, reporter);
+    prune = new Prune(transform, reporter);
+    turnList = new TurnList(transform, reporter);
     if (!options.findOptimal) {
-      transformB = new TransformB(cornerMask, edgeMask, turnMask);
-      pruneB = new PruneB(transformB);
+      transformB = new TransformB(cornerMask, edgeMask, turnMask, reporter);
+      pruneB = new PruneB(transformB, reporter);
     }
   }
 

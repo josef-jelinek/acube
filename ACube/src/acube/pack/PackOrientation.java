@@ -16,7 +16,7 @@ public abstract class PackOrientation extends Pack {
   }
 
   protected PackOrientation(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds, final int order) {
-    super(CoderPart.unordered, usedMask, partIds);
+    super(Coder.unordered, usedMask, partIds);
     if (usedMask.length != orientMask.length)
       throw new IllegalArgumentException("Argument sizes do not match");
     this.order = order;
@@ -35,48 +35,42 @@ public abstract class PackOrientation extends Pack {
   }
 
   protected static int size(final int length, final int orientationsUsed, final int order) {
-    return CoderPart.unordered.size(length, orientationsUsed) * orientationPartSize(length, orientationsUsed, order);
+    return Coder.unordered.size(length, orientationsUsed) * orientationPartSize(length, orientationsUsed, order);
   }
 
   @Override
   public int size() {
-    return CoderPart.unordered.size(values.length, orientationsUsed) * orientationPartSize;
+    return Coder.unordered.size(values.length, orientationsUsed) * orientationPartSize;
   }
 
   @Override
   public int pack() {
     int t = 0;
     for (final int value : values)
-      if (value != 0)
-        t = order * t + value - 1;
+      if (value >= 0)
+        t = order * t + value;
     return coder.encode(values) * orientationPartSize + (orientationsUsed == values.length ? t / order : t);
   }
 
   @Override
-  public void unpack(final int value) { // TODO: distribute the code to subclasses
+  public void unpack(int value) { // TODO: distribute the code to subclasses
     if (orientationsUsed == values.length) {
-      int orientationPart = value;
       int total = 0;
-      for (int i = 0; i < values.length; i++) {
-        total +=
-            i < values.length - 1 ? storeOrientation(values.length - i - 2, orientationPart % order)
-                : storeOrientation(i, remainingOrientation(total));
-        orientationPart /= order;
+      for (int i = 0; i < values.length - 1; i++) {
+        values[values.length - i - 2] = value % order;
+        total += value % order;
+        value /= order;
       }
+      values[values.length - 1] = remainingOrientation(total);
     } else {
-      int orientationPart = value % orientationPartSize;
       coder.decode(values, orientationsUsed, value / orientationPartSize);
+      value %= orientationPartSize;
       for (int i = values.length - 1; i >= 0; i--)
-        if (values[i] != 0) {
-          storeOrientation(i, orientationPart % order);
-          orientationPart /= order;
+        if (values[i] >= 0) {
+          values[i] = value % order;
+          value /= order;
         }
     }
-  }
-
-  protected int storeOrientation(final int index, final int value) {
-    values[index] = value + 1;
-    return value;
   }
 
   protected int remainingOrientation(final int total) {
@@ -84,17 +78,22 @@ public abstract class PackOrientation extends Pack {
   }
 
   public void changeOrientation(final int i1, final int i2, final int i3, final int i4) {
-    if (values[i1] != 0)
+    if (values[i1] >= 0)
       values[i1] = updateOrientation(values[i1], 1);
-    if (values[i2] != 0)
+    if (values[i2] >= 0)
       values[i2] = updateOrientation(values[i2], -1);
-    if (values[i3] != 0)
+    if (values[i3] >= 0)
       values[i3] = updateOrientation(values[i3], 1);
-    if (values[i4] != 0)
+    if (values[i4] >= 0)
       values[i4] = updateOrientation(values[i4], -1);
   }
 
   public int updateOrientation(final int value, final int difference) {
-    return value == 0 ? 0 : (value - 1 + order + difference) % order + 1;
+    return value < 0 ? -1 : (value + order + difference) % order;
+  }
+
+  @Override
+  public String toString() {
+    return CoderOrdered.toString(values);
   }
 }

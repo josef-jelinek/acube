@@ -46,7 +46,7 @@ public final class PackKit {
   }
 
   public static Pack cornerPos(final Set<Corner> cornerMask) {
-    return new PackPositionFull(cornerMask(cornerMask), cornerOrdinals);
+    return new PackPositionOrdered(cornerMask(cornerMask), cornerOrdinals);
   }
 
   public static PackOrientation cornerTwist(final Set<Corner> cornerMask, final Set<Corner> cornerTwistMask) {
@@ -58,27 +58,27 @@ public final class PackKit {
   }
 
   public static Pack mEdgePosSet(final Set<Edge> edgeMask) {
-    return new PackPositionPartUnordered(edgeMask(edgeMask), edgeMask(maskMEdgesB), edgeOrdinals);
+    return new PackPositionUnordered(edgeMask(edgeMask), edgeMask(maskMEdgesB), edgeOrdinals);
   }
 
   public static Pack mEdgePos(final Set<Edge> edgeMask) {
-    return new PackPositionPartOrdered(edgeMask(edgeMask), edgeMask(maskMEdgesB), edgeOrdinals);
+    return new PackPositionOrdered(edgeMask(edgeMask), edgeMask(maskMEdgesB), edgeOrdinals);
   }
 
   public static Pack uEdgePos(final Set<Edge> edgeMask) {
-    return new PackPositionPartOrdered(edgeMask(edgeMask), edgeMask(maskUEdges), edgeOrdinals);
+    return new PackPositionOrdered(edgeMask(edgeMask), edgeMask(maskUEdges), edgeOrdinals);
   }
 
   public static Pack dEdgePos(final Set<Edge> edgeMask) {
-    return new PackPositionPartOrdered(edgeMask(edgeMask), edgeMask(maskDEdges), edgeOrdinals);
+    return new PackPositionOrdered(edgeMask(edgeMask), edgeMask(maskDEdges), edgeOrdinals);
   }
 
   public static Pack mEdgePos_B(final Set<Edge> edgeMask) {
-    return new PackPositionFull(mEdgeMaskB(edgeMask), getEdgeOrdinals(maskMEdgesB));
+    return new PackPositionOrdered(mEdgeMaskB(edgeMask), getEdgeOrdinals(maskMEdgesB));
   }
 
   public static Pack oEdgePos_B(final Set<Edge> edgeMask) {
-    return new PackPositionFull(oEdgeMaskB(edgeMask), getEdgeOrdinals(maskOEdgesB));
+    return new PackPositionOrdered(oEdgeMaskB(edgeMask), getEdgeOrdinals(maskOEdgesB));
   }
 
   private static int[] getEdgeOrdinals(final EnumSet<Edge> edges) {
