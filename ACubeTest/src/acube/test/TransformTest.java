@@ -55,7 +55,6 @@ import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
 import acube.Turn;
-import acube.TurnB;
 import acube.console.ConsoleReporter;
 import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
@@ -151,7 +150,7 @@ public final class TransformTest {
     final TransformB tB = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
     assertEquals(tB.cornerPos.stateSize(), t.cornerPos.stateSize());
     assertEquals(t.cornerPos.turnMask().size(), Turn.size);
-    assertEquals(tB.cornerPos.turnMask().size(), TurnB.size);
+    assertEquals(tB.cornerPos.turnMask().size(), Turn.getValidB(Turn.valueSet).size());
     assertEquals(tB.cornerPos.startSize(), t.cornerPos.startSize());
     for (final Turn turn : tB.cornerPos.turnMask())
       for (int i = 0; i < tB.cornerPos.stateSize(); i++)

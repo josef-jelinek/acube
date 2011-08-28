@@ -20,7 +20,7 @@ final class OEdgePosB extends Move {
 
   @Override
   public void turn(final Turn turn) {
-    switch (turn.toB()) {
+    switch (turn) {
     case U1:
       cycle(UR, UB, UL, UF);
       break;

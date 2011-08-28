@@ -12,7 +12,7 @@ final class MEdgePosB extends Move {
 
   @Override
   public void turn(final Turn turn) {
-    switch (turn.toB()) {
+    switch (turn) {
     case U1:
       break;
     case D1:

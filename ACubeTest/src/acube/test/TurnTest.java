@@ -8,7 +8,6 @@ import java.util.HashSet;
 import org.junit.Test;
 import acube.Metric;
 import acube.Turn;
-import acube.TurnB;
 
 public final class TurnTest {
   @Test
@@ -54,26 +53,18 @@ public final class TurnTest {
 
   @Test
   public void testAB() {
-    for (final TurnB t : TurnB.values())
-      assertEquals(t, t.toA().toB());
-    for (final TurnB t1 : TurnB.values())
-      for (final TurnB t2 : TurnB.values())
-        if (t1 != t2)
-          assertFalse(t1.toA() == t2.toA());
-    assertEquals(TurnB.U1, Turn.U1.toB());
-    assertEquals(Turn.U1, TurnB.U1.toA());
-    assertEquals(TurnB.M2, Turn.M2.toB());
-    assertEquals(Turn.M2, TurnB.M2.toA());
-    assertEquals(TurnB.r2, Turn.r2.toB());
-    assertEquals(Turn.r2, TurnB.r2.toA());
+    int countB = 0;
+    for (final Turn t : Turn.values())
+      if (t.isB())
+        countB++;
     assertTrue(Turn.U1.isB());
     assertTrue(Turn.U2.isB());
     assertFalse(Turn.B1.isB());
     assertTrue(Turn.B2.isB());
     assertTrue(Turn.r2.isB());
     assertFalse(Turn.r3.isB());
-    assertEquals(TurnB.size, Turn.getValidB(Turn.valueSet).size());
-    assertEquals(TurnB.size, Turn.getValidB(Turn.getValidB(Turn.valueSet)).size());
+    assertEquals(countB, Turn.getValidB(Turn.valueSet).size());
+    assertEquals(countB, Turn.getValidB(Turn.getValidB(Turn.valueSet)).size());
     assertEquals(0, Turn.getValidB(new HashSet<Turn>(Arrays.asList(new Turn[] { Turn.R1 }))).size());
   }
 
@@ -88,8 +79,5 @@ public final class TurnTest {
     assertEquals(Turn.U1, Turn.turn(0));
     assertEquals(Turn.U2, Turn.turn(1));
     assertEquals(Turn.r3, Turn.turn(Turn.size - 1));
-    assertEquals(TurnB.U1, TurnB.turn(0));
-    assertEquals(TurnB.U2, TurnB.turn(1));
-    assertEquals(TurnB.r2, TurnB.turn(TurnB.size - 1));
   }
 }
