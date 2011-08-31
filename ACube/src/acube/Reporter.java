@@ -14,4 +14,6 @@ public interface Reporter {
   public void onePhaseStatistics(long pruneChecks, long pruneHits);
 
   public void twoPhaseStatistics(long pruneChecksA, long pruneHitsA, long pruneChecksB, long pruneHitsB);
+
+  public boolean shouldStop();
 }

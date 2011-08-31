@@ -1,6 +1,6 @@
 package acube.pack;
 
-public final class CoderUnordered extends Coder {
+final class CoderUnordered extends Coder {
   @Override
   public int size(final int n, final int k) { // n! / ((n - k)! * k!)
     int nf = 1, kf = 1;
@@ -37,7 +37,8 @@ public final class CoderUnordered extends Coder {
     }
   }
 
-  public static String toString(final int[] values) {
+  @Override
+  public String toString(final int[] values) {
     if (values.length == 0)
       return "";
     final StringBuilder s = new StringBuilder();

@@ -2,6 +2,7 @@ package acube;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +13,11 @@ public final class TurnList {
   public static final int INITIAL_STATE = 0;
   private static final int MAX_DEPTH = 3;
   private final Turn[][] turnLists;
-  private final Turn[][] turnListsB;
   private final int[][] next;
 
-  public TurnList(final Transform transform, final Reporter reporter) {
+  public TurnList(final Transform transform, final EnumSet<Turn> turns, final Reporter reporter) {
     reporter.tableCreationStarted("turn transformation and pruning table");
-    final List<int[]> table = createStateTable(transform);
+    final List<int[]> table = createStateTable(transform, turns);
     final boolean[] activeStates = getActiveStates(table);
     final int[] ind = new int[table.size()];
     int n = 1;
@@ -63,8 +63,7 @@ public final class TurnList {
     next = new int[d][Turn.size];
     Arrays.fill(next[0], -1);
     renumberStates(table, activeStates, ind, d);
-    turnLists = getAllowedTurnsTable(transform);
-    turnListsB = getAllowedTurnsTableB(turnLists);
+    turnLists = getAllowedTurnsTable(transform, turns);
   }
 
   private void renumberStates(final List<int[]> table, final boolean[] activeStates, final int[] ind, final int d) {
@@ -111,36 +110,18 @@ public final class TurnList {
     return activeStates;
   }
 
-  private Turn[][] getAllowedTurnsTable(final Transform transform) {
+  private Turn[][] getAllowedTurnsTable(final Transform transform, final EnumSet<Turn> turns) {
     final Turn[][] tl = new Turn[next.length][];
     for (int state = 0; state < next.length; state++) {
       int turnCount = 0;
-      for (final Turn t : transform.turnMask())
+      for (final Turn t : turns)
         if (next[state][t.ordinal()] >= 0)
           turnCount++;
       tl[state] = new Turn[turnCount];
       int freeTurnIndex = 0;
-      for (final Turn t : transform.turnMask())
+      for (final Turn t : turns)
         if (next[state][t.ordinal()] >= 0)
           tl[state][freeTurnIndex++] = t;
-      Arrays.sort(tl[state]);
-    }
-    return tl;
-  }
-
-  private Turn[][] getAllowedTurnsTableB(final Turn[][] turns) {
-    final Turn[][] tl = new Turn[turns.length][];
-    for (int state = 0; state < next.length; state++) {
-      int turnCount = 0;
-      for (final Turn t : turns[state])
-        if (t.isB())
-          turnCount++;
-      tl[state] = new Turn[turnCount];
-      int freeTurnIndex = 0;
-      for (final Turn t : turns[state])
-        if (t.isB())
-          tl[state][freeTurnIndex++] = t;
-      Arrays.sort(tl[state]);
     }
     return tl;
   }
@@ -153,29 +134,24 @@ public final class TurnList {
     return turnLists[state];
   }
 
-  public Turn[] getAvailableTurnsB(final int state) {
-    return turnListsB[state];
-  }
-
-  private static List<int[]> createStateTable(final Transform transform) {
-    final Set<Turn> turnMask = transform.turnMask();
+  private static List<int[]> createStateTable(final Transform transform, final EnumSet<Turn> turns) {
     final List<State> states = new ArrayList<State>();
     final Map<State, Integer> stateIndices = new HashMap<State, Integer>();
     final List<int[]> table = new ArrayList<int[]>();
     final State state0 = State.init(transform);
-    initializeStateTables(transform, turnMask, table, states, stateIndices, state0);
-    linkStates(transform, turnMask, table, states, stateIndices, state0);
+    initializeStateTables(transform, turns, table, states, stateIndices, state0);
+    linkStates(transform, turns, table, states, stateIndices, state0);
     return table;
   }
 
-  private static void initializeStateTables(final Transform transform, final Set<Turn> turnMask,
+  private static void initializeStateTables(final Transform transform, final EnumSet<Turn> turns,
       final List<int[]> table, final List<State> states, final Map<State, Integer> stateIndices, final State state0) {
     states.add(state0);
     stateIndices.put(state0, 0);
     for (int i = 0; i < states.size(); i++) {
       final int[] row = new int[Turn.size];
       for (final Turn turn : Turn.values)
-        if (!turnMask.contains(turn))
+        if (!turns.contains(turn))
           row[turn.ordinal()] = -1;
         else {
           final State state = states.get(i).turn(turn, transform);
@@ -261,23 +237,23 @@ final class State {
 
   public State turn(final Turn turn, final Transform t) {
     final Turn rotatedTurn = SymTransform.getTurn(turn, symmetry);
-    final int ct = t.twist.turn(rotatedTurn, cornerTwist);
-    final int cp = t.cornerPos.turn(rotatedTurn, cornerPosition);
-    final int ef = t.flip.turn(rotatedTurn, edgeFlip);
-    final int mep = t.mEdgePos.turn(rotatedTurn, mEdgePosition);
-    final int uep = t.uEdgePos.turn(rotatedTurn, uEdgePosition);
-    final int dep = t.dEdgePos.turn(rotatedTurn, dEdgePosition);
-    final int sym = SymTransform.getSymmetry(symmetry, rotatedTurn);
+    final int ct = t.twistTable.turn(rotatedTurn, cornerTwist);
+    final int cp = t.cornerPosTable.turn(rotatedTurn, cornerPosition);
+    final int ef = t.flipTable.turn(rotatedTurn, edgeFlip);
+    final int mep = t.mEdgePosTable.turn(rotatedTurn, mEdgePosition);
+    final int uep = t.uEdgePosTable.turn(rotatedTurn, uEdgePosition);
+    final int dep = t.dEdgePosTable.turn(rotatedTurn, dEdgePosition);
+    final int sym = SymTransform.getSymmetry(symmetry, turn);
     return new State(ct, cp, ef, mep, uep, dep, sym, turns, turn);
   }
 
   public static State init(final Transform t) {
-    final int ct = t.twist.start(0);
-    final int cp = t.cornerPos.start(0);
-    final int ef = t.flip.start(0);
-    final int mep = t.mEdgePos.start(0);
-    final int uep = t.uEdgePos.start(0);
-    final int dep = t.dEdgePos.start(0);
+    final int ct = t.twistTable.start(0);
+    final int cp = t.cornerPosTable.start(0);
+    final int ef = t.flipTable.start(0);
+    final int mep = t.mEdgePosTable.start(0);
+    final int uep = t.uEdgePosTable.start(0);
+    final int dep = t.dEdgePosTable.start(0);
     return new State(ct, cp, ef, mep, uep, dep, SymTransform.I);
   }
 

@@ -33,39 +33,18 @@ import static acube.Turn.r3;
 import static acube.Turn.u1;
 import static acube.Turn.u2;
 import static acube.Turn.u3;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
 
 public enum Metric {
   QUARTER, FACE, SLICE, SLICE_QUARTER, ROTATION_QUARTER, ROTATION_FACE;
-  public static final String[] names = { "q", "f", "s", "sq", "rq", "rf" };
-
-  public int length(final Turn turn) {
-    return turnLengths[ordinal()][turn.ordinal()];
-  }
-
-  public Set<Turn> filterForElementary(final Set<Turn> turns) {
-    final EnumSet<Turn> elementary = EnumSet.noneOf(Turn.class);
-    for (final Turn turn : turns)
-      if (length(turn) == 1)
-        elementary.add(turn);
-    return elementary;
-  }
-
   private static final int[][] turnLengths = new int[values().length][Turn.size];
-  private static final List<Turn> faceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      U2, D2, F2, B2, L2, R2 }));
-  private static final List<Turn> doubleQuarterTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      u1, d1, f1, b1, l1, r1, u3, d3, f3, b3, l3, r3 }));
-  private static final List<Turn> doubleFaceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      u2, d2, f2, b2, l2, r2 }));
-  private static final List<Turn> quarterSliceTurns = Collections.unmodifiableList(Arrays.asList(new Turn[] {
-      E1, E3, S1, S3, M1, M3 }));
-  private static final List<Turn> halfSliceTurns = Collections.unmodifiableList(Arrays
-      .asList(new Turn[] { E2, S2, M2 }));
+  private static final String[] names = { "qtm", "ftm", "stm", "sqtm", "rqtm", "rftm" };
+  public static final String nameString = "qtm, ftm, stm, sqtm, rqtm, rftm";
+  private static final EnumSet<Turn> faceTurns = EnumSet.of(U2, D2, F2, B2, L2, R2);
+  private static final EnumSet<Turn> wideQuarterTurns = EnumSet.of(u1, d1, f1, b1, l1, r1, u3, d3, f3, b3, l3, r3);
+  private static final EnumSet<Turn> wideFaceTurns = EnumSet.of(u2, d2, f2, b2, l2, r2);
+  private static final EnumSet<Turn> quarterSliceTurns = EnumSet.of(E1, E3, S1, S3, M1, M3);
+  private static final EnumSet<Turn> halfSliceTurns = EnumSet.of(E2, S2, M2);
   static {
     for (final int[] turnLengthMetric : turnLengths)
       for (int t = 0; t < turnLengthMetric.length; t++)
@@ -73,12 +52,12 @@ public enum Metric {
     setLengths(turnLengths[QUARTER.ordinal()], faceTurns, 2);
     setLengths(turnLengths[SLICE_QUARTER.ordinal()], faceTurns, 2);
     setLengths(turnLengths[ROTATION_QUARTER.ordinal()], faceTurns, 2);
-    setLengths(turnLengths[ROTATION_QUARTER.ordinal()], doubleQuarterTurns, 2);
-    setLengths(turnLengths[ROTATION_FACE.ordinal()], doubleQuarterTurns, 2);
-    setLengths(turnLengths[QUARTER.ordinal()], doubleFaceTurns, 2);
-    setLengths(turnLengths[SLICE_QUARTER.ordinal()], doubleFaceTurns, 2);
-    setLengths(turnLengths[ROTATION_QUARTER.ordinal()], doubleFaceTurns, 4);
-    setLengths(turnLengths[ROTATION_FACE.ordinal()], doubleFaceTurns, 2);
+    setLengths(turnLengths[ROTATION_QUARTER.ordinal()], wideQuarterTurns, 2);
+    setLengths(turnLengths[ROTATION_FACE.ordinal()], wideQuarterTurns, 2);
+    setLengths(turnLengths[QUARTER.ordinal()], wideFaceTurns, 2);
+    setLengths(turnLengths[SLICE_QUARTER.ordinal()], wideFaceTurns, 2);
+    setLengths(turnLengths[ROTATION_QUARTER.ordinal()], wideFaceTurns, 4);
+    setLengths(turnLengths[ROTATION_FACE.ordinal()], wideFaceTurns, 2);
     setLengths(turnLengths[QUARTER.ordinal()], quarterSliceTurns, 2);
     setLengths(turnLengths[FACE.ordinal()], quarterSliceTurns, 2);
     setLengths(turnLengths[ROTATION_QUARTER.ordinal()], quarterSliceTurns, 3);
@@ -90,8 +69,42 @@ public enum Metric {
     setLengths(turnLengths[ROTATION_FACE.ordinal()], halfSliceTurns, 3);
   }
 
-  private static void setLengths(final int[] turnLengths, final List<Turn> turns, final int length) {
+  private static void setLengths(final int[] turnLengths, final EnumSet<Turn> turns, final int length) {
     for (final Turn turn : turns)
       turnLengths[turn.ordinal()] = length;
+  }
+
+  public int length(final Turn turn) {
+    return turnLengths[ordinal()][turn.ordinal()];
+  }
+
+  public EnumSet<Turn> essentialTurns() {
+    final EnumSet<Turn> turns = EnumSet.allOf(Turn.class);
+    for (final Turn turn : Turn.values)
+      if (length(turn) > 1)
+        turns.remove(turn);
+    return turns;
+  }
+
+  public EnumSet<Turn> essentialTurnsB() {
+    final EnumSet<Turn> turns = EnumSet.allOf(Turn.class);
+    for (final Turn turn : Turn.values)
+      if (!turn.isB() || length(turn) > 1)
+        turns.remove(turn);
+    turns.addAll(faceTurns);
+    return turns;
+  }
+
+  public EnumSet<Turn> filterForElementary(final EnumSet<Turn> turns) {
+    final EnumSet<Turn> elementary = EnumSet.noneOf(Turn.class);
+    for (final Turn turn : turns)
+      if (length(turn) == 1)
+        elementary.add(turn);
+    return elementary;
+  }
+
+  @Override
+  public String toString() {
+    return names[ordinal()];
   }
 }

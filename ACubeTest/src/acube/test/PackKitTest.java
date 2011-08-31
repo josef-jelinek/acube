@@ -17,9 +17,7 @@ import static acube.Edge.UB;
 import static acube.Edge.UL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.EnumSet;
 import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
@@ -29,11 +27,8 @@ import acube.pack.PackKit;
 import acube.pack.PackOrientation;
 
 public final class PackKitTest {
-  private <T> Set<T> asSet(final T[] a) {
-    return new HashSet<T>(Arrays.asList(a));
-  }
 
-  private void checkStart(final Pack pack, final int size, final String first, final String last) {
+  private <T> void checkStart(final Pack<T> pack, final int size, final String first, final String last) {
     assertEquals(size, pack.startSize());
     pack.unpack(pack.start(0));
     assertEquals(first, pack.toString());
@@ -41,38 +36,38 @@ public final class PackKitTest {
     assertEquals(last, pack.toString());
   }
 
-  private void checkStart(final Pack pack, final String one) {
+  private <T> void checkStart(final Pack<T> pack, final String one) {
     checkStart(pack, 1, one, one);
   }
 
-  private void checkSize(final Pack pack, final int size) {
+  private <T> void checkSize(final Pack<T> pack, final int size) {
     assertEquals(size, pack.size());
   }
 
-  private void checkFirst(final Pack pack, final String first) {
+  private <T> void checkFirst(final Pack<T> pack, final String first) {
     pack.unpack(0);
     assertEquals(first, pack.toString());
   }
 
-  private void checkCycle(final Pack pack, final int[] indices, final String expected) {
+  private <T> void checkCycle(final Pack<T> pack, final int[] indices, final String expected) {
     pack.cycle(indices[0], indices[1], indices[2], indices[3]);
     assertEquals(expected, pack.toString());
   }
 
-  private void checkSwap(final Pack pack, final int i0, final int i1, final String expected) {
+  private <T> void checkSwap(final Pack<T> pack, final int i0, final int i1, final String expected) {
     pack.swap(i0, i1);
     assertEquals(expected, pack.toString());
   }
 
-  private void checkOrient(final PackOrientation pack, final int[] indices, final String expected) {
+  private <T> void checkOrient(final PackOrientation<T> pack, final int[] indices, final String expected) {
     pack.changeOrientation(indices[0], indices[1], indices[2], indices[3]);
     assertEquals(expected, pack.toString());
   }
 
   @Test
   public void corner_position() {
-    final Set<Corner> corners = asSet(new Corner[] { ULF, DRF, DFL, DLB, DBR });
-    final Pack pack = PackKit.cornerPos(corners);
+    final EnumSet<Corner> corners = EnumSet.of(ULF, DRF, DFL, DLB, DBR);
+    final Pack<Corner> pack = PackKit.cornerPos(corners);
     checkSize(pack, Coder.ordered.size(8, 5));
     checkFirst(pack, ". . . 0 1 2 3 4");
     checkCycle(pack, new int[] { 0, 1, 4, 5 }, ". 1 . 0 2 . 3 4");
@@ -81,9 +76,9 @@ public final class PackKitTest {
 
   @Test
   public void corner_twist_some_positions_without_orientation() {
-    final Set<Corner> cornersPosition = asSet(new Corner[] { ULF, DRF, DFL });
-    final Set<Corner> cornersOrientation = asSet(new Corner[] { DFL, DLB, DBR });
-    final PackOrientation pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
+    final EnumSet<Corner> cornersPosition = EnumSet.of(ULF, DRF, DFL);
+    final EnumSet<Corner> cornersOrientation = EnumSet.of(DFL, DLB, DBR);
+    final PackOrientation<Corner> pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
     checkSize(pack, 27 * Coder.unordered.size(8, 3));
     checkFirst(pack, ". . . . . 0 0 0");
     checkCycle(pack, new int[] { 3, 4, 5, 6 }, ". . . . 0 0 . 0");
@@ -93,9 +88,9 @@ public final class PackKitTest {
 
   @Test
   public void corner_twist_all_positions_with_orientation() {
-    final Set<Corner> cornersPosition = asSet(new Corner[] { ULF, DRF, DFL });
-    final Set<Corner> cornersOrientation = asSet(new Corner[] { DRF, DFL, DLB, DBR });
-    final PackOrientation pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
+    final EnumSet<Corner> cornersPosition = EnumSet.of(ULF, DRF, DFL);
+    final EnumSet<Corner> cornersOrientation = EnumSet.of(DRF, DFL, DLB, DBR);
+    final PackOrientation<Corner> pack = PackKit.cornerTwist(cornersPosition, cornersOrientation);
     checkSize(pack, 2187);
     checkFirst(pack, "0 0 0 0 0 0 0 0");
     checkOrient(pack, new int[] { 3, 4, 5, 6 }, "0 0 0 1 2 1 2 0");
@@ -105,9 +100,9 @@ public final class PackKitTest {
 
   @Test
   public void edge_flip_some_positions_without_orientation() {
-    final Set<Edge> edgesPosition = asSet(new Edge[] { DL, FR, FL });
-    final Set<Edge> edgesOrientation = asSet(new Edge[] { FL, BR, BL });
-    final PackOrientation pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
+    final EnumSet<Edge> edgesPosition = EnumSet.of(DL, FR, FL);
+    final EnumSet<Edge> edgesOrientation = EnumSet.of(FL, BR, BL);
+    final PackOrientation<Edge> pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
     checkSize(pack, 8 * Coder.unordered.size(12, 3));
     checkFirst(pack, ". . . . . . . . . 0 0 0");
     checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . 0 0 . 0");
@@ -117,9 +112,9 @@ public final class PackKitTest {
 
   @Test
   public void edge_flip_all_positions_with_orientation() {
-    final Set<Edge> edgesPosition = asSet(new Edge[] { UB, UL, DF, DL, FR, FL });
-    final Set<Edge> edgesOrientation = asSet(new Edge[] { UB, UL, DF, FL, BR, BL });
-    final PackOrientation pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
+    final EnumSet<Edge> edgesPosition = EnumSet.of(UB, UL, DF, DL, FR, FL);
+    final EnumSet<Edge> edgesOrientation = EnumSet.of(UB, UL, DF, FL, BR, BL);
+    final PackOrientation<Edge> pack = PackKit.edgeFlip(edgesPosition, edgesOrientation);
     checkSize(pack, 2048);
     checkFirst(pack, "0 0 0 0 0 0 0 0 0 0 0 0");
     checkOrient(pack, new int[] { 7, 8, 9, 10 }, "0 0 0 0 0 0 0 1 1 1 1 0");
@@ -129,8 +124,8 @@ public final class PackKitTest {
 
   @Test
   public void middle_edge_position_ordered() {
-    final Set<Edge> edges = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
-    final Pack pack = PackKit.mEdgePos(edges);
+    final EnumSet<Edge> edges = EnumSet.of(UL, DF, DR, DB, DL, FR, FL);
+    final Pack<Edge> pack = PackKit.mEdgePos(edges);
     checkSize(pack, Coder.ordered.size(12, 2));
     checkFirst(pack, ". . . . . . . . . . 0 1");
     checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . . 0 . 1");
@@ -139,8 +134,8 @@ public final class PackKitTest {
 
   @Test
   public void middle_edge_position_unordered() {
-    final Set<Edge> edges = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
-    final Pack pack = PackKit.mEdgePosSet(edges);
+    final EnumSet<Edge> edges = EnumSet.of(UL, DF, DR, DB, DL, FR, FL);
+    final Pack<Edge> pack = PackKit.mEdgePosSet(edges);
     checkSize(pack, Coder.unordered.size(12, 2));
     checkFirst(pack, ". . . . . . . . . . # #");
     checkCycle(pack, new int[] { 7, 8, 9, 10 }, ". . . . . . . . . # . #");
@@ -149,8 +144,8 @@ public final class PackKitTest {
 
   @Test
   public void middle_edge_position_ordered_in_phase_B() {
-    final Set<Edge> edgesB = asSet(new Edge[] { FR, FL });
-    final Pack packB = PackKit.mEdgePos_B(edgesB);
+    final EnumSet<Edge> edgesB = EnumSet.of(FR, FL);
+    final Pack<Edge> packB = PackKit.mEdgePosB(edgesB);
     checkSize(packB, Coder.ordered.size(4, 2));
     checkFirst(packB, ". . 0 1");
     checkStart(packB, "0 1 . .");
@@ -158,20 +153,20 @@ public final class PackKitTest {
 
   @Test
   public void middle_edge_position_ordered_to_middle_edge_position_ordered_in_phase_B() {
-    final Set<Edge> edgesA = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
-    final Set<Edge> edgesB = asSet(new Edge[] { FR, FL });
-    final Pack packA = PackKit.mEdgePos(edgesA);
+    final EnumSet<Edge> edgesA = EnumSet.of(UL, DF, DR, DB, DL, FR, FL);
+    final EnumSet<Edge> edgesB = EnumSet.of(FR, FL);
+    final Pack<Edge> packA = PackKit.mEdgePos(edgesA);
     packA.unpack(0);
     packA.cycle(7, 8, 9, 10);
-    final Pack packB = PackKit.mEdgePos_B(edgesB);
+    final Pack<Edge> packB = PackKit.mEdgePosB(edgesB);
     packB.convert(packA);
     assertEquals(". 0 . 1", packB.toString());
   }
 
   @Test
   public void up_edge_position_ordered() {
-    final Set<Edge> edges = asSet(new Edge[] { UB, UL, DF, DR, DB, FR, FL });
-    final Pack pack = PackKit.uEdgePos(edges);
+    final EnumSet<Edge> edges = EnumSet.of(UB, UL, DF, DR, DB, FR, FL);
+    final Pack<Edge> pack = PackKit.uEdgePos(edges);
     checkSize(pack, Coder.ordered.size(12, 2));
     checkFirst(pack, ". . . . . . . . . . 0 1");
     checkSwap(pack, 1, 11, ". 1 . . . . . . . . 0 .");
@@ -180,8 +175,8 @@ public final class PackKitTest {
 
   @Test
   public void down_edge_position_ordered() {
-    final Set<Edge> edges = asSet(new Edge[] { UB, UL, DF, DR, DB, FR, FL });
-    final Pack pack = PackKit.dEdgePos(edges);
+    final EnumSet<Edge> edges = EnumSet.of(UB, UL, DF, DR, DB, FR, FL);
+    final Pack<Edge> pack = PackKit.dEdgePos(edges);
     checkSize(pack, Coder.ordered.size(12, 3));
     checkFirst(pack, ". . . . . . . . . 0 1 2");
     checkSwap(pack, 0, 11, "2 . . . . . . . . 0 1 .");
@@ -191,18 +186,18 @@ public final class PackKitTest {
 
   @Test
   public void up_edge_down_edge_combine_to_o_edge_in_phase_B() {
-    final Set<Edge> edges = asSet(new Edge[] { UB, UL, DF, DR, DB, FR, FL });
-    final Pack packU = PackKit.uEdgePos(edges);
+    final EnumSet<Edge> edges = EnumSet.of(UB, UL, DF, DR, DB, FR, FL);
+    final Pack<Edge> packU = PackKit.uEdgePos(edges);
     packU.unpack(0);
     packU.swap(1, 11);
     packU.swap(3, 10);
-    final Pack packD = PackKit.dEdgePos(edges);
+    final Pack<Edge> packD = PackKit.dEdgePos(edges);
     packD.unpack(0);
     packD.swap(0, 11);
     packD.swap(2, 10);
     packD.swap(4, 9);
-    final Set<Edge> edgesB = asSet(new Edge[] { UB, UL, DF, DR, DB });
-    final Pack packB = PackKit.oEdgePos_B(edgesB);
+    final EnumSet<Edge> edgesB = EnumSet.of(UB, UL, DF, DR, DB);
+    final Pack<Edge> packB = PackKit.udEdgePosB(edgesB);
     assertTrue(packB.combine(packU, packD));
     assertEquals(". 1 . 0 . . . . . . . .", packU.toString());
     assertEquals("2 . 1 . 0 . . . . . . .", packD.toString());
@@ -210,5 +205,12 @@ public final class PackKitTest {
     checkSize(packB, Coder.ordered.size(8, 5));
     checkFirst(packB, ". . . 0 1 2 3 4");
     checkStart(packB, ". . 0 1 2 3 4 .");
+  }
+
+  @Test
+  public void edge_ordinals_array() {
+    assertEquals(". . . . . . . . 0 1 2 3", Coder.ordered.toString(PackKit.mEdgePosOrdinals(Edge.values())));
+    assertEquals("0 1 2 3 . . . . . . . .", Coder.ordered.toString(PackKit.uEdgePosOrdinals(Edge.values())));
+    assertEquals(". . . . 0 1 2 3 . . . .", Coder.ordered.toString(PackKit.dEdgePosOrdinals(Edge.values())));
   }
 }

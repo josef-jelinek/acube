@@ -18,15 +18,15 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
+import static acube.Metric.FACE;
+import static acube.Metric.QUARTER;
+import static acube.Metric.ROTATION_FACE;
+import static acube.Metric.SLICE;
 import static org.junit.Assert.assertEquals;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.EnumSet;
 import org.junit.Test;
 import acube.Corner;
 import acube.Edge;
-import acube.Metric;
-import acube.Turn;
 import acube.console.ConsoleReporter;
 import acube.prune.Prune;
 import acube.prune.PruneB;
@@ -35,45 +35,40 @@ import acube.transform.Transform;
 import acube.transform.TransformB;
 
 public final class PruneTest {
-  private final Set<Corner> cornerMask = asSet(new Corner[] { UFR, URB, UBL, ULF });
-  private final Set<Edge> edgeMask = asSet(new Edge[] { UF, UR, UB, UL, DF, DR, FR, FL });
-  private final Set<Corner> cornerTwistMask = asSet(new Corner[] { ULF, DRF, DFL, DLB, DBR });
-  private final Set<Edge> edgeFlipMask = asSet(new Edge[] { UL, DF, DR, DB, DL, FR, FL });
-
-  private <T> Set<T> asSet(final T[] a) {
-    return new HashSet<T>(Arrays.asList(a));
-  }
+  private final EnumSet<Corner> cornerMask = EnumSet.of(UFR, URB, UBL, ULF);
+  private final EnumSet<Edge> edgeMask = EnumSet.of(UF, UR, UB, UL, DF, DR, FR, FL);
+  private final EnumSet<Corner> cornerTwistMask = EnumSet.of(ULF, DRF, DFL, DLB, DBR);
+  private final EnumSet<Edge> edgeFlipMask = EnumSet.of(UL, DF, DR, DB, DL, FR, FL);
 
   @Test
   public void tables_A() {
     final Transform transform =
-        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, Turn.valueSet, new ConsoleReporter());
-    final Prune tab = new Prune(transform, new ConsoleReporter());
+        new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, new ConsoleReporter());
+    final Prune tab = new Prune(transform, SLICE, new ConsoleReporter());
     assertEquals(4758486, tab.stateSize());
     assertEquals(6, tab.maxDistance());
   }
 
   @Test
   public void table_corners_face_metric() {
-    final Transform transform =
-        new Transform(Metric.ROTATION_FACE.filterForElementary(Turn.valueSet), new ConsoleReporter());
-    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
+    final Transform transform = new Transform(new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, ROTATION_FACE, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
     assertEquals(11, tab.maxDistance());
   }
 
   @Test
   public void table_corners_quarter_metric() {
-    final Transform transform = new Transform(Metric.QUARTER.filterForElementary(Turn.valueSet), new ConsoleReporter());
-    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
+    final Transform transform = new Transform(new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, QUARTER, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
     assertEquals(14, tab.maxDistance());
   }
 
   @Test
   public void tables_B() {
-    final TransformB transform = new TransformB(cornerMask, edgeMask, Turn.valueSet, new ConsoleReporter());
-    final PruneB tab = new PruneB(transform, new ConsoleReporter());
+    final TransformB transform = new TransformB(cornerMask, edgeMask, new ConsoleReporter());
+    final PruneB tab = new PruneB(transform, FACE, new ConsoleReporter());
     assertEquals(262080, tab.stateSize());
     assertEquals(9, tab.maxDistance());
   }

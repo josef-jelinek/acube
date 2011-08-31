@@ -35,6 +35,13 @@ public enum Edge {
     return index(name) >= 0;
   }
 
+  public static int[] ordinals(final Edge[] values) {
+    final int[] a = new int[values.length];
+    for (int i = 0; i < a.length; i++)
+      a[i] = values[i] == null ? -1 : values[i].ordinal();
+    return a;
+  }
+
   public static int flip(final String name) {
     return names.get(index(name)).indexOf(name.charAt(0));
   }
@@ -48,10 +55,9 @@ public enum Edge {
   }
 
   public static String name(final Edge edge, final int flip) {
-    assert flip >= 0 && flip <= 2;
     if (edge == null)
-      return flip == 0 ? "@?" : flip == 2 ? "-?" : "?";
-    return flip == 0 ? "@" + edge.name(0) : edge.name(flip - 1);
+      return flip < 0 ? "@?" : flip == 1 ? "-?" : "?";
+    return flip < 0 ? "@" + edge.name(0) : edge.name(flip);
   }
 
   public String name(final int flip) {

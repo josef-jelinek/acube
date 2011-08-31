@@ -1,9 +1,9 @@
 package acube.pack;
 
-public final class PackPositionUnordered extends Pack {
+public final class PackPositionUnordered<T> extends Pack<T> {
   private final boolean[] careMask;
 
-  public PackPositionUnordered(final boolean[] mask, final boolean[] careMask, final int[] partIds) {
+  public PackPositionUnordered(final boolean[] mask, final boolean[] careMask, final T[] partIds) {
     super(Coder.unordered, CoderTools.maskIntersection(mask, careMask), partIds);
     this.careMask = careMask;
   }
@@ -40,6 +40,6 @@ public final class PackPositionUnordered extends Pack {
 
   @Override
   public String toString() {
-    return CoderUnordered.toString(values);
+    return coder.toString(values);
   }
 }

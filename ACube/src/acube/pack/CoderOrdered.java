@@ -1,6 +1,6 @@
 package acube.pack;
 
-public final class CoderOrdered extends Coder {
+final class CoderOrdered extends Coder {
   @Override
   public int size(final int n, final int k) { // n! / (n - k)!
     int x = 1;
@@ -21,7 +21,8 @@ public final class CoderOrdered extends Coder {
     CoderTools.decodePermutationToUsed(arr, x % CoderTools.sizeOfPermutation(k));
   }
 
-  public static String toString(final int[] values) {
+  @Override
+  public String toString(final int[] values) {
     if (values.length == 0)
       return "";
     final StringBuilder s = new StringBuilder();

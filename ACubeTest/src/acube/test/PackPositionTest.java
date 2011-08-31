@@ -10,18 +10,18 @@ import acube.pack.PackPositionOrdered;
 import acube.pack.PackPositionUnordered;
 
 public final class PackPositionTest {
-  private static final int[] PART_IDS_4 = { 0, 1, 2, 3 };
-  private static final int[] PART_IDS_5 = { 0, 1, 2, 3, 4 };
-  private static final int[] PART_IDS_6 = { 0, 1, 2, 3, 4, 5 };
+  private static final Integer[] PART_IDS_4 = { 0, 1, 2, 3 };
+  private static final Integer[] PART_IDS_5 = { 0, 1, 2, 3, 4 };
+  private static final Integer[] PART_IDS_6 = { 0, 1, 2, 3, 4, 5 };
 
-  private void checkUnpack(final String s, final Pack p, final int state) {
+  private void checkUnpack(final String s, final Pack<Integer> p, final int state) {
     p.unpack(state);
     assertEquals(s, p.toString());
   }
 
   @Test
   public void full_pack() {
-    final Pack pack = new PackPositionOrdered(getBools("0011"), PART_IDS_4);
+    final Pack<Integer> pack = new PackPositionOrdered<Integer>(getBools("0011"), PART_IDS_4);
     assertEquals(12, pack.size());
     assertEquals(1, pack.startSize());
     assertEquals(0, pack.start(0));
@@ -31,7 +31,7 @@ public final class PackPositionTest {
 
   @Test
   public void full_cycle() {
-    final Pack pack = new PackPositionOrdered(getBools("01111"), PART_IDS_5);
+    final Pack<Integer> pack = new PackPositionOrdered<Integer>(getBools("01111"), PART_IDS_5);
     checkUnpack(". 0 1 2 3", pack, 0);
     pack.swap(2, 4);
     assertEquals(". 0 3 2 1", pack.toString());
@@ -43,7 +43,8 @@ public final class PackPositionTest {
 
   @Test
   public void part_pack() {
-    final PackPositionOrdered p = new PackPositionOrdered(getBools("01110"), getBools("00111"), PART_IDS_5);
+    final PackPositionOrdered<Integer> p =
+        new PackPositionOrdered<Integer>(getBools("01110"), getBools("00111"), PART_IDS_5);
     assertEquals(Coder.ordered.size(5, 2), p.size());
     checkUnpack(". . . 0 1", p, 0);
     checkUnpack(". . . 1 0", p, 1);
@@ -54,14 +55,16 @@ public final class PackPositionTest {
 
   @Test
   public void part_start() {
-    final PackPositionOrdered p = new PackPositionOrdered(getBools("01110"), getBools("00111"), PART_IDS_5);
+    final PackPositionOrdered<Integer> p =
+        new PackPositionOrdered<Integer>(getBools("01110"), getBools("00111"), PART_IDS_5);
     assertEquals(1, p.startSize());
     checkUnpack(". . 0 1 .", p, p.start(0));
   }
 
   @Test
   public void part_loc_pack() {
-    final PackPositionUnordered p = new PackPositionUnordered(getBools("01110"), getBools("00111"), PART_IDS_5);
+    final PackPositionUnordered<Integer> p =
+        new PackPositionUnordered<Integer>(getBools("01110"), getBools("00111"), PART_IDS_5);
     assertEquals(Coder.unordered.size(5, 2), p.size());
     checkUnpack(". . . # #", p, 0);
     checkUnpack(". . # . #", p, 1);
@@ -72,7 +75,8 @@ public final class PackPositionTest {
 
   @Test
   public void part_loc_start() {
-    final PackPositionUnordered p = new PackPositionUnordered(getBools("01110"), getBools("00111"), PART_IDS_5);
+    final PackPositionUnordered<Integer> p =
+        new PackPositionUnordered<Integer>(getBools("01110"), getBools("00111"), PART_IDS_5);
     assertEquals(3, p.startSize());
     checkUnpack(". . . # #", p, p.start(0));
     checkUnpack(". . # . #", p, p.start(1));
@@ -81,8 +85,8 @@ public final class PackPositionTest {
 
   @Test
   public void convert() {
-    final Pack packI = new PackPositionOrdered(getBools("111000"), PART_IDS_6);
-    final Pack packO = new PackPositionOrdered(getBools("010101"), PART_IDS_6);
+    final Pack<Integer> packI = new PackPositionOrdered<Integer>(getBools("111000"), PART_IDS_6);
+    final Pack<Integer> packO = new PackPositionOrdered<Integer>(getBools("010101"), PART_IDS_6);
     checkUnpack(". . . 0 1 2", packI, 0);
     checkUnpack(". . . 0 1 2", packO, 0);
     packO.convert(packI);
@@ -99,9 +103,9 @@ public final class PackPositionTest {
 
   @Test
   public void combine_full() {
-    final Pack pack1 = new PackPositionOrdered(getBools("111000"), PART_IDS_6);
-    final Pack pack2 = new PackPositionOrdered(getBools("000111"), PART_IDS_6);
-    final Pack packO = new PackPositionOrdered(getBools("111111"), PART_IDS_6);
+    final Pack<Integer> pack1 = new PackPositionOrdered<Integer>(getBools("111000"), PART_IDS_6);
+    final Pack<Integer> pack2 = new PackPositionOrdered<Integer>(getBools("000111"), PART_IDS_6);
+    final Pack<Integer> packO = new PackPositionOrdered<Integer>(getBools("111111"), PART_IDS_6);
     checkUnpack("0 1 2 . . .", pack1, pack1.start(0));
     checkUnpack(". . . 0 1 2", pack2, pack2.start(0));
     assertTrue(packO.combine(pack1, pack2));
@@ -118,9 +122,9 @@ public final class PackPositionTest {
 
   @Test
   public void combine_partial() {
-    final Pack pack1 = new PackPositionOrdered(getBools("100010"), getBools("101010"), PART_IDS_6);
-    final Pack pack2 = new PackPositionOrdered(getBools("010001"), getBools("010101"), PART_IDS_6);
-    final Pack packO = new PackPositionOrdered(getBools("110011"), getBools("111111"), PART_IDS_6);
+    final Pack<Integer> pack1 = new PackPositionOrdered<Integer>(getBools("100010"), getBools("101010"), PART_IDS_6);
+    final Pack<Integer> pack2 = new PackPositionOrdered<Integer>(getBools("010001"), getBools("010101"), PART_IDS_6);
+    final Pack<Integer> packO = new PackPositionOrdered<Integer>(getBools("110011"), getBools("111111"), PART_IDS_6);
     checkUnpack("0 . . . 1 .", pack1, pack1.start(0));
     checkUnpack(". 0 . . . 1", pack2, pack2.start(0));
     assertTrue(packO.combine(pack1, pack2));
@@ -137,21 +141,21 @@ public final class PackPositionTest {
 
   @Test
   public void convert_combine_are_comutative() {
-    final Pack pack1 = new PackPositionOrdered(getBools("111000"), PART_IDS_6);
-    final Pack pack2 = new PackPositionOrdered(getBools("000111"), PART_IDS_6);
-    final Pack packO = new PackPositionOrdered(getBools("111111"), PART_IDS_6);
+    final Pack<Integer> pack1 = new PackPositionOrdered<Integer>(getBools("111000"), PART_IDS_6);
+    final Pack<Integer> pack2 = new PackPositionOrdered<Integer>(getBools("000111"), PART_IDS_6);
+    final Pack<Integer> packO = new PackPositionOrdered<Integer>(getBools("111111"), PART_IDS_6);
     check_all_combine(pack1, pack2, packO);
   }
 
   @Test
   public void partial_convert_combine_are_comutative() {
-    final Pack pack1 = new PackPositionOrdered(getBools("100100"), PART_IDS_6);
-    final Pack pack2 = new PackPositionOrdered(getBools("010001"), PART_IDS_6);
-    final Pack pack = new PackPositionOrdered(getBools("110101"), PART_IDS_6);
+    final Pack<Integer> pack1 = new PackPositionOrdered<Integer>(getBools("100100"), PART_IDS_6);
+    final Pack<Integer> pack2 = new PackPositionOrdered<Integer>(getBools("010001"), PART_IDS_6);
+    final Pack<Integer> pack = new PackPositionOrdered<Integer>(getBools("110101"), PART_IDS_6);
     check_all_combine(pack1, pack2, pack);
   }
 
-  private void check_all_combine(final Pack pack1, final Pack pack2, final Pack pack) {
+  private void check_all_combine(final Pack<Integer> pack1, final Pack<Integer> pack2, final Pack<Integer> pack) {
     for (int i1 = 0; i1 < pack1.size(); i1++)
       for (int i2 = 0; i2 < pack2.size(); i2++) {
         pack1.unpack(i1);
@@ -170,7 +174,7 @@ public final class PackPositionTest {
       }
   }
 
-  private void checkPackUnpack(final Pack p) {
+  private void checkPackUnpack(final Pack<Integer> p) {
     for (int i = 0; i < p.size(); i++) {
       p.unpack(i);
       assertEquals(i, p.pack());

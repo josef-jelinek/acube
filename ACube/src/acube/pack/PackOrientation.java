@@ -1,21 +1,23 @@
 package acube.pack;
 
-public abstract class PackOrientation extends Pack {
+
+public abstract class PackOrientation<T> extends Pack<T> {
   protected final boolean[] orientMask;
   protected final int orientationsUsed;
   protected final int order;
   private final int orientationPartSize;
 
-  public static PackOrientation instance(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds,
+  public static <T> PackOrientation<T> instance(final boolean[] usedMask, final boolean[] orientMask,
+      final T[] partIds,
       final int order) {
     final int valuesUsed = CoderTools.valuesUsed(orientMask);
     final int lengthForPartial = PackOrientation.size(orientMask.length, valuesUsed, order);
     final int lengthForFull = PackOrientationFull.size(orientMask.length, order);
-    return lengthForPartial < lengthForFull ? new PackOrientationPart(usedMask, orientMask, partIds, order)
-        : new PackOrientationFull(orientMask, partIds, order);
+    return lengthForPartial < lengthForFull ? new PackOrientationPart<T>(usedMask, orientMask, partIds, order)
+        : new PackOrientationFull<T>(orientMask, partIds, order);
   }
 
-  protected PackOrientation(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds, final int order) {
+  protected PackOrientation(final boolean[] usedMask, final boolean[] orientMask, final T[] partIds, final int order) {
     super(Coder.unordered, usedMask, partIds);
     if (usedMask.length != orientMask.length)
       throw new IllegalArgumentException("Argument sizes do not match");
@@ -94,6 +96,6 @@ public abstract class PackOrientation extends Pack {
 
   @Override
   public String toString() {
-    return CoderOrdered.toString(values);
+    return Coder.ordered.toString(values);
   }
 }

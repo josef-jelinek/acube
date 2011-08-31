@@ -1,26 +1,30 @@
 package acube.prune;
 
+import java.util.EnumSet;
 import acube.Turn;
 import acube.transform.TurnTable;
 
 public final class PruneTable {
   private final byte[] table;
   private final int stateSize;
-  private final TurnTable move;
+  private final TurnTable turnTable;
   private final int maxDist;
+  private final Turn[] turns;
 
-  public PruneTable(final TurnTable move) {
-    this.move = move;
-    table = new byte[(move.stateSize() + 3) / 4];
+  public PruneTable(final TurnTable turnTable, final EnumSet<Turn> turns) {
+    this.turnTable = turnTable;
+    this.turns = turns.toArray(new Turn[turns.size()]);
+    table = new byte[(turnTable.stateSize() + 3) / 4];
     int lastFilledSize = startDistFill();
     int totalSize = 0;
     int dist = 0;
-    final int switchSize = move.stateSize() / 2;
+    final int switchSize = turnTable.stateSize() / 2;
     while (lastFilledSize > 0) {
-      logLine(dist, lastFilledSize, totalSize + lastFilledSize, move.stateSize(), totalSize < switchSize);
+      final boolean isForward = totalSize < switchSize;
+      logLine(dist, lastFilledSize, totalSize + lastFilledSize, turnTable.stateSize(), isForward);
       totalSize += lastFilledSize;
       final int lastDist = dist++ % 3;
-      lastFilledSize = totalSize < switchSize ? forwardDistFill(dist, lastDist) : backwardDistFill(dist, lastDist);
+      lastFilledSize = isForward ? forwardDistFill(dist, lastDist) : backwardDistFill(dist, lastDist);
     }
     stateSize = totalSize;
     maxDist = dist - 1;
@@ -30,18 +34,18 @@ public final class PruneTable {
     for (int i = 0; i < table.length; i++)
       table[i] = -1;
     int filled = 0;
-    while (filled < move.startSize())
-      put(move.start(filled++), 0);
+    while (filled < turnTable.startSize())
+      put(turnTable.start(filled++), 0);
     return filled;
   }
 
   private int forwardDistFill(final int dist, final int lastDist) {
     int filled = 0;
-    for (int state = 0; state < move.stateSize(); state++)
+    for (int state = 0; state < turnTable.stateSize(); state++)
       if (get(state) == lastDist)
-        for (final Turn turn : move.turnMask()) {
-          final int newState = move.turn(turn, state);
-          if (isNotInitialized(newState)) { // free
+        for (final Turn turn : turns) {
+          final int newState = turnTable.turn(turn, state);
+          if (isNotInitialized(newState)) {
             put(newState, dist % 3);
             filled++;
           }
@@ -51,10 +55,10 @@ public final class PruneTable {
 
   private int backwardDistFill(final int dist, final int lastDistValue) {
     int filled = 0;
-    for (int state = 0; state < move.stateSize(); state++)
+    for (int state = 0; state < turnTable.stateSize(); state++)
       if (isNotInitialized(state))
-        for (final Turn turn : move.turnMask())
-          if (get(move.turn(turn, state)) == lastDistValue) {
+        for (final Turn turn : turns)
+          if (get(turnTable.turn(turn, state)) == lastDistValue) {
             put(state, dist % 3);
             filled++;
             break;
@@ -100,8 +104,8 @@ public final class PruneTable {
     int dist = 0;
     int lastCode = get(state);
     int lastState = state;
-    for (int turnIndex = 0; turnIndex < move.turnMaskArray().length; turnIndex++) {
-      final int newState = move.turn(move.turnMaskArray()[turnIndex], lastState);
+    for (int turnIndex = 0; turnIndex < turns.length; turnIndex++) {
+      final int newState = turnTable.turn(turns[turnIndex], lastState);
       if ((lastCode - get(newState) + 4) % 3 == 2) { // 2->1 1->0 0->2
         dist++;
         lastCode = (lastCode + 2) % 3; // 0->2 1->0 2->1
@@ -125,7 +129,7 @@ public final class PruneTable {
   }
 
   private static void logLine(final int depth, final int current, final int soFar, final int total,
-      final boolean forward) {
+      final boolean isForward) {
     //System.out.printf("%2d%s %8d %10d %3d%%%n", depth, forward ? ">" : "<", current, soFar, (long)soFar * 100 / total);
   }
 }

@@ -3,17 +3,15 @@ package acube.test;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import acube.pack.Coder;
-import acube.pack.CoderOrdered;
 import acube.pack.CoderTools;
-import acube.pack.CoderUnordered;
 
 public final class CoderTest {
   private String toString(final int[] array) {
-    return CoderOrdered.toString(array);
+    return Coder.ordered.toString(array);
   }
 
   private String toStringU(final int[] array) {
-    return CoderUnordered.toString(array);
+    return Coder.unordered.toString(array);
   }
 
   @Test

@@ -1,21 +1,21 @@
 package acube.transform;
 
-import java.util.Set;
+import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 import acube.pack.PackOrientation;
 
-final class EdgeFlip extends Move {
-  private final PackOrientation packOrientation;
+final class Flip extends Move<Edge> {
+  private final PackOrientation<Edge> packOrientation;
 
-  private EdgeFlip(final PackOrientation packOrientation, final Set<Turn> turnMask) {
-    super(packOrientation, turnMask);
+  private Flip(final PackOrientation<Edge> packOrientation) {
+    super(packOrientation);
     this.packOrientation = packOrientation;
   }
 
-  public EdgeFlip(final Set<Edge> edgeMask, final Set<Edge> edgeFlipMask, final Set<Turn> turnMask) {
-    this(PackKit.edgeFlip(edgeMask, edgeFlipMask), turnMask);
+  public Flip(final EnumSet<Edge> edgeMask, final EnumSet<Edge> edgeFlipMask) {
+    this(PackKit.edgeFlip(edgeMask, edgeFlipMask));
   }
 
   @Override
@@ -34,5 +34,9 @@ final class EdgeFlip extends Move {
 
   protected void flip(final Edge e1, final Edge e2, final Edge e3, final Edge e4) {
     packOrientation.changeOrientation(e1.ordinal(), e2.ordinal(), e3.ordinal(), e4.ordinal());
+  }
+
+  public void setup(final int[] flips) {
+    packOrientation.setValues(flips);
   }
 }

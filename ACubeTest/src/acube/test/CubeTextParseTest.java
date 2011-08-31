@@ -9,7 +9,7 @@ import acube.Edge;
 import acube.Tools;
 import acube.format.CycleParser;
 
-/** @author Stefan Pochmann (original), Josef Jelinek */
+/** @author Stefan Pochmann (original cycle notation parser), Josef Jelinek */
 public final class CubeTextParseTest {
   private static final String ReidSource = "UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR";
   private static final String ReidResult = "RD DL BU LU UF DB FL RF BR BL DF UR DBR UBL FRU FDR FUL LDF URB BDL";
@@ -69,24 +69,32 @@ public final class CubeTextParseTest {
   }
 
   private void compare(final String stateReid, final String stateCycle) {
-    assertEquals(stateReid, CycleParser.parse(stateCycle).toReid());
+    assertEquals(stateReid, CycleParser.parse(stateCycle).reidString());
   }
 
   @Test
   public void corners_edges_string_for_incomplete() {
-    assertEquals("@UR", Edge.name(UR, 0));
-    assertEquals("UR", Edge.name(UR, 1));
-    assertEquals("RU", Edge.name(UR, 2));
-    assertEquals("@?", Edge.name(null, 0));
-    assertEquals("?", Edge.name(null, 1));
-    assertEquals("-?", Edge.name(null, 2));
-    assertEquals("@UFR", Corner.name(UFR, 0));
-    assertEquals("UFR", Corner.name(UFR, 1));
-    assertEquals("FRU", Corner.name(UFR, 2));
-    assertEquals("RUF", Corner.name(UFR, 3));
-    assertEquals("@?", Corner.name(null, 0));
-    assertEquals("?", Corner.name(null, 1));
-    assertEquals("+?", Corner.name(null, 2));
-    assertEquals("-?", Corner.name(null, 3));
+    assertEquals("@UR", Edge.name(UR, -1));
+    assertEquals("UR", Edge.name(UR, 0));
+    assertEquals("RU", Edge.name(UR, 1));
+    assertEquals("@?", Edge.name(null, -1));
+    assertEquals("?", Edge.name(null, 0));
+    assertEquals("-?", Edge.name(null, 1));
+    assertEquals("@UFR", Corner.name(UFR, -1));
+    assertEquals("UFR", Corner.name(UFR, 0));
+    assertEquals("FRU", Corner.name(UFR, 1));
+    assertEquals("RUF", Corner.name(UFR, 2));
+    assertEquals("@?", Corner.name(null, -1));
+    assertEquals("?", Corner.name(null, 0));
+    assertEquals("+?", Corner.name(null, 1));
+    assertEquals("-?", Corner.name(null, 2));
+  }
+
+  @Test
+  public void ignored_positions() {
+    final String s1 = "UF ? UB ? DF ? DB DL FR FL BR BL UFR URB UBL ULF DRF ? DLB ?";
+    assertEquals(s1, CycleParser.parse("[UL DFL DR UR RBD]").reidString());
+    final String s2 = "UF -? -? ? DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL -? +?";
+    assertEquals(s2, CycleParser.parse("DLB- DBR+[DLB DBR] UR- UB- UL [UR UB UL]").reidString());
   }
 }

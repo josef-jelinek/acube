@@ -8,14 +8,14 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
-import java.util.Set;
+import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 
-final class OEdgePosB extends Move {
-  public OEdgePosB(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
-    super(PackKit.oEdgePos_B(edgeMask), turnMask);
+class UDEdgePosB extends Move<Edge> {
+  public UDEdgePosB(final EnumSet<Edge> edgeMask) {
+    super(PackKit.udEdgePosB(edgeMask));
   }
 
   @Override

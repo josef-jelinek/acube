@@ -1,7 +1,10 @@
 package acube.prune;
 
 import static java.lang.Math.max;
+import java.util.EnumSet;
+import acube.Metric;
 import acube.Reporter;
+import acube.Turn;
 import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 
@@ -13,31 +16,32 @@ public final class Prune {
   private final MoveTableComposed move_cornerTwist_mEdgePosSet;
   private final MoveTableComposed move_edgeFlip_mEdgePosSet;
 
-  public Prune(final Transform transform, final Reporter reporter) {
-    move_cornerTwist_edgeFlip = new MoveTableComposed(transform.twist, transform.flip);
-    move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.twist, transform.mEdgePosSet);
-    move_edgeFlip_mEdgePosSet = new MoveTableComposed(transform.flip, transform.mEdgePosSet);
+  public Prune(final Transform transform, final Metric metric, final Reporter reporter) {
+    final EnumSet<Turn> turns = metric.essentialTurns();
+    move_cornerTwist_edgeFlip = new MoveTableComposed(transform.twistTable, transform.flipTable);
+    move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.twistTable, transform.mEdgePosSetTable);
+    move_edgeFlip_mEdgePosSet = new MoveTableComposed(transform.flipTable, transform.mEdgePosSetTable);
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
-    cornerTwist_edgeFlip = new PruneTable(move_cornerTwist_edgeFlip);
+    cornerTwist_edgeFlip = new PruneTable(move_cornerTwist_edgeFlip, turns);
     reporter.tableCreationStarted("pruning table (corner twist + middle edge position set)");
-    cornerTwist_mEdgePosSet = new PruneTable(move_cornerTwist_mEdgePosSet);
+    cornerTwist_mEdgePosSet = new PruneTable(move_cornerTwist_mEdgePosSet, turns);
     reporter.tableCreationStarted("pruning table (edge flip + middle edge position set)");
-    edgeFlip_mEdgePosSet = new PruneTable(move_edgeFlip_mEdgePosSet);
+    edgeFlip_mEdgePosSet = new PruneTable(move_edgeFlip_mEdgePosSet, turns);
   }
 
-  public int get_cornerTwist_edgeFlip_startDistance(final int ct, final int ef) {
+  public int get_twist_flip_startDist(final int ct, final int ef) {
     return cornerTwist_edgeFlip.startDist(move_cornerTwist_edgeFlip.state(ct, ef));
   }
 
-  public int get_cornerTwist_mEdgePosSet_startDistance(final int ct, final int meps) {
+  public int get_twist_mEdgePosSet_startDist(final int ct, final int meps) {
     return cornerTwist_mEdgePosSet.startDist(move_cornerTwist_mEdgePosSet.state(ct, meps));
   }
 
-  public int get_edgeFlip_mEdgePosSet_startDistance(final int ef, final int meps) {
+  public int get_flip_mEdgePosSet_startDist(final int ef, final int meps) {
     return edgeFlip_mEdgePosSet.startDist(move_edgeFlip_mEdgePosSet.state(ef, meps));
   }
 
-  public int get_cornerTwist_edgeFlip_distance(final int lastDistance, final int ct, final int ef) {
+  public int get_twist_flip_dist(final int lastDistance, final int ct, final int ef) {
     return cornerTwist_edgeFlip.dist(lastDistance, move_cornerTwist_edgeFlip.state(ct, ef));
   }
 

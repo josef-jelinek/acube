@@ -1,6 +1,8 @@
 package acube;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import acube.prune.Prune;
 import acube.prune.PruneB;
 import acube.transform.Transform;
@@ -11,11 +13,8 @@ public final class CubeState {
   private final Edge[] edges;
   private final int[] twists;
   private final int[] flips;
-  private final EnumSet<Corner> cornerMask = Corner.valueSet;
-  private final EnumSet<Edge> edgeMask = Edge.valueSet;
   private final EnumSet<Corner> twistMask = Corner.valueSet;
   private final EnumSet<Edge> flipMask = Edge.valueSet;
-  private final EnumSet<Turn> turnMask = Turn.valueSet;
   public int twist;
   public int flip;
   public int mEdgePosSet;
@@ -23,7 +22,6 @@ public final class CubeState {
   public int mEdgePos;
   public int uEdgePos;
   public int dEdgePos;
-  public Metric metric = Metric.SLICE;
   public int symmetry = SymTransform.I;
   public Transform transform;
   public TransformB transformB;
@@ -38,7 +36,7 @@ public final class CubeState {
     flips = edgeFlips;
   }
 
-  public String toReid() {
+  public String reidString() {
     final StringBuilder s = new StringBuilder();
     for (int i = 0; i < edges.length; i++)
       s.append(' ').append(Edge.name(edges[i], flips[i]));
@@ -47,33 +45,29 @@ public final class CubeState {
     return s.substring(1);
   }
 
-  public void prepareTables(final Options options, final Reporter reporter) {
-    reporter.solvingStarted(toReid());
-    transform = new Transform(cornerMask, edgeMask, twistMask, flipMask, turnMask, reporter);
-    prune = new Prune(transform, reporter);
-    turnList = new TurnList(transform, reporter);
-    if (!options.findOptimal) {
-      transformB = new TransformB(cornerMask, edgeMask, turnMask, reporter);
-      pruneB = new PruneB(transformB, reporter);
-    }
+  public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
+      final Reporter reporter) {
+    reporter.solvingStarted(reidString());
+    transform = new Transform(getMask(corners), getMask(edges), twistMask, flipMask, reporter);
+    twist = transform.get_twist(twists);
+    flip = transform.get_flip(flips);
+    cornerPos = transform.get_cornerPos(corners);
+    mEdgePos = transform.get_mEdgePos(edges);
+    uEdgePos = transform.get_uEdgePos(edges);
+    dEdgePos = transform.get_dEdgePos(edges);
+    mEdgePosSet = transform.get_mEdgePosSet(edges);
+    prune = new Prune(transform, metric, reporter);
+    turnList = new TurnList(transform, turns, reporter);
+    transformB = new TransformB(getMask(corners), getMask(edges), reporter);
+    pruneB = new PruneB(transformB, metric, reporter);
+    new Solver(findAll, false, metric, reporter).solve(this, maxLength);
   }
 
-  public void setCornerTwist(final int ct) {
-    twist = ct;
-  }
-
-  public void setCornerPos(final int cp) {
-    cornerPos = cp;
-  }
-
-  public void setEdgeFlip(final int ef) {
-    flip = ef;
-  }
-
-  public void setEdgePos(final int mep, final int uep, final int dep) {
-    mEdgePos = mep;
-    uEdgePos = uep;
-    dEdgePos = dep;
-    mEdgePosSet = transform.convert_mEdgePos_to_mEdgePosSet(mep);
+  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a) {
+    final List<T> list = new ArrayList<T>();
+    for (final T x : a)
+      if (x != null)
+        list.add(x);
+    return EnumSet.copyOf(list);
   }
 }

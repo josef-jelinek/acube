@@ -2,10 +2,10 @@ package acube.pack;
 
 import java.util.Arrays;
 
-public final class PackOrientationFull extends PackOrientation {
+public final class PackOrientationFull<T> extends PackOrientation<T> {
   private final boolean[] orientationMask;
 
-  public PackOrientationFull(final boolean[] orientationMask, final int[] partIds, final int order) {
+  public PackOrientationFull(final boolean[] orientationMask, final T[] partIds, final int order) {
     super(fullmask(orientationMask.length), fullmask(orientationMask.length), partIds, order);
     this.orientationMask = orientationMask;
   }
@@ -18,6 +18,13 @@ public final class PackOrientationFull extends PackOrientation {
 
   public static int size(final int length, final int order) {
     return size(length, length, order);
+  }
+
+  @Override
+  public void setValues(final int[] values) {
+    Arrays.fill(this.values, 0);
+    for (int i = 0; i < values.length; i++)
+      this.values[i] = Math.max(0, values[i]);
   }
 
   @Override

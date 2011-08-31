@@ -3,26 +3,28 @@ package acube.transform;
 import acube.Turn;
 
 final class MoveTableLong extends MoveTable {
-  private final int[][] turn;
+  private final int[][] table;
 
-  public MoveTableLong(final TurnTable move, final Turn[][][] base) {
+  public MoveTableLong(final TurnTable move, final Turn[][] base) {
     super(move);
-    turn = new int[move.turnMask().size()][stateSize()];
+    table = new int[Turn.values.length][];
     fill(base);
   }
 
   @Override
   public int memorySize() {
-    return turn.length * stateSize() * 4;
+    return table.length * stateSize() * 4;
   }
 
   @Override
   public int turn(final Turn turn, final int stateIndex) {
-    return this.turn[turnIndices[turn.ordinal()]][stateIndex];
+    return table[turn.ordinal()][stateIndex];
   }
 
   @Override
-  protected void set(final int turnIndex, final int stateIndex, final int newStateIndex) {
-    turn[turnIndex][stateIndex] = newStateIndex;
+  protected void set(final Turn turn, final int stateIndex, final int newStateIndex) {
+    if (table[turn.ordinal()] == null)
+      table[turn.ordinal()] = new int[stateSize()];
+    table[turn.ordinal()][stateIndex] = newStateIndex;
   }
 }

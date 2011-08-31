@@ -1,13 +1,13 @@
 package acube.transform;
 
-import java.util.Set;
+import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 
-final class MEdgePos extends MoveToB {
-  public MEdgePos(final Set<Edge> edgeMask, final Set<Turn> turnMask) {
-    super(PackKit.mEdgePos(edgeMask), turnMask);
+final class MEdgePos extends MoveToB<Edge> {
+  public MEdgePos(final EnumSet<Edge> edgeMask) {
+    super(PackKit.mEdgePos(edgeMask));
   }
 
   @Override
@@ -18,5 +18,9 @@ final class MEdgePos extends MoveToB {
   @Override
   public boolean isInB() {
     return areUsedIn(PackKit.mEdgeMaskInB);
+  }
+
+  public void setup(final Edge[] edges) {
+    pack.setValues(PackKit.mEdgePosOrdinals(edges));
   }
 }

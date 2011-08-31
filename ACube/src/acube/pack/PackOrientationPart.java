@@ -1,7 +1,8 @@
 package acube.pack;
 
-public final class PackOrientationPart extends PackOrientation {
-  public PackOrientationPart(final boolean[] usedMask, final boolean[] orientMask, final int[] partIds, final int order) {
+
+public final class PackOrientationPart<T> extends PackOrientation<T> {
+  public PackOrientationPart(final boolean[] usedMask, final boolean[] orientMask, final T[] partIds, final int order) {
     super(usedMask, orientMask, partIds, order);
   }
 

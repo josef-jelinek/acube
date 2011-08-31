@@ -8,22 +8,22 @@ import static acube.Corner.UBL;
 import static acube.Corner.UFR;
 import static acube.Corner.ULF;
 import static acube.Corner.URB;
-import java.util.Set;
+import java.util.EnumSet;
 import acube.Corner;
 import acube.Turn;
 import acube.pack.PackKit;
 import acube.pack.PackOrientation;
 
-final class CornerTwist extends Move {
-  private final PackOrientation packOrientation;
+final class Twist extends Move<Corner> {
+  private final PackOrientation<Corner> packOrientation;
 
-  private CornerTwist(final PackOrientation packOrientation, final Set<Turn> turnMask) {
-    super(packOrientation, turnMask);
+  private Twist(final PackOrientation<Corner> packOrientation) {
+    super(packOrientation);
     this.packOrientation = packOrientation;
   }
 
-  public CornerTwist(final Set<Corner> cornerMask, final Set<Corner> cornerTwistMask, final Set<Turn> turnMask) {
-    this(PackKit.cornerTwist(cornerMask, cornerTwistMask), turnMask);
+  public Twist(final EnumSet<Corner> cornerMask, final EnumSet<Corner> twistMask) {
+    this(PackKit.cornerTwist(cornerMask, twistMask));
   }
 
   @Override
@@ -47,5 +47,9 @@ final class CornerTwist extends Move {
 
   protected void twist(final Corner c1, final Corner c2, final Corner c3, final Corner c4) {
     packOrientation.changeOrientation(getIndex(c1), getIndex(c2), getIndex(c3), getIndex(c4));
+  }
+
+  public void setup(final int[] twists) {
+    packOrientation.setValues(twists);
   }
 }

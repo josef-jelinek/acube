@@ -79,4 +79,8 @@ public final class Tools {
     System.arraycopy(a, begin, b, 0, end - begin);
     return b;
   }
+
+  public static String substringAfter(final String s, final String start) {
+    return s.startsWith(start) ? s.substring(start.length()) : "";
+  }
 }

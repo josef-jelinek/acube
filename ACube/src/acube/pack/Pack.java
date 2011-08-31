@@ -2,20 +2,26 @@ package acube.pack;
 
 import java.util.Arrays;
 
-public abstract class Pack {
+public abstract class Pack<T> {
   protected final Coder coder;
   protected final int[] values;
   protected final boolean[] usedMask;
-  private final int[] partIds;
+  protected final T[] partIds;
   protected final int used;
 
-  public Pack(final Coder coder, final boolean[] usedMask, final int[] partIds) {
+  public Pack(final Coder coder, final boolean[] usedMask, final T[] partIds) {
     assert partIds.length == usedMask.length;
     this.coder = coder;
     this.usedMask = usedMask;
     this.partIds = partIds;
     values = new int[usedMask.length];
     used = CoderTools.valuesUsed(usedMask);
+  }
+
+  public void setValues(final int[] values) {
+    Arrays.fill(this.values, -1);
+    for (int i = 0; i < values.length; i++)
+      this.values[i] = values[i];
   }
 
   public int size() {
@@ -41,7 +47,7 @@ public abstract class Pack {
     return pack();
   }
 
-  public void convert(final Pack p) {
+  public void convert(final Pack<T> p) {
     Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int pi = p.findPartIndex(partIds[i]);
@@ -50,7 +56,7 @@ public abstract class Pack {
     }
   }
 
-  public boolean combine(final Pack p1, final Pack p2) {
+  public boolean combine(final Pack<T> p1, final Pack<T> p2) {
     Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int p1i = p1.findPartIndex(partIds[i]);
@@ -67,7 +73,7 @@ public abstract class Pack {
     return true;
   }
 
-  private int valueInOrder(final Pack p, final int pi) {
+  private int valueInOrder(final Pack<T> p, final int pi) {
     int value = values[pi];
     final int to = nthUsedIndex(value);
     for (int i = 0; i < to; i++)
@@ -87,7 +93,7 @@ public abstract class Pack {
     return -1;
   }
 
-  private int findPartIndex(final int partId) {
+  private int findPartIndex(final T partId) {
     for (int i = 0; i < values.length; i++)
       if (partId == partIds[i])
         return i;

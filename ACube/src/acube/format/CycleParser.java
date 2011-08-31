@@ -1,5 +1,6 @@
 package acube.format;
 
+import java.util.EnumSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import acube.Corner;
@@ -10,12 +11,14 @@ import acube.Tools;
 /** Supports a notation to directly write cycles and single piece orientations,
  * for instance "(UL,UR)(UFR,URB)" for the T-perm PLL or "URF+ URB-". You can
  * also mix cycles and orientations. The changes are executed from left to
- * right. So far there's no way to ignore parts of the cube, but it's very good
- * for finding blindcubing algorithms.
+ * right. To tell the program that you do not care about certain pieces, just
+ * put the pieces inside brackets, for instance "[UL,UF,URB,UFR]". Information
+ * about their locations is deleted, but the recorded orientations are kept.
  *
- * @author Stefan Pochmann, Josef Jelinek */
+ * @author Stefan Pochmann (original cycle notation parser), Josef Jelinek */
 public class CycleParser {
   private static final Pattern cyclePattern = Pattern.compile("\\((.*?)\\)");
+  private static final Pattern ignorePattern = Pattern.compile("\\[(.*?)\\]");
   private static final Pattern orientationPattern = Pattern.compile("(\\w+)([-+])");
 
   public static CubeState parse(final String source) {
@@ -23,20 +26,26 @@ public class CycleParser {
     final Edge[] edges = Edge.values();
     final int[] twists = new int[Corner.size];
     final int[] flips = new int[Edge.size];
+    final EnumSet<Corner> cornersIgnored = EnumSet.noneOf(Corner.class);
+    final EnumSet<Edge> edgesIgnored = EnumSet.noneOf(Edge.class);
     final Matcher cycleMatcher = cyclePattern.matcher(source);
     while (cycleMatcher.find()) {
       final String[] cubies = cycleMatcher.group(1).trim().split("[\\s,]+");
       processCycle(corners, edges, twists, flips, cubies);
     }
-    final Matcher orientationMatcher = orientationPattern.matcher(cycleMatcher.replaceAll(""));
+    final Matcher ignoreMatcher = ignorePattern.matcher(cycleMatcher.replaceAll(""));
+    while (ignoreMatcher.find()) {
+      final String[] cubies = ignoreMatcher.group(1).trim().split("[\\s,]+");
+      cornersIgnored.addAll(getCorners(cubies));
+      edgesIgnored.addAll(getEdges(cubies));
+    }
+    final Matcher orientationMatcher = orientationPattern.matcher(ignoreMatcher.replaceAll(""));
     while (orientationMatcher.find()) {
       final int o = orientationMatcher.group(2).equals("+") ? 1 : -1;
       processOrientation(twists, flips, orientationMatcher.group(1), o);
     }
-    for (int i = 0; i < twists.length; i++)
-      twists[i]++;
-    for (int i = 0; i < flips.length; i++)
-      flips[i]++;
+    removeCorners(corners, cornersIgnored);
+    removeEdges(edges, edgesIgnored);
     return new CubeState(corners, edges, twists, flips);
   }
 
@@ -77,5 +86,33 @@ public class CycleParser {
       Tools.addMod(flips, Edge.index(cubie), d, cubie.length());
     else
       throw new RuntimeException("Expected a corner or an edge: " + cubie);
+  }
+
+  private static EnumSet<Corner> getCorners(final String[] cubies) {
+    final EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
+    for (final String cubie : cubies)
+      if (Corner.exists(cubie))
+        corners.add(Corner.corner(cubie));
+    return corners;
+  }
+
+  private static EnumSet<Edge> getEdges(final String[] cubies) {
+    final EnumSet<Edge> edges = EnumSet.noneOf(Edge.class);
+    for (final String cubie : cubies)
+      if (Edge.exists(cubie))
+        edges.add(Edge.edge(cubie));
+    return edges;
+  }
+
+  private static void removeCorners(final Corner[] corners, final EnumSet<Corner> cornersToRemove) {
+    for (int i = 0; i < corners.length; i++)
+      if (cornersToRemove.contains(corners[i]))
+        corners[i] = null;
+  }
+
+  private static void removeEdges(final Edge[] edges, final EnumSet<Edge> edgesToRemove) {
+    for (int i = 0; i < edges.length; i++)
+      if (edgesToRemove.contains(edges[i]))
+        edges[i] = null;
   }
 }

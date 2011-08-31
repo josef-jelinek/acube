@@ -35,6 +35,13 @@ public enum Corner {
     return index(name) >= 0;
   }
 
+  public static int[] ordinals(final Corner[] values) {
+    final int[] a = new int[values.length];
+    for (int i = 0; i < a.length; i++)
+      a[i] = values[i] == null ? -1 : values[i].ordinal();
+    return a;
+  }
+
   public static int twist(final String name) {
     return names.get(index(name)).indexOf(name.charAt(0));
   }
@@ -48,10 +55,9 @@ public enum Corner {
   }
 
   public static String name(final Corner corner, final int twist) {
-    assert twist >= 0 && twist <= 3;
     if (corner == null)
-      return twist == 0 ? "@?" : twist == 2 ? "+?" : twist == 3 ? "-?" : "?";
-    return twist == 0 ? "@" + corner.name(0) : corner.name(twist - 1);
+      return twist < 0 ? "@?" : twist == 1 ? "+?" : twist == 2 ? "-?" : "?";
+    return twist < 0 ? "@" + corner.name(0) : corner.name(twist);
   }
 
   public String name(final int twist) {

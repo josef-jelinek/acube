@@ -1,35 +1,59 @@
 package acube.test;
 
+import static acube.Metric.FACE;
+import static acube.Turn.U2;
+import static acube.Turn.r2;
 import static org.junit.Assert.assertEquals;
+import java.util.Arrays;
+import java.util.EnumSet;
+import org.junit.Ignore;
 import org.junit.Test;
 import acube.Corner;
 import acube.CubeState;
 import acube.Edge;
-import acube.Options;
-import acube.Solver;
+import acube.Turn;
 import acube.console.ConsoleReporter;
-import acube.transform.Transform;
+import acube.format.CycleParser;
+import acube.format.TurnParser;
 
 public class SolverTest {
   @Test
   public void solve_solved() {
-    final Options options = new Options();
     final CubeState state = new CubeState(Corner.values(), Edge.values(), new int[8], new int[12]);
     final ConsoleReporter reporter = new ConsoleReporter();
-    state.prepareTables(options, reporter);
-    final Transform t = state.transform;
-    state.setCornerTwist(t.twist.start(0));
-    state.setCornerPos(t.cornerPos.start(0));
-    state.setEdgeFlip(t.flip.start(0));
-    state.setEdgePos(t.mEdgePos.start(0), t.uEdgePos.start(0), t.dEdgePos.start(0));
-    final Solver solver = new Solver(options, reporter);
-    solver.solve(state);
+    state.solve(FACE, Turn.valueSet, 20, false, reporter);
     assertEquals(1, reporter.getSequences().size());
     assertEquals("", reporter.getSequences().get(0));
-    reporter.reset();
-    state.setEdgeFlip(t.flip.stateSize() - 1);
-    solver.solve(state);
+  }
+
+  @Test
+  @Ignore
+  public void solve_superflip() {
+    final int[] flip = new int[12];
+    Arrays.fill(flip, 1);
+    final CubeState state = new CubeState(Corner.values(), Edge.values(), new int[8], flip);
+    final ConsoleReporter reporter = new ConsoleReporter();
+    state.solve(FACE, Turn.valueSet, 25, false, reporter);
     assertEquals(1, reporter.getSequences().size());
     assertEquals("S U F2 U2 M D S . U' B2 R2 D' M2 U' L2 U' B2 R2 F2", reporter.getSequences().get(0));
+  }
+
+  @Test
+  //@Ignore
+  public void solve_T() {
+    final CubeState state = CycleParser.parse("(UL UR) (URF UBR)");
+    final ConsoleReporter reporter = new ConsoleReporter();
+    state.solve(FACE, TurnParser.parse("U U' D D' F2 B2 R2"), 11, false, reporter);
+    assertEquals(1, reporter.getSequences().size());
+    assertEquals(". U F2 U' F2 D R2 B2 U B2 D' R2", reporter.getSequences().get(0));
+  }
+
+  @Test
+  public void solve_with_wide_turns() {
+    final CubeState state = CycleParser.parse("(UF UB) (DF DB)");
+    final ConsoleReporter reporter = new ConsoleReporter();
+    state.solve(FACE, EnumSet.of(U2, r2), 12, false, reporter);
+    assertEquals(1, reporter.getSequences().size());
+    assertEquals(". U2 r2 U2 r2 U2 r2 U2 r2 U2 r2 U2 r2", reporter.getSequences().get(0));
   }
 }

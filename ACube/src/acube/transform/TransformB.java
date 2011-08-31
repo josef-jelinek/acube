@@ -1,45 +1,44 @@
 package acube.transform;
 
-import java.util.Set;
+import java.util.EnumSet;
 import acube.Corner;
 import acube.Edge;
 import acube.Reporter;
-import acube.Turn;
 
 public final class TransformB {
-  private final Set<Turn> turnMask;
-  public final TurnTable mEdgePos;
-  public final TurnTable oEdgePos;
-  public final TurnTable cornerPos;
+  public final TurnTable mEdgePosTable;
+  public final TurnTable udEdgePosTable;
+  public final TurnTable cornerPosTable;
   private final boolean[] mEdgePos_inB;
   private final boolean[] uEdgePos_inB;
   private final boolean[] dEdgePos_inB;
-  private final int[] uEdgePos_toB;
-  private final int[] dEdgePos_toB;
+  private final int[] uEdgePos_to_uEdgePosB;
+  private final int[] dEdgePos_to_dEdgePosB;
   private final int[] mEdgePos_toB;
-  private final int[][] uEdgePos_dEdgePos_ToB;
+  private final int[][] uEdgePosB_dEdgePosB_to_udEdgePosB;
 
-  public TransformB(final Set<Corner> cornerMask, final Set<Edge> edgeMask, final Set<Turn> turnMask,
-      final Reporter reporter) {
-    this.turnMask = Turn.getValidB(turnMask);
+  public TransformB(final EnumSet<Corner> cornerMask, final EnumSet<Edge> edgeMask, final Reporter reporter) {
     reporter.tableCreationStarted("transformation table (middle edge position B)");
-    mEdgePos = MoveKit.mEdgePos_B(edgeMask, this.turnMask);
+    final MEdgePosB mEdgePosB = new MEdgePosB(edgeMask);
+    mEdgePosTable = MoveKit.mEdgePosB(mEdgePosB);
     reporter.tableCreationStarted("transformation table (U/D edge position B)");
-    oEdgePos = MoveKit.oEdgePos_B(edgeMask, this.turnMask);
+    udEdgePosTable = MoveKit.udEdgePosB(new UDEdgePosB(edgeMask));
     reporter.tableCreationStarted("transformation table (corner position B)");
-    cornerPos = MoveKit.cornerPos(cornerMask, this.turnMask);
-    mEdgePos_inB = MoveKit.get_mEdgePos_inB(edgeMask, turnMask);
-    uEdgePos_inB = MoveKit.get_uEdgePos_inB(edgeMask, turnMask);
-    dEdgePos_inB = MoveKit.get_dEdgePos_inB(edgeMask, turnMask);
-    mEdgePos_toB = MoveKit.get_mEdgePos_toB(edgeMask, turnMask);
-    uEdgePos_toB = MoveKit.get_uEdgePos_toB(edgeMask, turnMask);
-    dEdgePos_toB = MoveKit.get_dEdgePos_toB(edgeMask, turnMask);
-    reporter.tableCreationStarted("conversion table (U/D edge position to U/D edge position B)");
-    uEdgePos_dEdgePos_ToB = MoveKit.get_uEdgePos_B_dEdgePos_B_toB(edgeMask, turnMask);
-  }
-
-  public Set<Turn> turnMask() {
-    return turnMask;
+    cornerPosTable = MoveKit.cornerPos(new CornerPos(cornerMask));
+    reporter.tableCreationStarted("conversion tables from phase A to phase B");
+    final MEdgePos mEdgePos = new MEdgePos(edgeMask);
+    mEdgePos_inB = MoveKit.get_mEdgePos_inB(mEdgePos);
+    final UEdgePos uEdgePos = new UEdgePos(edgeMask);
+    uEdgePos_inB = MoveKit.get_uEdgePos_inB(uEdgePos);
+    final DEdgePos dEdgePos = new DEdgePos(edgeMask);
+    dEdgePos_inB = MoveKit.get_dEdgePos_inB(dEdgePos);
+    mEdgePos_toB = MoveKit.get_mEdgePos_to_mEdgePosB(mEdgePos, mEdgePosB);
+    final UEdgePosB uEdgePosB = new UEdgePosB(edgeMask);
+    uEdgePos_to_uEdgePosB = MoveKit.get_uEdgePos_to_uEdgePosB(uEdgePos, uEdgePosB);
+    final DEdgePosB dEdgePosB = new DEdgePosB(edgeMask);
+    dEdgePos_to_dEdgePosB = MoveKit.get_dEdgePos_to_dEdgePosB(dEdgePos, dEdgePosB);
+    final UDEdgePosB udEdgePosB = new UDEdgePosB(edgeMask);
+    uEdgePosB_dEdgePosB_to_udEdgePosB = MoveKit.get_uEdgePosB_dEdgePosB_to_udEdgePosB(uEdgePosB, dEdgePosB, udEdgePosB);
   }
 
   public boolean is_mEdgePos_inB(final int mep) {
@@ -58,7 +57,7 @@ public final class TransformB {
     return mEdgePos_toB[mep];
   }
 
-  public int convertTo_oEdgePos(final int uep, final int dep) {
-    return uEdgePos_dEdgePos_ToB[uEdgePos_toB[uep]][dEdgePos_toB[dep]];
+  public int convert_uEdgePos_dEdgePos_to_udEdgePosB(final int uep, final int dep) {
+    return uEdgePosB_dEdgePosB_to_udEdgePosB[uEdgePos_to_uEdgePosB[uep]][dEdgePos_to_dEdgePosB[dep]];
   }
 }

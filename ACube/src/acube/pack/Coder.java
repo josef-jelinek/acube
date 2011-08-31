@@ -10,5 +10,7 @@ public abstract class Coder {
 
   public abstract int encode(int[] values);
 
-  public abstract void decode(int[] arr, int k, int x);
+  public abstract void decode(int[] values, int k, int x);
+
+  public abstract String toString(final int[] values);
 }
