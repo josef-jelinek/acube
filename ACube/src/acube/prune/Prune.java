@@ -17,7 +17,7 @@ public final class Prune {
   private final MoveTableComposed move_edgeFlip_mEdgePosSet;
 
   public Prune(final Transform transform, final Metric metric, final Reporter reporter) {
-    final EnumSet<Turn> turns = metric.essentialTurns();
+    final EnumSet<Turn> turns = Turn.valueSet; //metric.essentialTurns();
     move_cornerTwist_edgeFlip = new MoveTableComposed(transform.twistTable, transform.flipTable);
     move_cornerTwist_mEdgePosSet = new MoveTableComposed(transform.twistTable, transform.mEdgePosSetTable);
     move_edgeFlip_mEdgePosSet = new MoveTableComposed(transform.flipTable, transform.mEdgePosSetTable);

@@ -1,9 +1,6 @@
 package acube;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public final class Tools {
 
@@ -18,33 +15,6 @@ public final class Tools {
     final char[] a = s.toCharArray();
     Arrays.sort(a);
     return new String(a);
-  }
-
-  public static String[] splitSortString(final String s) {
-    final String[] a = s.split(" ");
-    Arrays.sort(a);
-    return a;
-  }
-
-  public static <T> T[] sortArrayCopy(final T[] items) {
-    final T[] a = items.clone();
-    Arrays.sort(a);
-    return a;
-  }
-
-  public static <T> List<T> joinLists(final List<T> list1, final List<T> list2) {
-    final List<T> list = new ArrayList<T>(list1);
-    list.addAll(list2);
-    return Collections.unmodifiableList(list);
-  }
-
-  public static String intArrayToString(final int[] values) {
-    if (values.length == 0)
-      return "";
-    final StringBuilder s = new StringBuilder();
-    for (final int value : values)
-      s.append(" " + value);
-    return s.substring(1);
   }
 
   public static String rotate(final String s, final int i) {

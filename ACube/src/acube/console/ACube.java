@@ -29,6 +29,8 @@ public final class ACube {
       c.printf("----------------------------\n");
       c.printf("#Template:\nUF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR\n");
       c.printf("#Current:\n%s\n", cube.reidString());
+      c.printf("#Ignored positions: %s\n", cube.ignoredPositionsString());
+      c.printf("#Ignored orientations: %s\n", cube.ignoredOrientationsString());
       c.printf("#Turns:\n%s\n\n", TurnParser.toString(turns));
       c.printf("[1] Enter cube - standard notation\n");
       c.printf("[2] Enter cube - cycle notation\n");

@@ -15,7 +15,7 @@ public final class PruneB {
   private final MoveTableComposed move_mEdgePos_oEdgePos;
 
   public PruneB(final TransformB transform, final Metric metric, final Reporter reporter) {
-    final EnumSet<Turn> turns = metric.essentialTurnsB();
+    final EnumSet<Turn> turns = Turn.getValidB(Turn.valueSet); // metric.essentialTurnsB();
     move_mEdgePos_cornerPos = new MoveTableComposed(transform.mEdgePosTable, transform.cornerPosTable);
     move_mEdgePos_oEdgePos = new MoveTableComposed(transform.mEdgePosTable, transform.udEdgePosTable);
     reporter.tableCreationStarted("pruning table (middle edge position + corner position)");

@@ -1,8 +1,6 @@
 package acube;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import acube.prune.Prune;
 import acube.prune.PruneB;
 import acube.transform.Transform;
@@ -13,8 +11,6 @@ public final class CubeState {
   private final Edge[] edges;
   private final int[] twists;
   private final int[] flips;
-  private final EnumSet<Corner> twistMask = Corner.valueSet;
-  private final EnumSet<Edge> flipMask = Edge.valueSet;
   public int twist;
   public int flip;
   public int mEdgePosSet;
@@ -45,10 +41,32 @@ public final class CubeState {
     return s.substring(1);
   }
 
+  public String ignoredPositionsString() {
+    final StringBuilder s = new StringBuilder();
+    for (final Edge e : EnumSet.complementOf(getMask(edges, Edge.class)))
+      s.append(' ').append(e.toString());
+    for (final Corner c : EnumSet.complementOf(getMask(corners, Corner.class)))
+      s.append(' ').append(c.toString());
+    return s.length() > 0 ? s.substring(1) : "";
+  }
+
+  public String ignoredOrientationsString() {
+    final StringBuilder s = new StringBuilder();
+    for (final Edge e : EnumSet.complementOf(getMask(edges, flips, Edge.class)))
+      s.append(' ').append(e.toString());
+    for (final Corner c : EnumSet.complementOf(getMask(corners, twists, Corner.class)))
+      s.append(' ').append(c.toString());
+    return s.length() > 0 ? s.substring(1) : "";
+  }
+
   public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
-      final Reporter reporter) {
-    reporter.solvingStarted(reidString());
-    transform = new Transform(getMask(corners), getMask(edges), twistMask, flipMask, reporter);
+      final Reporter r) {
+    r.solvingStarted(reidString());
+    final EnumSet<Corner> cornerMask = getMask(corners, Corner.class);
+    final EnumSet<Edge> edgeMask = getMask(edges, Edge.class);
+    final EnumSet<Corner> twistMask = getMask(corners, twists, Corner.class);
+    final EnumSet<Edge> flipMask = getMask(edges, flips, Edge.class);
+    transform = new Transform(cornerMask, edgeMask, twistMask, flipMask, r);
     twist = transform.get_twist(twists);
     flip = transform.get_flip(flips);
     cornerPos = transform.get_cornerPos(corners);
@@ -56,18 +74,34 @@ public final class CubeState {
     uEdgePos = transform.get_uEdgePos(edges);
     dEdgePos = transform.get_dEdgePos(edges);
     mEdgePosSet = transform.get_mEdgePosSet(edges);
-    prune = new Prune(transform, metric, reporter);
-    turnList = new TurnList(transform, turns, reporter);
-    transformB = new TransformB(getMask(corners), getMask(edges), reporter);
-    pruneB = new PruneB(transformB, metric, reporter);
-    new Solver(findAll, false, metric, reporter).solve(this, maxLength);
+    prune = new Prune(transform, metric, r);
+    turnList = new TurnList(transform, turns, r);
+    transformB = new TransformB(cornerMask, edgeMask, r);
+    pruneB = new PruneB(transformB, metric, r);
+    new Solver(findAll, false, metric, r).solve(this, maxLength);
   }
 
-  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a) {
-    final List<T> list = new ArrayList<T>();
+  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a, final Class<T> type) {
+    final EnumSet<T> set = EnumSet.noneOf(type);
     for (final T x : a)
       if (x != null)
-        list.add(x);
-    return EnumSet.copyOf(list);
+        set.add(x);
+    return set;
+  }
+
+  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a, final int[] o, final Class<T> type) {
+    final EnumSet<T> set = EnumSet.noneOf(type);
+    final EnumSet<T> undef = EnumSet.complementOf(getMask(a, type));
+    for (int i = 0; i < a.length; i++)
+      if (o[i] >= 0)
+        if (a[i] != null)
+          set.add(a[i]);
+        else
+          for (final T t : undef) {
+            set.add(t);
+            undef.remove(t);
+            break;
+          }
+    return set;
   }
 }

@@ -19,7 +19,7 @@ import acube.Tools;
 public class CycleParser {
   private static final Pattern cyclePattern = Pattern.compile("\\((.*?)\\)");
   private static final Pattern ignorePattern = Pattern.compile("\\[(.*?)\\]");
-  private static final Pattern orientationPattern = Pattern.compile("(\\w+)([-+])");
+  private static final Pattern orientationPattern = Pattern.compile("(\\w+)([-+?])");
 
   public static CubeState parse(final String source) {
     final Corner[] corners = Corner.values();
@@ -41,8 +41,11 @@ public class CycleParser {
     }
     final Matcher orientationMatcher = orientationPattern.matcher(ignoreMatcher.replaceAll(""));
     while (orientationMatcher.find()) {
-      final int o = orientationMatcher.group(2).equals("+") ? 1 : -1;
-      processOrientation(twists, flips, orientationMatcher.group(1), o);
+      final String sgn = orientationMatcher.group(2);
+      if (sgn.equals("?"))
+        processIgnoreOrientation(twists, flips, orientationMatcher.group(1));
+      else
+        processOrientation(twists, flips, orientationMatcher.group(1), sgn.equals("+") ? 1 : -1);
     }
     removeCorners(corners, cornersIgnored);
     removeEdges(edges, edgesIgnored);
@@ -84,6 +87,15 @@ public class CycleParser {
       Tools.addMod(twists, Corner.index(cubie), d, cubie.length());
     else if (Edge.exists(cubie))
       Tools.addMod(flips, Edge.index(cubie), d, cubie.length());
+    else
+      throw new RuntimeException("Expected a corner or an edge: " + cubie);
+  }
+
+  private static void processIgnoreOrientation(final int[] twists, final int[] flips, final String cubie) {
+    if (Corner.exists(cubie))
+      twists[Corner.index(cubie)] = -1;
+    else if (Edge.exists(cubie))
+      flips[Edge.index(cubie)] = -1;
     else
       throw new RuntimeException("Expected a corner or an edge: " + cubie);
   }

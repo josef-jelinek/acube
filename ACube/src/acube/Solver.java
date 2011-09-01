@@ -105,18 +105,18 @@ public final class Solver {
     }
   }
 
-  private static final int MAX_LENGTH = 50;
+  private static final int MAX_PHASE_STACKLENGTH = 50;
+  private static final int CYCLES_BETWEEN_USER_CHECK = 50000;
   private CubeState state;
   private final boolean findAll;
   private final boolean findOptimal;
   private final Metric metric;
   private final Reporter reporter;
-  private int minFoundLength;
-  private final ANode[] stackA = new ANode[MAX_LENGTH];
-  private final BNode[] stackB = new BNode[MAX_LENGTH];
+  private int maxSearchLength;
+  private final ANode[] stackA = new ANode[MAX_PHASE_STACKLENGTH];
+  private final BNode[] stackB = new BNode[MAX_PHASE_STACKLENGTH];
   private int stackASize; // current size of the stack for Phase A
   private int stackBSize; // current size of the stack for Phase B
-  private int maxBLength; // maximum allowed depth for Phase B
   private boolean isInterrupted;
   // statistics
   private long aprn, bprn, apry, bpry;
@@ -139,7 +139,7 @@ public final class Solver {
   }
 
   private void solveA(final int maxLength) {
-    minFoundLength = min(maxLength + (findAll ? 0 : 1), MAX_LENGTH);
+    maxSearchLength = min(maxLength, MAX_PHASE_STACKLENGTH);
     initStatistics();
     stackA[0].setCubeStateA(state.twist, state.flip, state.mEdgePosSet);
     stackA[0].setCubeStateAB(state.cornerPos, state.mEdgePos, state.uEdgePos, state.dEdgePos);
@@ -154,16 +154,14 @@ public final class Solver {
       reporter.depthChanged(d);
       if (findOptimal)
         searchAOptimal();
-      else {
-        maxBLength = findAll ? minFoundLength - d : minFoundLength - d - 1;
+      else
         searchA();
-      }
     }
     reportStatistics();
   }
 
   private boolean shouldContinueSearchingA(final int d) {
-    return !isInterrupted && (findAll && d <= minFoundLength || d < minFoundLength);
+    return !isInterrupted && d <= maxSearchLength;
   }
 
   private void initStatistics() {
@@ -195,14 +193,14 @@ public final class Solver {
           node.userTurn = userTurn;
           final Turn cubeTurn = SymTransform.getTurn(userTurn, node.symmetry);
           node.cubeTurn = cubeTurn;
-          if (findAll || d + 1 < minFoundLength) {
+          if (findAll || d < maxSearchLength) {
             final ANode nextNode = stackA[d + 1];
             nextNode.restDist = node.restDist - metric.length(cubeTurn);
             if (nextNode.restDist >= 0) {
               final int ct = state.transform.twistTable.turn(cubeTurn, node.twist);
               final int ef = state.transform.flipTable.turn(cubeTurn, node.flip);
               aprn++;
-              if (aprn % 10000 == 0 && (isInterrupted = reporter.shouldStop()))
+              if (aprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
                 return;
               final int ct_ef_d = state.prune.get_twist_flip_dist(node.twist_flip_dist, ct, ef);
               if (ct_ef_d <= nextNode.restDist) {
@@ -252,12 +250,12 @@ public final class Solver {
     final int mepB = transformB.convertTo_mEdgePos(mep);
     bprn++;
     final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_startDist(mepB, cp);
-    if (mep_cp_d > maxBLength) {
+    if (mep_cp_d > maxSearchLength - stackASize) {
       bpry++;
       return;
     }
     final int mep_oep_d = state.pruneB.get_mEdgePos_oEdgePos_startDist(mepB, udepB);
-    if (mep_oep_d > maxBLength) {
+    if (mep_oep_d > maxSearchLength - stackASize) {
       bpry++;
       return;
     }
@@ -272,7 +270,7 @@ public final class Solver {
   }
 
   private boolean shouldContinueSearchingB(final int d) {
-    return !isInterrupted && (findAll && d <= maxBLength || stackASize + d < minFoundLength);
+    return !isInterrupted && stackASize + d <= maxSearchLength;
   }
 
   private void searchB() {
@@ -288,14 +286,14 @@ public final class Solver {
           node.userTurn = userTurn;
           final Turn cubeTurn = SymTransform.getTurn(userTurn, node.symmetry);
           node.cubeTurn = cubeTurn;
-          if (cubeTurn.isB() && (findAll || stackASize + d + 1 < minFoundLength)) {
+          if (cubeTurn.isB() && stackASize + d < maxSearchLength) {
             final BNode nextNode = stackB[d + 1];
             nextNode.restDist = node.restDist - metric.length(cubeTurn);
             if (nextNode.restDist >= 0) {
               final int mep = state.transformB.mEdgePosTable.turn(cubeTurn, node.mEdgePos);
               final int cp = state.transformB.cornerPosTable.turn(cubeTurn, node.cornerPos);
               bprn++;
-              if (bprn % 10000 == 0 && (isInterrupted = reporter.shouldStop()))
+              if (bprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
                 return;
               final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_dist(node.mEdgePos_cornerPos_dist, mep, cp);
               if (mep_cp_d <= nextNode.restDist) {
@@ -320,7 +318,7 @@ public final class Solver {
   }
 
   private void display() {
-    minFoundLength = stackASize + stackBSize;
+    maxSearchLength = stackASize + stackBSize - (findAll ? 0 : 1);
     final StringBuilder s = new StringBuilder();
     int ql = 0;
     int fl = 0;
