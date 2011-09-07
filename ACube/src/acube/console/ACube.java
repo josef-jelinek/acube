@@ -68,7 +68,7 @@ public final class ACube {
     if (line == null)
       return false;
     System.out.println("Input line: " + line);
-    return !line.startsWith("#") && !executeCommand(null, line);
+    return line.startsWith("#") || executeCommand(null, line);
   }
 
   private static void printState(final Console c) {
