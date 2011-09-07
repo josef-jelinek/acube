@@ -63,14 +63,12 @@ or whatever teh filename is. You should see a bunch of blah blah text come up.
   5: 19↵
      Don't use more than 19 moves.  No way.
 
+[6]  Toggling between finding a bunch (hopefully all) of the optimal solutions
+     or just the first optimal solution
+
 [9]  Once you hit this guy, all of your options should be reset.
 
 [ ]  This is just ↵ or hitting the enter button.
 
   ↵
-     This just finds the first solution and quits.
-
-[6]  Finds a bunch (hopefully all) of the solutions
-  6↵
-     Yeah, finds solutions
-
+     This .
