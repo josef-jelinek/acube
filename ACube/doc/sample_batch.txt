@@ -1,0 +1,12 @@
+# Sample batch file.
+#
+# Run using java -jar aCube4.jar sample_batch.txt
+#
+# Lines starting with a # are ignored.
+# Note that blank lines mean "solve" as of September 07, 2011.
+2: (UF UB) (UL UR)
+3: U* F* M* R*
+
+2: [UF UB DB DF] [UL UR] (LFU RUF)
+3: L* R* U2
+
