@@ -47,9 +47,12 @@ public final class ACube {
       s = s.trim();
       if (s.equals("0"))
         break;
-      if (s.equals("1"))
-        c.printf("Not implemented - use [2]\n");
-      else if (s.equals("2") || s.startsWith("2:")) {
+      if (s.equals("1") || s.startsWith("1:")) {
+        String p = Tools.substringAfter(s, "2:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter cube state: ");
+        cube = CycleParser.parse(p);
+      } else if (s.equals("2") || s.startsWith("2:")) {
         String p = Tools.substringAfter(s, "2:").trim();
         while (p.equals(""))
           p = readLine(c, "Enter cube state: ");
