@@ -68,7 +68,12 @@ or whatever teh filename is. You should see a bunch of blah blah text come up.
 
 [9]  Once you hit this guy, all of your options should be reset.
 
-[ ]  This is just ↵ or hitting the enter button.
+[ ]  This is just ↵ or hitting the enter button. Runs the solver with the
+     parameters specified using other options
 
-  ↵
-     This .
+There are two ways to input parameters for the options
+ a) type the option number, hit enter, type parameters, hit enter,
+ b) type the option number followed by ":" and parameters and hit enter,
+where the second one is more convenient to keep command history in a console window
+
+
