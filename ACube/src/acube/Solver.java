@@ -7,7 +7,7 @@ import acube.transform.TransformB;
 
 public final class Solver {
   static final class ANode {
-    int restDist;
+    int length;
     Turn[] turns;
     int turnIndex;
     Turn userTurn;
@@ -63,7 +63,7 @@ public final class Solver {
   }
 
   static final class BNode {
-    int restDist;
+    int length;
     Turn[] turns;
     int turnIndex;
     Turn userTurn;
@@ -72,14 +72,14 @@ public final class Solver {
     int symmetry;
     int mEdgePos;
     int cornerPos;
-    int oEdgePos;
+    int udEdgePos;
     int mEdgePos_cornerPos_dist;
-    int mEdgePos_oEdgePos_dist;
+    int mEdgePos_udEdgePos_dist;
 
-    public void setCubeState(final int mep, final int cp, final int oep) {
+    public void setCubeState(final int mep, final int cp, final int udep) {
       mEdgePos = mep;
       cornerPos = cp;
-      oEdgePos = oep;
+      udEdgePos = udep;
     }
 
     public void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
@@ -90,22 +90,22 @@ public final class Solver {
 
     public void setTurnState(final BNode node, final Turn userTurn, final TurnList turnList) {
       final int symmetry = SymTransform.getSymmetry(node.symmetry, userTurn);
-      final int allowedTurnsState = turnList.getNextState(node.turnListState, userTurn);
-      setTurnState(symmetry, allowedTurnsState, turnList);
+      final int turnsListState = turnList.getNextState(node.turnListState, userTurn);
+      setTurnState(symmetry, turnsListState, turnList);
       turnIndex = 0;
     }
 
-    public void setDists(final int mep_cp_d, final int mep_oep_d) {
+    public void setDists(final int mep_cp_d, final int mep_udep_d) {
       mEdgePos_cornerPos_dist = mep_cp_d;
-      mEdgePos_oEdgePos_dist = mep_oep_d;
+      mEdgePos_udEdgePos_dist = mep_udep_d;
     }
 
     public int getMaxDist() {
-      return max(mEdgePos_cornerPos_dist, mEdgePos_oEdgePos_dist);
+      return max(mEdgePos_cornerPos_dist, mEdgePos_udEdgePos_dist);
     }
   }
 
-  private static final int MAX_PHASE_STACKLENGTH = 50;
+  private static final int MAX_PHASE_STACK_SIZE = 50;
   private static final int CYCLES_BETWEEN_USER_CHECK = 50000;
   private CubeState state;
   private final boolean findAll;
@@ -113,8 +113,8 @@ public final class Solver {
   private final Metric metric;
   private final Reporter reporter;
   private int maxSearchLength;
-  private final ANode[] stackA = new ANode[MAX_PHASE_STACKLENGTH];
-  private final BNode[] stackB = new BNode[MAX_PHASE_STACKLENGTH];
+  private final ANode[] stackA = new ANode[MAX_PHASE_STACK_SIZE];
+  private final BNode[] stackB = new BNode[MAX_PHASE_STACK_SIZE];
   private int stackASize; // current size of the stack for Phase A
   private int stackBSize; // current size of the stack for Phase B
   private boolean isInterrupted;
@@ -139,7 +139,7 @@ public final class Solver {
   }
 
   private void solveA(final int maxLength) {
-    maxSearchLength = min(maxLength, MAX_PHASE_STACKLENGTH);
+    maxSearchLength = min(maxLength, MAX_PHASE_STACK_SIZE);
     initStatistics();
     stackA[0].setCubeStateA(state.twist, state.flip, state.mEdgePosSet);
     stackA[0].setCubeStateAB(state.cornerPos, state.mEdgePos, state.uEdgePos, state.dEdgePos);
@@ -148,20 +148,18 @@ public final class Solver {
     final int ct_meps_d = state.prune.get_twist_mEdgePosSet_startDist(stackA[0].twist, stackA[0].mEdgePosSet);
     final int ef_meps_d = state.prune.get_flip_mEdgePosSet_startDist(stackA[0].flip, stackA[0].mEdgePosSet);
     stackA[0].setDists(ct_ef_d, ct_meps_d, ef_meps_d);
-    for (int d = stackA[0].getMaxDist(); shouldContinueSearchingA(d); d++) {
-      stackA[0].restDist = d;
-      stackA[0].turnIndex = 0;
-      reporter.depthChanged(d);
+    for (int maxALength = stackA[0].getMaxDist(); shouldContinueSearchingA(maxALength); maxALength++) {
+      reporter.depthChanged(maxALength);
       if (findOptimal)
         searchAOptimal();
       else
-        searchA();
+        searchA(maxALength);
     }
     reportStatistics();
   }
 
-  private boolean shouldContinueSearchingA(final int d) {
-    return !isInterrupted && d <= maxSearchLength;
+  private boolean shouldContinueSearchingA(final int maxALength) {
+    return !isInterrupted && maxALength <= maxSearchLength;
   }
 
   private void initStatistics() {
@@ -180,10 +178,12 @@ public final class Solver {
     return false;
   }
 
-  private void searchA() {
+  private void searchA(final int maxALength) {
+    stackA[0].length = 0;
+    stackA[0].turnIndex = 0;
     int d = 0;
     do {
-      while (stackA[d].restDist > 0) {
+      while (stackA[d].length < maxALength) {
         final ANode node = stackA[d];
         if (node.turnIndex >= node.turns.length) {
           if (--d < 0)
@@ -193,42 +193,41 @@ public final class Solver {
           node.userTurn = userTurn;
           final Turn cubeTurn = SymTransform.getTurn(userTurn, node.symmetry);
           node.cubeTurn = cubeTurn;
-          if (findAll || d < maxSearchLength) {
-            final ANode nextNode = stackA[d + 1];
-            nextNode.restDist = node.restDist - metric.length(cubeTurn);
-            if (nextNode.restDist >= 0) {
-              final int ct = state.transform.twistTable.turn(cubeTurn, node.twist);
-              final int ef = state.transform.flipTable.turn(cubeTurn, node.flip);
-              aprn++;
-              if (aprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
-                return;
-              final int ct_ef_d = state.prune.get_twist_flip_dist(node.twist_flip_dist, ct, ef);
-              if (ct_ef_d <= nextNode.restDist) {
-                final int meps = state.transform.mEdgePosSetTable.turn(cubeTurn, node.mEdgePosSet);
-                final int ct_meps_d = state.prune.get_twist_mEdgePosSet_dist(node.twist_mEdgePosSet_dist, ct, meps);
-                if (ct_meps_d <= nextNode.restDist) {
-                  final int ef_meps_d = state.prune.get_flip_mEdgePosSet_dist(node.flip_mEdgePosSet_dist, ef, meps);
-                  if (ef_meps_d <= nextNode.restDist) {
-                    nextNode.setCubeStateA(ct, ef, meps);
-                    nextNode.setDists(ct_ef_d, ct_meps_d, ef_meps_d);
-                    nextNode.setTurnState(node, userTurn, state.turnList);
-                    d++;
-                  } else
-                    apry++;
+          final ANode nextNode = stackA[d + 1];
+          final int length = node.length + metric.length(cubeTurn);
+          if (length <= maxALength && length <= maxSearchLength) {
+            final int ct = state.transform.twistTable.turn(cubeTurn, node.twist);
+            final int ef = state.transform.flipTable.turn(cubeTurn, node.flip);
+            aprn++;
+            if (aprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
+              return;
+            final int ct_ef_d = state.prune.get_twist_flip_dist(node.twist_flip_dist, ct, ef);
+            if (ct_ef_d <= maxALength - length) {
+              final int meps = state.transform.mEdgePosSetTable.turn(cubeTurn, node.mEdgePosSet);
+              final int ct_meps_d = state.prune.get_twist_mEdgePosSet_dist(node.twist_mEdgePosSet_dist, ct, meps);
+              if (ct_meps_d <= maxALength - length) {
+                final int ef_meps_d = state.prune.get_flip_mEdgePosSet_dist(node.flip_mEdgePosSet_dist, ef, meps);
+                if (ef_meps_d <= maxALength - length) {
+                  nextNode.setCubeStateA(ct, ef, meps);
+                  nextNode.setDists(ct_ef_d, ct_meps_d, ef_meps_d);
+                  nextNode.setTurnState(node, userTurn, state.turnList);
+                  nextNode.length = length;
+                  d++;
                 } else
                   apry++;
               } else
                 apry++;
-            }
+            } else
+              apry++;
           }
         }
       }
       stackASize = d--;
-      solveB();
+      solveB(maxALength);
     } while (!isInterrupted && d >= 0);
   }
 
-  private void solveB() {
+  private void solveB(final int maxALength) {
     int cp = stackA[0].cornerPos;
     int mep = stackA[0].mEdgePos;
     int uep = stackA[0].uEdgePos;
@@ -250,33 +249,32 @@ public final class Solver {
     final int mepB = transformB.convertTo_mEdgePos(mep);
     bprn++;
     final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_startDist(mepB, cp);
-    if (mep_cp_d > maxSearchLength - stackASize) {
+    if (mep_cp_d > maxSearchLength - maxALength) {
       bpry++;
       return;
     }
-    final int mep_oep_d = state.pruneB.get_mEdgePos_oEdgePos_startDist(mepB, udepB);
-    if (mep_oep_d > maxSearchLength - stackASize) {
+    final int mep_udep_d = state.pruneB.get_mEdgePos_udEdgePos_startDist(mepB, udepB);
+    if (mep_udep_d > maxSearchLength - maxALength) {
       bpry++;
       return;
     }
     stackB[0].setCubeState(mepB, cp, udepB);
-    stackB[0].setTurnState(stackA[stackASize].symmetry, stackA[stackASize].turnListState, state.turnList);
-    stackB[0].setDists(mep_cp_d, mep_oep_d);
-    for (int d = stackB[0].getMaxDist(); shouldContinueSearchingB(d); d++) {
-      stackB[0].restDist = d;
-      stackB[0].turnIndex = 0;
-      searchB();
-    }
+    stackB[0].setTurnState(stackA[stackASize].symmetry, TurnList.INITIAL_STATE, state.turnList);
+    stackB[0].setDists(mep_cp_d, mep_udep_d);
+    for (int maxBLength = stackB[0].getMaxDist(); shouldContinueSearchingB(maxALength, maxBLength); maxBLength++)
+      searchB(maxALength, maxBLength);
   }
 
-  private boolean shouldContinueSearchingB(final int d) {
-    return !isInterrupted && stackASize + d <= maxSearchLength;
+  private boolean shouldContinueSearchingB(final int maxALength, final int maxBLength) {
+    return !isInterrupted && maxALength + maxBLength <= maxSearchLength;
   }
 
-  private void searchB() {
+  private void searchB(final int maxALength, final int maxBLength) {
+    stackB[0].length = 0;
+    stackB[0].turnIndex = 0;
     int d = 0;
     do {
-      while (stackB[d].restDist > 0) {
+      while (stackB[d].length < maxBLength) {
         final BNode node = stackB[d];
         if (node.turnIndex >= node.turns.length) {
           if (--d < 0)
@@ -286,39 +284,38 @@ public final class Solver {
           node.userTurn = userTurn;
           final Turn cubeTurn = SymTransform.getTurn(userTurn, node.symmetry);
           node.cubeTurn = cubeTurn;
-          if (cubeTurn.isB() && stackASize + d < maxSearchLength) {
+          final int length = node.length + metric.length(userTurn);
+          if (cubeTurn.isB() && maxALength + length <= maxSearchLength && length <= maxBLength) {
             final BNode nextNode = stackB[d + 1];
-            nextNode.restDist = node.restDist - metric.length(cubeTurn);
-            if (nextNode.restDist >= 0) {
-              final int mep = state.transformB.mEdgePosTable.turn(cubeTurn, node.mEdgePos);
-              final int cp = state.transformB.cornerPosTable.turn(cubeTurn, node.cornerPos);
-              bprn++;
-              if (bprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
-                return;
-              final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_dist(node.mEdgePos_cornerPos_dist, mep, cp);
-              if (mep_cp_d <= nextNode.restDist) {
-                final int oep = state.transformB.udEdgePosTable.turn(cubeTurn, node.oEdgePos);
-                final int mep_oep_d = state.pruneB.get_mEdgePos_oEdgePos_dist(node.mEdgePos_oEdgePos_dist, mep, oep);
-                if (mep_oep_d <= nextNode.restDist) {
-                  nextNode.setCubeState(mep, cp, oep);
-                  nextNode.setDists(mep_cp_d, mep_oep_d);
-                  nextNode.setTurnState(node, userTurn, state.turnList);
-                  d++;
-                } else
-                  bpry++;
+            final int mep = state.transformB.mEdgePosTable.turn(cubeTurn, node.mEdgePos);
+            final int cp = state.transformB.cornerPosTable.turn(cubeTurn, node.cornerPos);
+            bprn++;
+            if (bprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
+              return;
+            final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_dist(node.mEdgePos_cornerPos_dist, mep, cp);
+            if (mep_cp_d <= maxBLength - length) {
+              final int udep = state.transformB.udEdgePosTable.turn(cubeTurn, node.udEdgePos);
+              final int mep_udep_d = state.pruneB.get_mEdgePos_udEdgePos_dist(node.mEdgePos_udEdgePos_dist, mep, udep);
+              if (mep_udep_d <= maxBLength - length) {
+                nextNode.setCubeState(mep, cp, udep);
+                nextNode.setDists(mep_cp_d, mep_udep_d);
+                nextNode.setTurnState(node, userTurn, state.turnList);
+                nextNode.length = length;
+                d++;
               } else
                 bpry++;
-            }
+            } else
+              bpry++;
           }
         }
       }
       stackBSize = d--;
       display();
+      maxSearchLength = maxALength + maxBLength - (findAll ? 0 : 1);
     } while (!isInterrupted && d >= 0);
   }
 
   private void display() {
-    maxSearchLength = stackASize + stackBSize - (findAll ? 0 : 1);
     final StringBuilder s = new StringBuilder();
     int ql = 0;
     int fl = 0;

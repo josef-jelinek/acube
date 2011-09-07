@@ -4,4 +4,72 @@ alpha test version
 
 by Josef Jelinek <josef.jelinek@gmail.com>
 
+How to use aCube4 by Stachu Korick
+
+Open it by cd-ing to the file and opening with
+
+  java -jar acube.jar
+
+or whatever teh filename is. You should see a bunch of blah blah text come up.
+
+[1]  This currently doesn't work - it WILL be used to input as one would have
+     done in aCube3, though.
+
+[2]  This defines the cube's current state.
+     () is to define cycle notations.
+     [] is to detail pieces that you don't care about the positions of.
+     [UF UL] means "I don't care about the permutation of these. Any will do.
+     UF? is to say "hey, I don't care about the orientation of this"
+     With this, UF- means "flip this" and UFR+ means twist this clockwise,
+     UFR- for counter-clockwise.
+
+  2: (UL UR) (UFR URB)
+     tperm
+
+  2: (UL UR) (UFR URB) UF? UB?
+     tperm, not caring about the orientation of UF and UB
+
+  2: (UL UR) (UFR URB) [DF DL DR DB]
+     Tperm, not caring about the EP of the d-layer
+
+  2: UFR- URB+ UL- UF-
+     twist two corners, flip two edges
+
+  2: [UL UR UF UB] UL- UR- UF- UB-
+     flip top 4 edges, don't care about permutation
+
+[3]  Enter allowed turns.  Like, everything is supported as of now.
+
+  3: R* U* D*
+     all of the following can be used: R R' R2 D D' D2 U U' U2
+
+  3: R U D
+     can be used: R U D.  So, no R' or any of that nonsense.
+
+     You should know that so called wide turns r = R M', f = S F, u = U E' etc.
+
+     e, s, m are rotations with the same direction as M, E, S, but for the
+     entire cube.
+
+[4]  Set the metric. I basically just use qtm, stm, or ftm.
+
+  4: qtm
+     quarter turn metric
+
+[5]  Max length.  Simply, "I don't want to bother with algs more than this
+     number of moves in the chosen metric"
+
+  5: 19
+     Don't use more than 19 moves.  No way.
+
+[9]  Once you hit this guy, all of your options should be reset.
+
+[ ]  This is just [ENTER] or hitting the enter button.
+
+  <enter>
+     This just finds the first solution and quits.
+
+[6]  Finds a bunch (hopefully all) of the solutions
+  6<enter>
+     Yeah, finds solutions
 

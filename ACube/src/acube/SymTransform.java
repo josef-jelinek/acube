@@ -33,15 +33,24 @@ import static acube.Turn.b3;
 import static acube.Turn.d1;
 import static acube.Turn.d2;
 import static acube.Turn.d3;
+import static acube.Turn.e1;
+import static acube.Turn.e2;
+import static acube.Turn.e3;
 import static acube.Turn.f1;
 import static acube.Turn.f2;
 import static acube.Turn.f3;
 import static acube.Turn.l1;
 import static acube.Turn.l2;
 import static acube.Turn.l3;
+import static acube.Turn.m1;
+import static acube.Turn.m2;
+import static acube.Turn.m3;
 import static acube.Turn.r1;
 import static acube.Turn.r2;
 import static acube.Turn.r3;
+import static acube.Turn.s1;
+import static acube.Turn.s2;
+import static acube.Turn.s3;
 import static acube.Turn.u1;
 import static acube.Turn.u2;
 import static acube.Turn.u3;
@@ -75,14 +84,14 @@ public final class SymTransform {
   private static final Turn[][] turnD = {
       { F1, L1, B1, R1 }, // in D sym: doing F1 affects cube as L1, L1 as B1, B1 as R1, and R1 as F1
       { F2, L2, B2, R2 }, { F3, L3, B3, R3 }, { f1, l1, b1, r1 }, { f2, l2, b2, r2 }, { f3, l3, b3, r3 },
-      { S1, M1, S3, M3 }, { S2, M2 }, };
+      { S1, M1, S3, M3 }, { S2, M2 }, { s1, m1, s3, m3 }, { s2, m2 } };
   private static final Turn[][] turnB = {
       { U1, R1, D1, L1 }, { U2, R2, D2, L2 }, { U3, R3, D3, L3 }, { u1, r1, d1, l1 }, { u2, r2, d2, l2 },
-      { u3, r3, d3, l3 }, { E1, M1, E3, M3 }, { E2, M2 }, };
+      { u3, r3, d3, l3 }, { E1, M1, E3, M3 }, { E2, M2 }, { e1, m1, e3, m3 }, { e2, m2 } };
   private static final Turn[][] turnL = {
       { U1, B1, D1, F1 }, { U2, B2, D2, F2 }, { U3, B3, D3, F3 }, { u1, b1, d1, f1 }, { u2, b2, d2, f2 },
-      { u3, b3, d3, f3 }, { E1, S1, E3, S3 }, { E2, S2 }, };
-  private static final int[][] symD = { { I, D, DD, U }, // after D, I becomes D, D -> D2, D2 -> U, and U -> I
+      { u3, b3, d3, f3 }, { E1, S1, E3, S3 }, { E2, S2 }, { e1, s1, e3, s3 }, { e2, s2 } };
+  private static final int[][] symD = { { I, D, DD, U }, // after D, I becomes D, D -> DD, DD -> U, and U -> I
       { F, DR, BLL, LF }, { B, DL, BDD, BU }, { BB, DLL, LL, DBB }, { R, DB, LBB, UF }, { L, LD, LDD, BL }, };
   private static final int[][] symF = {
       { I, F, BB, B }, { R, DR, LDD, BU }, { L, LF, LBB, DL }, { LL, BLL, DD, BDD }, { U, UF, DLL, BL },
@@ -158,22 +167,28 @@ public final class SymTransform {
         tab[symmetry][turn.ordinal()] = symmetry;
     for (int i = 0; i < symD.length; i++)
       for (int j = 0; j < symD[i].length; j++)
-        tab[symD[i][j]][E1.ordinal()] = symD[i][(j + 1) % symD[i].length];
+        tab[symD[i][j]][E1.ordinal()] = tab[symD[i][j]][e1.ordinal()] = symD[i][(j + 1) % symD[i].length];
     for (int i = 0; i < symF.length; i++)
       for (int j = 0; j < symF[i].length; j++)
-        tab[symF[i][j]][S1.ordinal()] = symF[i][(j + 1) % symF[i].length];
+        tab[symF[i][j]][S1.ordinal()] = tab[symF[i][j]][s1.ordinal()] = symF[i][(j + 1) % symF[i].length];
     for (int i = 0; i < symL.length; i++)
       for (int j = 0; j < symL[i].length; j++)
-        tab[symL[i][j]][M1.ordinal()] = symL[i][(j + 1) % symL[i].length];
+        tab[symL[i][j]][m1.ordinal()] = tab[symL[i][j]][M1.ordinal()] = symL[i][(j + 1) % symL[i].length];
     for (int s = 0; s < SymmetryCount; s++) {
       tab[s][E2.ordinal()] = tab[tab[s][E1.ordinal()]][E1.ordinal()];
       tab[s][S2.ordinal()] = tab[tab[s][S1.ordinal()]][S1.ordinal()];
       tab[s][M2.ordinal()] = tab[tab[s][M1.ordinal()]][M1.ordinal()];
+      tab[s][e2.ordinal()] = tab[tab[s][e1.ordinal()]][e1.ordinal()];
+      tab[s][s2.ordinal()] = tab[tab[s][s1.ordinal()]][s1.ordinal()];
+      tab[s][m2.ordinal()] = tab[tab[s][m1.ordinal()]][m1.ordinal()];
     }
     for (int s = 0; s < SymmetryCount; s++) {
       tab[s][E3.ordinal()] = tab[tab[s][E2.ordinal()]][E1.ordinal()];
       tab[s][S3.ordinal()] = tab[tab[s][S2.ordinal()]][S1.ordinal()];
       tab[s][M3.ordinal()] = tab[tab[s][M2.ordinal()]][M1.ordinal()];
+      tab[s][e3.ordinal()] = tab[tab[s][e2.ordinal()]][e1.ordinal()];
+      tab[s][s3.ordinal()] = tab[tab[s][s2.ordinal()]][s1.ordinal()];
+      tab[s][m3.ordinal()] = tab[tab[s][m2.ordinal()]][m1.ordinal()];
     }
     for (int s = 0; s < SymmetryCount; s++) {
       tab[s][d1.ordinal()] = tab[s][u3.ordinal()] = tab[s][E1.ordinal()];

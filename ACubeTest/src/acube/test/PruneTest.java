@@ -18,10 +18,6 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
-import static acube.Metric.FACE;
-import static acube.Metric.QUARTER;
-import static acube.Metric.ROTATION_FACE;
-import static acube.Metric.SLICE;
 import static org.junit.Assert.assertEquals;
 import java.util.EnumSet;
 import org.junit.Test;
@@ -44,32 +40,32 @@ public final class PruneTest {
   public void tables_A() {
     final Transform transform =
         new Transform(cornerMask, edgeMask, cornerTwistMask, edgeFlipMask, new ConsoleReporter());
-    final Prune tab = new Prune(transform, SLICE, new ConsoleReporter());
+    final Prune tab = new Prune(transform, new ConsoleReporter());
     assertEquals(4758486, tab.stateSize());
-    assertEquals(6, tab.maxDistance());
+    assertEquals(6, tab.maxDist());
   }
 
   @Test
   public void table_corners_face_metric() {
     final Transform transform = new Transform(new ConsoleReporter());
-    final PruneCorners tab = new PruneCorners(transform, ROTATION_FACE, new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
-    assertEquals(11, tab.maxDistance());
+    assertEquals(11, tab.maxDist());
   }
 
   @Test
   public void table_corners_quarter_metric() {
     final Transform transform = new Transform(new ConsoleReporter());
-    final PruneCorners tab = new PruneCorners(transform, QUARTER, new ConsoleReporter());
+    final PruneCorners tab = new PruneCorners(transform, new ConsoleReporter());
     assertEquals(88179840, tab.stateSize());
-    assertEquals(14, tab.maxDistance());
+    assertEquals(11, tab.maxDist());
   }
 
   @Test
   public void tables_B() {
     final TransformB transform = new TransformB(cornerMask, edgeMask, new ConsoleReporter());
-    final PruneB tab = new PruneB(transform, FACE, new ConsoleReporter());
+    final PruneB tab = new PruneB(transform, new ConsoleReporter());
     assertEquals(262080, tab.stateSize());
-    assertEquals(9, tab.maxDistance());
+    assertEquals(9, tab.maxDist());
   }
 }

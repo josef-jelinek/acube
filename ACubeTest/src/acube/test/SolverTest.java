@@ -4,9 +4,7 @@ import static acube.Metric.FACE;
 import static acube.Turn.U2;
 import static acube.Turn.r2;
 import static org.junit.Assert.assertEquals;
-import java.util.Arrays;
 import java.util.EnumSet;
-import org.junit.Ignore;
 import org.junit.Test;
 import acube.Corner;
 import acube.CubeState;
@@ -27,19 +25,6 @@ public class SolverTest {
   }
 
   @Test
-  @Ignore
-  public void solve_superflip() {
-    final int[] flip = new int[12];
-    Arrays.fill(flip, 1);
-    final CubeState state = new CubeState(Corner.values(), Edge.values(), new int[8], flip);
-    final ConsoleReporter reporter = new ConsoleReporter();
-    state.solve(FACE, Turn.valueSet, 25, false, reporter);
-    assertEquals(1, reporter.getSequences().size());
-    assertEquals("S U F2 U2 M D S . U' B2 R2 D' M2 U' L2 U' B2 R2 F2", reporter.getSequences().get(0));
-  }
-
-  @Test
-  //@Ignore
   public void solve_T() {
     final CubeState state = CycleParser.parse("(UL UR) (URF UBR)");
     final ConsoleReporter reporter = new ConsoleReporter();

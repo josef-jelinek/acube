@@ -19,7 +19,7 @@ import acube.format.TurnParser;
 public final class ACube {
   public static void main(final String[] args) {
     final Console c = System.console();
-    c.printf("ACube 4.0a\n by Josef Jelinek 2001-2011\n");
+    c.printf("ACube 4.0a Sep 7, 2011 2:13:58 AM\n by Josef Jelinek 2001-2011\n");
     boolean findAll = false;
     int maxLength = 20;
     Metric metric = Metric.FACE;

@@ -5,10 +5,10 @@ import acube.Turn;
 final class MoveTableLong extends MoveTable {
   private final int[][] table;
 
-  public MoveTableLong(final TurnTable move, final Turn[][] base) {
+  public MoveTableLong(final TurnTable move, final Turn[][] base, final Turn[][] same) {
     super(move);
     table = new int[Turn.values.length][];
-    fill(base);
+    fill(base, same);
   }
 
   @Override
@@ -26,5 +26,10 @@ final class MoveTableLong extends MoveTable {
     if (table[turn.ordinal()] == null)
       table[turn.ordinal()] = new int[stateSize()];
     table[turn.ordinal()][stateIndex] = newStateIndex;
+  }
+
+  @Override
+  protected void set(final Turn turn, final Turn turn2) {
+    table[turn2.ordinal()] = table[turn.ordinal()];
   }
 }

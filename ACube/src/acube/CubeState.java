@@ -25,6 +25,8 @@ public final class CubeState {
   public PruneB pruneB;
   public TurnList turnList;
 
+  //public TurnList turnListB;
+
   public CubeState(final Corner[] corners, final Edge[] edges, final int[] cornerTwists, final int[] edgeFlips) {
     this.corners = corners;
     this.edges = edges;
@@ -74,10 +76,12 @@ public final class CubeState {
     uEdgePos = transform.get_uEdgePos(edges);
     dEdgePos = transform.get_dEdgePos(edges);
     mEdgePosSet = transform.get_mEdgePosSet(edges);
-    prune = new Prune(transform, metric, r);
-    turnList = new TurnList(transform, turns, r);
+    prune = new Prune(transform, r);
+    r.tableCreationStarted("turn transformation and pruning table");
+    turnList = new TurnList(transform, turns, metric);
+    //turnListB = new TurnList(transform, turns, metric);
     transformB = new TransformB(cornerMask, edgeMask, r);
-    pruneB = new PruneB(transformB, metric, r);
+    pruneB = new PruneB(transformB, r);
     new Solver(findAll, false, metric, r).solve(this, maxLength);
   }
 
