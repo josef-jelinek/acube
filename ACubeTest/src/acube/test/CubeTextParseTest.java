@@ -8,6 +8,7 @@ import acube.Corner;
 import acube.Edge;
 import acube.Tools;
 import acube.format.CycleParser;
+import acube.format.ReidParser;
 
 /** @author Stefan Pochmann (original cycle notation parser), Josef Jelinek */
 public final class CubeTextParseTest {
@@ -102,7 +103,13 @@ public final class CubeTextParseTest {
   public void ignored_orientations() {
     final String s1 = "@? ? @UB UL DF DR DB DL FR FL BR BL @? ? @UBL ULF DRF DFL DLB DBR";
     assertEquals(s1, CycleParser.parse("UF? UB? UFR? UBL? [UF UR UFR URB]").reidString());
-    //final String s2 = "UF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR";
-    //assertEquals(s2, CycleParser.parse("DLB- DBR+[DLB DBR] UR- UB- UL [UR UB UL]").reidString());
+  }
+
+  @Test
+  public void reid_notation() {
+    final String s1 = "@? ? @UB UL DF DR DB DL FR FL BR BL @? ? @UBL ULF DRF DFL DLB DBR";
+    assertEquals(s1, ReidParser.parse(s1).reidString());
+    final String s2 = "UF -? -? ? DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL -? +?";
+    assertEquals(s2, ReidParser.parse(s2).reidString());
   }
 }

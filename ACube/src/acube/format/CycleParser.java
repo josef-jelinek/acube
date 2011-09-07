@@ -55,7 +55,7 @@ public class CycleParser {
   private static void processCycle(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips,
       final String[] cubies) {
     if (cubies.length < 2)
-      throw new RuntimeException("Too short cycle");
+      throw new ParserError("Too short cycle");
     if (Corner.exists(cubies[0]))
       for (int i = cubies.length - 1; i > 0; i--)
         updateCorners(corners, twists, cubies[i - 1], cubies[i]);
@@ -63,7 +63,7 @@ public class CycleParser {
       for (int i = cubies.length - 1; i > 0; i--)
         updateEdges(edges, flips, cubies[i - 1], cubies[i]);
     else
-      throw new RuntimeException("Expected a corner or an edge: " + cubies[0]);
+      throw new ParserError("Expected a corner or an edge: " + cubies[0]);
   }
 
   private static void updateCorners(final Corner[] corners, final int[] twists, final String a, final String b) {
@@ -88,7 +88,7 @@ public class CycleParser {
     else if (Edge.exists(cubie))
       Tools.addMod(flips, Edge.index(cubie), d, cubie.length());
     else
-      throw new RuntimeException("Expected a corner or an edge: " + cubie);
+      throw new ParserError("Expected a corner or an edge: " + cubie);
   }
 
   private static void processIgnoreOrientation(final int[] twists, final int[] flips, final String cubie) {
@@ -97,7 +97,7 @@ public class CycleParser {
     else if (Edge.exists(cubie))
       flips[Edge.index(cubie)] = -1;
     else
-      throw new RuntimeException("Expected a corner or an edge: " + cubie);
+      throw new ParserError("Expected a corner or an edge: " + cubie);
   }
 
   private static EnumSet<Corner> getCorners(final String[] cubies) {

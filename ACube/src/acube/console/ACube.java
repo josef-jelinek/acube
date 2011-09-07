@@ -13,6 +13,7 @@ import acube.Metric;
 import acube.Tools;
 import acube.Turn;
 import acube.format.CycleParser;
+import acube.format.ParserError;
 import acube.format.ReidParser;
 import acube.format.TurnParser;
 
@@ -64,11 +65,16 @@ public final class ACube {
   }
 
   private static boolean processFileInput(final BufferedReader file) throws IOException {
-    final String line = file.readLine();
-    if (line == null)
+    try {
+      final String line = file.readLine();
+      if (line == null)
+        return false;
+      System.out.println("Input line: " + line);
+      return line.startsWith("#") || executeCommand(null, line);
+    } catch (final Problem e) {
+      System.err.printf("Problem: %s\n", e.getMessage());
       return false;
-    System.out.println("Input line: " + line);
-    return line.startsWith("#") || executeCommand(null, line);
+    }
   }
 
   private static void printState(final Console c) {
@@ -93,49 +99,66 @@ public final class ACube {
     s = s.trim();
     if (s.equals("0"))
       return false;
-    if (s.equals("1") || s.startsWith("1:")) {
-      String p = Tools.substringAfter(s, "1:").trim();
-      while (p.equals(""))
-        p = readLine(c, "Enter cube state: ");
-      cube = ReidParser.parse(p);
-    } else if (s.equals("2") || s.startsWith("2:")) {
-      String p = Tools.substringAfter(s, "2:").trim();
-      while (p.equals(""))
-        p = readLine(c, "Enter cube state: ");
-      cube = CycleParser.parse(p);
-    } else if (s.equals("3") || s.startsWith("3:")) {
-      String p = Tools.substringAfter(s, "3:").trim();
-      while (p.equals(""))
-        p = readLine(c, "Enter turns: ");
-      turns = TurnParser.parse(p);
-    } else if (s.equals("4") || s.startsWith("4:")) {
-      String p = Tools.substringAfter(s, "4:").trim();
-      while (p.equals(""))
-        p = readLine(c, "Enter metric: ");
-      for (final Metric m : Metric.values())
-        if (p.equals(m.toString()))
-          metric = m;
-    } else if (s.equals("5") || s.startsWith("5:")) {
-      String p = Tools.substringAfter(s, "5:").trim();
-      while (p.equals(""))
-        p = readLine(c, "Enter number: ");
-      maxLength = Math.max(1, Math.min(40, Integer.parseInt(p)));
-    } else if (s.equals("6"))
-      findAll = !findAll;
-    else if (s.equals(""))
-      cube.solve(metric, turns, maxLength, findAll, new ConsoleReporter(c));
-    else if (s.equals("9")) {
-      maxLength = 20;
-      metric = Metric.FACE;
-      turns = Turn.valueSet;
-      cube = initCubeState;
-    } else
-      c.printf("Unrecognized command\n");
+    try {
+      if (s.equals("1") || s.startsWith("1:")) {
+        String p = Tools.substringAfter(s, "1:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter cube state: ");
+        cube = ReidParser.parse(p);
+      } else if (s.equals("2") || s.startsWith("2:")) {
+        String p = Tools.substringAfter(s, "2:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter cube state: ");
+        cube = CycleParser.parse(p);
+      } else if (s.equals("3") || s.startsWith("3:")) {
+        String p = Tools.substringAfter(s, "3:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter turns: ");
+        turns = TurnParser.parse(p);
+      } else if (s.equals("4") || s.startsWith("4:")) {
+        String p = Tools.substringAfter(s, "4:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter metric: ");
+        for (final Metric m : Metric.values())
+          if (p.equals(m.toString()))
+            metric = m;
+      } else if (s.equals("5") || s.startsWith("5:")) {
+        String p = Tools.substringAfter(s, "5:").trim();
+        while (p.equals(""))
+          p = readLine(c, "Enter number: ");
+        maxLength = Math.max(1, Math.min(40, Integer.parseInt(p)));
+      } else if (s.equals("6"))
+        findAll = !findAll;
+      else if (s.equals(""))
+        cube.solve(metric, turns, maxLength, findAll, new ConsoleReporter(c));
+      else if (s.equals("9")) {
+        maxLength = 20;
+        metric = Metric.FACE;
+        turns = Turn.valueSet;
+        cube = initCubeState;
+      } else if (c != null)
+        c.printf("Unrecognized command\n");
+      else
+        System.err.printf("Unrecognized command\n");
+    } catch (final ParserError e) {
+      if (c != null)
+        c.printf("Error: %s\n", e.getMessage());
+      else
+        System.err.printf("Error: %s\n", e.getMessage());
+    }
     return true;
   }
 
   private static String readLine(final Console c, final String message) {
+    if (c == null)
+      throw new Problem("No console from which to read");
     c.printf(message);
     return c.readLine().trim();
+  }
+
+  private static class Problem extends RuntimeException {
+    public Problem(final String message) {
+      super(message);
+    }
   }
 }
