@@ -28,7 +28,9 @@ or whatever teh filename is. You should see a bunch of blah blah text come up.
 [2]  This defines the cube's current state.
      () is to define cycle notations.
      [] is to detail pieces that you don't care about the positions of.
-     [UF UL] means "I don't care about the permutation of these. Any will do.
+     [UF UL D*] means "I don't care about the permutation of UF, UL, and any
+     of the bottom edges and corners." Use U* for all top pieces, UF* for all
+     top-front pieces (UFR UF UFL)
      UF? is to say "hey, I don't care about the orientation of this"
      With this, UF- means "flip this" and UFR+ means twist this clockwise,
      UFR- for counter-clockwise.
@@ -84,5 +86,3 @@ There are two ways to input parameters for the options
  a) type the option number, hit enter, type parameters, hit enter,
  b) type the option number followed by ":" and parameters and hit enter,
 where the second one is more convenient to keep command history in a console window
-
-
