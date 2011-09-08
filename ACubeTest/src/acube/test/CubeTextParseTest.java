@@ -102,7 +102,7 @@ public final class CubeTextParseTest {
   @Test
   public void ignored_orientations() {
     final String s1 = "@? ? @UB UL DF DR DB DL FR FL BR BL @? ? @UBL ULF DRF DFL DLB DBR";
-    assertEquals(s1, CycleParser.parse("UF? UB? UFR? UBL? [UF UR UFR URB]").reidString());
+    assertEquals(s1, CycleParser.parse("UF? UB? UFR? UBL? [UF UR*]").reidString());
   }
 
   @Test

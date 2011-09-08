@@ -63,4 +63,9 @@ public enum Corner {
   public String name(final int twist) {
     return Tools.rotate(names.get(ordinal()), twist);
   }
+
+  @Override
+  public String toString() {
+    return names.get(ordinal());
+  }
 }

@@ -63,4 +63,9 @@ public enum Edge {
   public String name(final int flip) {
     return Tools.rotate(names.get(ordinal()), flip);
   }
+
+  @Override
+  public String toString() {
+    return names.get(ordinal());
+  }
 }

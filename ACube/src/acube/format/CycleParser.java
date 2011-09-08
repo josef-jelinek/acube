@@ -19,7 +19,8 @@ import acube.Tools;
 public class CycleParser {
   private static final Pattern cyclePattern = Pattern.compile("\\((.*?)\\)");
   private static final Pattern ignorePattern = Pattern.compile("\\[(.*?)\\]");
-  private static final Pattern orientationPattern = Pattern.compile("(\\w+)([-+?])");
+  private static final Pattern twistPattern = Pattern.compile("\\b([UDFBLR]{3})([-+?])");
+  private static final Pattern flipPattern = Pattern.compile("\\b([UDFBLR]{2})([-+?])");
 
   public static CubeState parse(final String source) {
     final Corner[] corners = Corner.values();
@@ -29,24 +30,18 @@ public class CycleParser {
     final EnumSet<Corner> cornersIgnored = EnumSet.noneOf(Corner.class);
     final EnumSet<Edge> edgesIgnored = EnumSet.noneOf(Edge.class);
     final Matcher cycleMatcher = cyclePattern.matcher(source);
-    while (cycleMatcher.find()) {
-      final String[] cubies = cycleMatcher.group(1).trim().split("[\\s,]+");
-      processCycle(corners, edges, twists, flips, cubies);
-    }
+    while (cycleMatcher.find())
+      processCycle(corners, edges, twists, flips, cycleMatcher.group(1).trim().toUpperCase().split("[\\s,]+"));
     final Matcher ignoreMatcher = ignorePattern.matcher(cycleMatcher.replaceAll(""));
-    while (ignoreMatcher.find()) {
-      final String[] cubies = ignoreMatcher.group(1).trim().split("[\\s,]+");
-      cornersIgnored.addAll(getCorners(cubies));
-      edgesIgnored.addAll(getEdges(cubies));
-    }
-    final Matcher orientationMatcher = orientationPattern.matcher(ignoreMatcher.replaceAll(""));
-    while (orientationMatcher.find()) {
-      final String sgn = orientationMatcher.group(2);
-      if (sgn.equals("?"))
-        processIgnoreOrientation(twists, flips, orientationMatcher.group(1));
-      else
-        processOrientation(twists, flips, orientationMatcher.group(1), sgn.equals("+") ? 1 : -1);
-    }
+    while (ignoreMatcher.find())
+      processIgnoredPos(cornersIgnored, edgesIgnored, ignoreMatcher.group(1).trim().toUpperCase().split("[\\s,]+"));
+    final String orientationString = ignoreMatcher.replaceAll("");
+    final Matcher twistMatcher = twistPattern.matcher(orientationString);
+    while (twistMatcher.find())
+      processTwistString(twists, twistMatcher.group(2), twistMatcher.group(1));
+    final Matcher flipMatcher = flipPattern.matcher(orientationString);
+    while (flipMatcher.find())
+      processFlipString(flips, flipMatcher.group(2), flipMatcher.group(1));
     removeCorners(corners, cornersIgnored);
     removeEdges(edges, edgesIgnored);
     return new CubeState(corners, edges, twists, flips);
@@ -82,38 +77,63 @@ public class CycleParser {
     Tools.addMod(flips, Edge.index(b), -flip, b.length());
   }
 
-  private static void processOrientation(final int[] twists, final int[] flips, final String cubie, final int d) {
-    if (Corner.exists(cubie))
-      Tools.addMod(twists, Corner.index(cubie), d, cubie.length());
-    else if (Edge.exists(cubie))
-      Tools.addMod(flips, Edge.index(cubie), d, cubie.length());
+  private static void processTwistString(final int[] twists, final String twist, final String name) {
+    if (twist.equals("?"))
+      processIgnoreTwist(twists, name);
     else
-      throw new ParserError("Expected a corner or an edge: " + cubie);
+      processTwist(twists, name, twist.equals("+") ? 1 : -1);
   }
 
-  private static void processIgnoreOrientation(final int[] twists, final int[] flips, final String cubie) {
-    if (Corner.exists(cubie))
-      twists[Corner.index(cubie)] = -1;
-    else if (Edge.exists(cubie))
-      flips[Edge.index(cubie)] = -1;
+  private static void processFlipString(final int[] flips, final String flip, final String name) {
+    if (flip.equals("?"))
+      processIgnoreFlip(flips, name);
     else
-      throw new ParserError("Expected a corner or an edge: " + cubie);
+      processFlip(flips, name, -1);
   }
 
-  private static EnumSet<Corner> getCorners(final String[] cubies) {
-    final EnumSet<Corner> corners = EnumSet.noneOf(Corner.class);
-    for (final String cubie : cubies)
-      if (Corner.exists(cubie))
-        corners.add(Corner.corner(cubie));
-    return corners;
+  private static void processTwist(final int[] twists, final String name, final int d) {
+    if (!Corner.exists(name))
+      throw new ParserError("Expected a corner: " + name);
+    Tools.addMod(twists, Corner.index(name), d, 3);
   }
 
-  private static EnumSet<Edge> getEdges(final String[] cubies) {
-    final EnumSet<Edge> edges = EnumSet.noneOf(Edge.class);
-    for (final String cubie : cubies)
-      if (Edge.exists(cubie))
-        edges.add(Edge.edge(cubie));
-    return edges;
+  private static void processFlip(final int[] flips, final String name, final int d) {
+    if (!Edge.exists(name))
+      throw new ParserError("Expected an edge: " + name);
+    Tools.addMod(flips, Edge.index(name), d, 2);
+  }
+
+  private static void processIgnoreTwist(final int[] twists, final String name) {
+    if (!Corner.exists(name))
+      throw new ParserError("Expected a corner: " + name);
+    twists[Corner.index(name)] = -1;
+  }
+
+  private static void processIgnoreFlip(final int[] flips, final String name) {
+    if (!Edge.exists(name))
+      throw new ParserError("Expected an edge: " + name);
+    flips[Edge.index(name)] = -1;
+  }
+
+  private static void processIgnoredPos(final EnumSet<Corner> corners, final EnumSet<Edge> edges, final String[] names) {
+    for (final String name : names)
+      if (name.endsWith("*"))
+        processIgnorePosMask(corners, edges, name.substring(0, name.length() - 1));
+      else if (Corner.exists(name))
+        corners.add(Corner.corner(name));
+      else if (Edge.exists(name))
+        edges.add(Edge.edge(name));
+      else
+        throw new ParserError("Expected a corner or an edge: " + name);
+  }
+
+  private static void processIgnorePosMask(final EnumSet<Corner> corners, final EnumSet<Edge> edges, final String name) {
+    for (final Corner c : Corner.valueSet)
+      if (Tools.containsCharacters(c.toString(), name))
+        corners.add(c);
+    for (final Edge e : Edge.valueSet)
+      if (Tools.containsCharacters(e.toString(), name))
+        edges.add(e);
   }
 
   private static void removeCorners(final Corner[] corners, final EnumSet<Corner> cornersToRemove) {

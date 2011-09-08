@@ -56,7 +56,7 @@ public final class TurnList {
     for (int i = 0; i < states.size(); i++)
       table.add(expandStateRow(states, i, stateIndices, transform, turns));
     for (int i = 0; i < table.size(); i++)
-      linkStateRow(states.get(i), table.get(i), state0, stateIndices, transform, turns);
+      linkStateRow(states.get(i), table.get(i), state0, states, stateIndices, transform, turns);
     return table;
   }
 
@@ -80,7 +80,7 @@ public final class TurnList {
     return row;
   }
 
-  private static void linkStateRow(final State state, final int[] row, final State state0,
+  private static void linkStateRow(final State state, final int[] row, final State state0, final List<State> states,
       final Map<State, Integer> stateIndices, final Transform transform, final Turn[] turns) {
     int ti = 0;
     for (final Turn turn : turns)
@@ -88,7 +88,8 @@ public final class TurnList {
         for (int j = 1; j < state.turns.length; j++) {
           final State s = getTailSequenceState(state0, state.turns, j, transform).turn(turn, transform);
           if (stateIndices.containsKey(s)) {
-            row[ti - 1] = stateIndices.get(s);
+            final int index = stateIndices.get(s);
+            row[ti - 1] = s.sameMove(states.get(index)) ? index : -1;
             break;
           }
         }
@@ -227,6 +228,15 @@ final class State {
     final int uep = t.uEdgePosTable.turn(cubeTurn, uEdgePos);
     final int dep = t.dEdgePosTable.turn(cubeTurn, dEdgePos);
     return new State(cs, ct, ef, cp, mep, uep, dep, turns, userTurn);
+  }
+
+  public boolean sameMove(final State s) {
+    if (turns.length != s.turns.length)
+      return false;
+    for (int i = 0; i < turns.length; i++)
+      if (turns[i] != s.turns[i])
+        return false;
+    return true;
   }
 
   @Override

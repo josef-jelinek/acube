@@ -3,7 +3,6 @@ package acube;
 import java.util.Arrays;
 
 public final class Tools {
-
   public static <T> String arrayToString(final T[] parts) {
     final StringBuilder s = new StringBuilder();
     for (final T part : parts)
@@ -15,6 +14,13 @@ public final class Tools {
     final char[] a = s.toCharArray();
     Arrays.sort(a);
     return new String(a);
+  }
+
+  public static boolean containsCharacters(final String s, final String chars) {
+    for (final char c : chars.toCharArray())
+      if (s.indexOf(c) < 0)
+        return false;
+    return true;
   }
 
   public static String rotate(final String s, final int i) {
