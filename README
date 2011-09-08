@@ -13,8 +13,17 @@ Open it by cd-ing to the file and opening with
   java -jar acube.jar
 or whatever teh filename is. You should see a bunch of blah blah text come up.
 
-[1]  This currently doesn't work - it WILL be used to input as one would have
-     done in aCube3, though.
+[1]  This is to specify the cube's current state in the full positional notation.
+     The notation is identical to what program shows as the curent state.
+     It differs from aCube3 notation in that it does not support "!" shortcuts.
+     It uses @ prefix for ignoring the orientation, ? for unknown position.
+     Combinations are possible ("@?", "@UR", "-?", "+?", ...)
+
+  1: UF UL UB UR DF DR DB DL FR FL BR BL URB UFR UBL ULF DRF DFL DLB DBR↵
+     tperm
+
+  1: -? -? -? -? DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR↵
+     flip top 4 edges, don't care about permutation
 
 [2]  This defines the cube's current state.
      () is to define cycle notations.
