@@ -18,15 +18,17 @@ public final class TransformB {
   private final int[][] uEdgePosB_dEdgePosB_to_udEdgePosB;
 
   public TransformB(final EnumSet<Corner> cornerMask, final EnumSet<Edge> edgeMask, final Reporter reporter) {
-    reporter.tableCreationStarted("transformation table (middle edge position B)");
     final MEdgePosB mEdgePosB = new MEdgePosB(edgeMask);
+    reporter.tableCreationStarted("transformation table (middle edge position B) (" + mEdgePosB.stateSize() + ")");
     mEdgePosTable = MoveKit.mEdgePosB(mEdgePosB);
-    reporter.tableCreationStarted("transformation table (U/D edge position B)");
-    udEdgePosTable = MoveKit.udEdgePosB(new UDEdgePosB(edgeMask));
-    reporter.tableCreationStarted("transformation table (corner position B)");
-    cornerPosTable = MoveKit.cornerPos(new CornerPos(cornerMask));
-    reporter.tableCreationStarted("conversion tables from phase A to phase B");
+    final UDEdgePosB udEdgePosB = new UDEdgePosB(edgeMask);
+    reporter.tableCreationStarted("transformation table (U/D edge position B) (" + udEdgePosB.stateSize() + ")");
+    udEdgePosTable = MoveKit.udEdgePosB(udEdgePosB);
+    final CornerPos cornerPos = new CornerPos(cornerMask);
+    reporter.tableCreationStarted("transformation table (corner position B) (" + cornerPos.stateSize() + ")");
+    cornerPosTable = MoveKit.cornerPos(cornerPos);
     final MEdgePos mEdgePos = new MEdgePos(edgeMask);
+    reporter.tableCreationStarted("conversion tables from phase A to phase B");
     mEdgePos_inB = MoveKit.get_mEdgePos_inB(mEdgePos);
     final UEdgePos uEdgePos = new UEdgePos(edgeMask);
     uEdgePos_inB = MoveKit.get_uEdgePos_inB(uEdgePos);
@@ -37,7 +39,6 @@ public final class TransformB {
     uEdgePos_to_uEdgePosB = MoveKit.get_uEdgePos_to_uEdgePosB(uEdgePos, uEdgePosB);
     final DEdgePosB dEdgePosB = new DEdgePosB(edgeMask);
     dEdgePos_to_dEdgePosB = MoveKit.get_dEdgePos_to_dEdgePosB(dEdgePos, dEdgePosB);
-    final UDEdgePosB udEdgePosB = new UDEdgePosB(edgeMask);
     uEdgePosB_dEdgePosB_to_udEdgePosB = MoveKit.get_uEdgePosB_dEdgePosB_to_udEdgePosB(uEdgePosB, dEdgePosB, udEdgePosB);
   }
 

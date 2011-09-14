@@ -8,6 +8,8 @@ import acube.transform.MoveTableComposed;
 import acube.transform.Transform;
 
 public final class Prune {
+  private final PruneTable twist;
+  private final PruneTable flip;
   private final PruneTable twist_flip;
   private final PruneTable twist_mEdgePosSet;
   private final PruneTable flip_mEdgePosSet;
@@ -17,11 +19,16 @@ public final class Prune {
 
   public Prune(final Transform transform, final Reporter reporter) {
     final EnumSet<Turn> turns = Turn.essentialValueSet;
-    moveTable_twist_flip = new MoveTableComposed(transform.twistTable, transform.flipTable);
+    reporter.tableCreationStarted("pruning table (corner twist)");
+    twist = new PruneTable(transform.twistTable, turns);
+    reporter.tableCreationStarted("pruning table (edge flip)");
+    flip = new PruneTable(transform.flipTable, turns);
+    final boolean combine_twist_flip = twist.stateSize() * flip.stateSize() <= 100000000;
+    moveTable_twist_flip = combine_twist_flip ? new MoveTableComposed(transform.twistTable, transform.flipTable) : null;
     moveTable_twist_mEdgePosSet = new MoveTableComposed(transform.twistTable, transform.mEdgePosSetTable);
     moveTable_flip_mEdgePosSet = new MoveTableComposed(transform.flipTable, transform.mEdgePosSetTable);
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
-    twist_flip = new PruneTable(moveTable_twist_flip, turns);
+    twist_flip = combine_twist_flip ? new PruneTable(moveTable_twist_flip, turns) : null;
     reporter.tableCreationStarted("pruning table (corner twist + middle edge position set)");
     twist_mEdgePosSet = new PruneTable(moveTable_twist_mEdgePosSet, turns);
     reporter.tableCreationStarted("pruning table (edge flip + middle edge position set)");
@@ -29,7 +36,15 @@ public final class Prune {
   }
 
   public int get_twist_flip_startDist(final int ct, final int ef) {
-    return twist_flip.startDist(moveTable_twist_flip.state(ct, ef));
+    return twist_flip == null ? 0 : twist_flip.startDist(moveTable_twist_flip.state(ct, ef));
+  }
+
+  public int get_twist_startDist(final int ctf) {
+    return twist.startDist(ctf);
+  }
+
+  public int get_flip_startDist(final int eff) {
+    return flip.startDist(eff);
   }
 
   public int get_twist_mEdgePosSet_startDist(final int ct, final int meps) {
@@ -41,7 +56,15 @@ public final class Prune {
   }
 
   public int get_twist_flip_dist(final int lastDist, final int ct, final int ef) {
-    return twist_flip.dist(lastDist, moveTable_twist_flip.state(ct, ef));
+    return twist_flip == null ? 0 : twist_flip.dist(lastDist, moveTable_twist_flip.state(ct, ef));
+  }
+
+  public int get_twistFull_dist(final int lastDist, final int ctf) {
+    return twist.dist(lastDist, ctf);
+  }
+
+  public int get_flipFull_dist(final int lastDist, final int eff) {
+    return flip.dist(lastDist, eff);
   }
 
   public int get_twist_mEdgePosSet_dist(final int lastDist, final int ct, final int meps) {
@@ -53,14 +76,17 @@ public final class Prune {
   }
 
   public int maxDist() {
-    return max(twist_flip.maxDist(), max(twist_mEdgePosSet.maxDist(), flip_mEdgePosSet.maxDist()));
+    return max(max(max(twist.maxDist(), flip.maxDist()), twist_flip == null ? 0 : twist_flip.maxDist()),
+        max(twist_mEdgePosSet.maxDist(), flip_mEdgePosSet.maxDist()));
   }
 
   public int stateSize() {
-    return twist_flip.stateSize() + twist_mEdgePosSet.stateSize() + flip_mEdgePosSet.stateSize();
+    return (twist_flip == null ? 0 : twist_flip.stateSize()) + twist_mEdgePosSet.stateSize() +
+        flip_mEdgePosSet.stateSize() + twist.stateSize() + flip.stateSize();
   }
 
   public int memorySize() {
-    return twist_flip.memorySize() + twist_mEdgePosSet.memorySize() + flip_mEdgePosSet.memorySize();
+    return (twist_flip == null ? 0 : twist_flip.memorySize()) + twist_mEdgePosSet.memorySize() +
+        flip_mEdgePosSet.memorySize() + twist.memorySize() + flip.memorySize();
   }
 }

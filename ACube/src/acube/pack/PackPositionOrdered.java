@@ -10,6 +10,19 @@ public class PackPositionOrdered<T> extends Pack<T> {
   }
 
   @Override
+  public int startSize() {
+    return 1;
+  }
+
+  @Override
+  public int start(final int startIndex) {
+    int r = 1;
+    for (int i = 0; i < values.length; i++)
+      values[i] = !usedMask[i] ? -1 : r++;
+    return pack();
+  }
+
+  @Override
   public String toString() {
     return coder.toString(values);
   }

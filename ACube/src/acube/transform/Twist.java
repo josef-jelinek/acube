@@ -14,7 +14,7 @@ import acube.Turn;
 import acube.pack.PackKit;
 import acube.pack.PackOrientation;
 
-final class Twist extends Move<Corner> {
+public final class Twist extends Move<Corner> {
   private final PackOrientation<Corner> packOrientation;
 
   private Twist(final PackOrientation<Corner> packOrientation) {
@@ -22,8 +22,9 @@ final class Twist extends Move<Corner> {
     this.packOrientation = packOrientation;
   }
 
-  public Twist(final EnumSet<Corner> cornerMask, final EnumSet<Corner> twistMask) {
-    this(PackKit.cornerTwist(cornerMask, twistMask));
+  public Twist(final EnumSet<Corner> cornerMask, final EnumSet<Corner> knownTwistMask, final int unknownTwisted) {
+    this(new PackOrientation<Corner>(PackKit.cornerMask(cornerMask), PackKit.cornerMask(knownTwistMask),
+        unknownTwisted, Corner.values(), 3));
   }
 
   @Override

@@ -1,12 +1,20 @@
 package acube.transform;
 
+import static acube.Edge.BL;
+import static acube.Edge.BR;
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.FL;
+import static acube.Edge.FR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
 import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
 import acube.pack.PackKit;
 import acube.pack.PackOrientation;
 
-final class Flip extends Move<Edge> {
+public final class Flip extends Move<Edge> {
   private final PackOrientation<Edge> packOrientation;
 
   private Flip(final PackOrientation<Edge> packOrientation) {
@@ -14,8 +22,9 @@ final class Flip extends Move<Edge> {
     this.packOrientation = packOrientation;
   }
 
-  public Flip(final EnumSet<Edge> edgeMask, final EnumSet<Edge> edgeFlipMask) {
-    this(PackKit.edgeFlip(edgeMask, edgeFlipMask));
+  public Flip(final EnumSet<Edge> edgeMask, final EnumSet<Edge> knownFlipMask, final int unknownFlipped) {
+    this(new PackOrientation<Edge>(PackKit.edgeMask(edgeMask), PackKit.edgeMask(knownFlipMask), unknownFlipped,
+        Edge.values(), 2));
   }
 
   @Override
@@ -23,10 +32,10 @@ final class Flip extends Move<Edge> {
     cycleEdges(turn);
     switch (turn) {
     case F1:
-      flip(Edge.FL, Edge.DF, Edge.FR, Edge.UF);
+      flip(FL, DF, FR, UF);
       break;
     case B1:
-      flip(Edge.BR, Edge.DB, Edge.BL, Edge.UB);
+      flip(BR, DB, BL, UB);
       break;
     default:
     }

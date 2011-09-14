@@ -8,9 +8,7 @@ import static acube.Corner.UBL;
 import static acube.Corner.UFR;
 import static acube.Corner.ULF;
 import static acube.Corner.URB;
-import static acube.Edge.DB;
 import static acube.Edge.DF;
-import static acube.Edge.DL;
 import static acube.Edge.DR;
 import static acube.Edge.FL;
 import static acube.Edge.FR;
@@ -59,19 +57,19 @@ import acube.transform.TurnTable;
 
 public final class TransformTest {
   private final EnumSet<Corner> cornerMask = EnumSet.of(UFR, URB, UBL, ULF);
+  private final EnumSet<Corner> twistMask = EnumSet.of(ULF);
   private final EnumSet<Edge> edgeMask = EnumSet.of(UF, UR, UB, UL, DF, DR, FR, FL);
-  private final EnumSet<Corner> twistMask = EnumSet.of(ULF, DRF, DFL, DLB, DBR);
-  private final EnumSet<Edge> flipMask = EnumSet.of(UL, DF, DR, DB, DL, FR, FL);
+  private final EnumSet<Edge> flipMask = EnumSet.of(UL, DF, DR, FR, FL);
 
   @Test
   public void tables_lengths_matches_combinatorics() {
-    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, new ConsoleReporter());
+    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, 4, 2, new ConsoleReporter());
     final TransformB tB = new TransformB(cornerMask, edgeMask, new ConsoleReporter());
     final EnumSet<Turn> turns = Turn.valueSet;
     final EnumSet<Turn> turnsB = Turn.getValidB(turns);
     checkTable(t.cornerPosTable, turns, 8 * 7 * 6 * 5);
-    checkTable(t.twistTable, turns, 2187);
-    checkTable(t.flipTable, turns, 2048);
+    checkTable(t.twistTable, turns, 8 * 7 * 6 / (3 * 2) * 3 * 3 * 3 * 3 * 3);
+    checkTable(t.flipTable, turns, 12 * 11 * 10 * 9 * 8 / (5 * 4 * 3 * 2) * 128);
     checkTable(t.mEdgePosSetTable, turns, 12 * 11 / 2);
     checkTable(t.mEdgePosTable, turns, 12 * 11);
     checkTable(t.uEdgePosTable, turns, 12 * 11 * 10 * 9);
@@ -112,7 +110,7 @@ public final class TransformTest {
 
   @Test
   public void table_composed_move() {
-    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, new ConsoleReporter());
+    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, 4, 2, new ConsoleReporter());
     final MoveTableComposed move = new MoveTableComposed(t.mEdgePosSetTable, t.dEdgePosTable);
     assertEquals(move.stateSize(), t.mEdgePosSetTable.stateSize() * t.dEdgePosTable.stateSize());
     assertEquals(move.startSize(), t.mEdgePosSetTable.startSize() * t.dEdgePosTable.startSize());
@@ -132,7 +130,7 @@ public final class TransformTest {
 
   @Test
   public void tables_for_phase_B() {
-    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, new ConsoleReporter());
+    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, 4, 2, new ConsoleReporter());
     final TransformB tB = new TransformB(cornerMask, edgeMask, new ConsoleReporter());
     assertEquals(tB.cornerPosTable.stateSize(), t.cornerPosTable.stateSize());
     assertEquals(tB.cornerPosTable.startSize(), t.cornerPosTable.startSize());
@@ -167,7 +165,7 @@ public final class TransformTest {
 
   @Test
   public void conversion_to_phase_B() {
-    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, new ConsoleReporter());
+    final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, 4, 2, new ConsoleReporter());
     final TransformB tB = new TransformB(cornerMask, edgeMask, new ConsoleReporter());
     final TurnTable mep = t.mEdgePosTable;
     final TurnTable uep = t.uEdgePosTable;
@@ -236,7 +234,7 @@ public final class TransformTest {
 
   @Test
   public void setup_from_array() {
-    final Transform t = new Transform(Corner.valueSet, Edge.valueSet, twistMask, flipMask, new ConsoleReporter());
+    final Transform t = new Transform(Corner.valueSet, Edge.valueSet, twistMask, flipMask, 0, 0, new ConsoleReporter());
     assertEquals("0 1 2 3 4 5 6 7", t.cornerPosToString(t.get_cornerPos(Corner.values())));
     assertEquals("7 6 5 4 3 2 0 1",
         t.cornerPosToString(t.get_cornerPos(new Corner[] { DBR, DLB, DFL, DRF, ULF, UBL, UFR, URB, })));

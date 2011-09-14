@@ -2,7 +2,7 @@ package acube.transform;
 
 import acube.Turn;
 
-abstract class MoveTable implements TurnTable {
+public abstract class MoveTable implements TurnTable {
   private final TurnTable move;
 
   static final MoveTable instance(final TurnTable move, final Turn[][] base, final Turn[][] same) {

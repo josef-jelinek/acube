@@ -14,9 +14,9 @@ public final class PackPositionUnordered<T> extends Pack<T> {
   }
 
   @Override
-  public int start(final int x) {
+  public int start(final int startIndex) {
     final int[] a = new int[care()];
-    coder.decode(a, careNotPos(), x);
+    coder.decode(a, careNotPos(), startIndex);
     for (int i = 0, j = 0; i < values.length; i++)
       values[i] = careMask[i] ? a[j++] : -1;
     return pack();

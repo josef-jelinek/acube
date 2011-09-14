@@ -13,6 +13,8 @@ public final class CubeState {
   private final int[] flips;
   public int twist;
   public int flip;
+  public int twistFull;
+  public int flipFull;
   public int mEdgePosSet;
   public int cornerPos;
   public int mEdgePos;
@@ -26,7 +28,6 @@ public final class CubeState {
   public TurnList turnList;
 
   //public TurnList turnListB;
-
   public CubeState(final Corner[] corners, final Edge[] edges, final int[] cornerTwists, final int[] edgeFlips) {
     this.corners = corners;
     this.edges = edges;
@@ -45,30 +46,44 @@ public final class CubeState {
 
   public String ignoredPositionsString() {
     final StringBuilder s = new StringBuilder();
-    for (final Edge e : EnumSet.complementOf(getMask(edges, Edge.class)))
+    for (final Edge e : EnumSet.complementOf(getKnownMask(edges, Edge.class)))
       s.append(' ').append(e.toString());
-    for (final Corner c : EnumSet.complementOf(getMask(corners, Corner.class)))
+    for (final Corner c : EnumSet.complementOf(getKnownMask(corners, Corner.class)))
       s.append(' ').append(c.toString());
     return s.length() > 0 ? s.substring(1) : "";
   }
 
   public String ignoredOrientationsString() {
     final StringBuilder s = new StringBuilder();
-    for (final Edge e : EnumSet.complementOf(getMask(edges, flips, Edge.class)))
-      s.append(' ').append(e.toString());
-    for (final Corner c : EnumSet.complementOf(getMask(corners, twists, Corner.class)))
-      s.append(' ').append(c.toString());
-    return s.length() > 0 ? s.substring(1) : "";
+    final EnumSet<Edge> unknownEdges = EnumSet.complementOf(getKnownMask(edges, Edge.class));
+    final EnumSet<Corner> unknownCorners = EnumSet.complementOf(getKnownMask(corners, Corner.class));
+    if (unknownEdges.size() > 0) {
+      s.append(getUnknownUnorientedCount(edges, flips)).append(" of {");
+      for (final Edge e : unknownEdges)
+        s.append(" ").append(e.toString());
+      s.append(" }");
+    }
+    if (unknownCorners.size() > 0) {
+      if (s.length() > 0)
+        s.append(", ");
+      s.append(getUnknownUnorientedCount(corners, twists)).append(" of {");
+      for (final Corner c : unknownCorners)
+        s.append(" ").append(c.toString());
+      s.append(" }");
+    }
+    return s.toString();
   }
 
   public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
       final Reporter r) {
     r.solvingStarted(reidString());
-    final EnumSet<Corner> cornerMask = getMask(corners, Corner.class);
-    final EnumSet<Edge> edgeMask = getMask(edges, Edge.class);
-    final EnumSet<Corner> twistMask = getMask(corners, twists, Corner.class);
-    final EnumSet<Edge> flipMask = getMask(edges, flips, Edge.class);
-    transform = new Transform(cornerMask, edgeMask, twistMask, flipMask, r);
+    final EnumSet<Corner> cornerMask = getKnownMask(corners, Corner.class);
+    final EnumSet<Edge> edgeMask = getKnownMask(edges, Edge.class);
+    final EnumSet<Corner> knownTwistMask = getKnownOrientedMask(corners, twists, Corner.class);
+    final EnumSet<Edge> knownFlipMask = getKnownOrientedMask(edges, flips, Edge.class);
+    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
+    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
+    transform = new Transform(cornerMask, edgeMask, knownTwistMask, knownFlipMask, unknownTwisted, unknownFlipped, r);
     twist = transform.get_twist(twists);
     flip = transform.get_flip(flips);
     cornerPos = transform.get_cornerPos(corners);
@@ -85,27 +100,38 @@ public final class CubeState {
     new Solver(findAll, false, metric, r).solve(this, maxLength);
   }
 
-  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a, final Class<T> type) {
+  private <T extends Enum<T>> EnumSet<T> getKnownMask(final T[] a, final Class<T> type) {
     final EnumSet<T> set = EnumSet.noneOf(type);
-    for (final T x : a)
-      if (x != null)
-        set.add(x);
+    for (final T ai : a)
+      if (ai != null)
+        set.add(ai);
     return set;
   }
 
-  private <T extends Enum<T>> EnumSet<T> getMask(final T[] a, final int[] o, final Class<T> type) {
+  private <T extends Enum<T>> EnumSet<T> getKnownOrientedMask(final T[] a, final int[] o, final Class<T> type) {
     final EnumSet<T> set = EnumSet.noneOf(type);
-    final EnumSet<T> undef = EnumSet.complementOf(getMask(a, type));
     for (int i = 0; i < a.length; i++)
       if (o[i] >= 0)
         if (a[i] != null)
           set.add(a[i]);
-        else
-          for (final T t : undef) {
-            set.add(t);
-            undef.remove(t);
-            break;
-          }
     return set;
+  }
+
+  private <T extends Enum<T>> int getUnknownOrientedCount(final T[] a, final int[] o) {
+    int count = 0;
+    for (int i = 0; i < a.length; i++)
+      if (o[i] >= 0)
+        if (a[i] == null)
+          count++;
+    return count;
+  }
+
+  private <T extends Enum<T>> int getUnknownUnorientedCount(final T[] a, final int[] o) {
+    int count = 0;
+    for (int i = 0; i < a.length; i++)
+      if (o[i] < 0)
+        if (a[i] == null)
+          count++;
+    return count;
   }
 }

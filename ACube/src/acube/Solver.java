@@ -24,6 +24,8 @@ public final class Solver {
     int twist_flip_dist;
     int twist_mEdgePosSet_dist;
     int flip_mEdgePosSet_dist;
+    int twist_dist;
+    int flip_dist;
 
     void setCubeStateA(final int ct, final int ef, final int meps) {
       twist = ct;
@@ -51,14 +53,16 @@ public final class Solver {
       turnIndex = 0;
     }
 
-    void setDists(final int ct_ef_d, final int ct_meps_d, final int ef_meps_d) {
+    void setDists(final int ct_ef_d, final int ct_meps_d, final int ef_meps_d, final int ctf_d, final int eff_d) {
       twist_flip_dist = ct_ef_d;
       twist_mEdgePosSet_dist = ct_meps_d;
       flip_mEdgePosSet_dist = ef_meps_d;
+      twist_dist = ctf_d;
+      flip_dist = eff_d;
     }
 
     int getMaxDist() {
-      return max(twist_flip_dist, max(twist_mEdgePosSet_dist, flip_mEdgePosSet_dist));
+      return max(max(max(twist_dist, flip_dist), twist_flip_dist), max(twist_mEdgePosSet_dist, flip_mEdgePosSet_dist));
     }
   }
 
@@ -147,7 +151,9 @@ public final class Solver {
     final int ct_ef_d = state.prune.get_twist_flip_startDist(stackA[0].twist, stackA[0].flip);
     final int ct_meps_d = state.prune.get_twist_mEdgePosSet_startDist(stackA[0].twist, stackA[0].mEdgePosSet);
     final int ef_meps_d = state.prune.get_flip_mEdgePosSet_startDist(stackA[0].flip, stackA[0].mEdgePosSet);
-    stackA[0].setDists(ct_ef_d, ct_meps_d, ef_meps_d);
+    final int ct_d = state.prune.get_twist_startDist(stackA[0].twist);
+    final int ef_d = state.prune.get_flip_startDist(stackA[0].flip);
+    stackA[0].setDists(ct_ef_d, ct_meps_d, ef_meps_d, ct_d, ef_d);
     for (int maxALength = stackA[0].getMaxDist(); shouldContinueSearchingA(maxALength); maxALength++) {
       reporter.depthChanged(maxALength);
       if (findOptimal)
@@ -208,11 +214,16 @@ public final class Solver {
               if (ct_meps_d <= maxALength - length) {
                 final int ef_meps_d = state.prune.get_flip_mEdgePosSet_dist(node.flip_mEdgePosSet_dist, ef, meps);
                 if (ef_meps_d <= maxALength - length) {
-                  nextNode.setCubeStateA(ct, ef, meps);
-                  nextNode.setDists(ct_ef_d, ct_meps_d, ef_meps_d);
-                  nextNode.setTurnState(node, userTurn, state.turnList);
-                  nextNode.length = length;
-                  d++;
+                  final int ct_d = state.prune.get_twistFull_dist(node.twist_dist, ct);
+                  final int ef_d = state.prune.get_flipFull_dist(node.flip_dist, ef);
+                  if (ct_d <= maxALength - length && ef_d <= maxALength - length) {
+                    nextNode.setCubeStateA(ct, ef, meps);
+                    nextNode.setDists(ct_ef_d, ct_meps_d, ef_meps_d, ct_d, ef_d);
+                    nextNode.setTurnState(node, userTurn, state.turnList);
+                    nextNode.length = length;
+                    d++;
+                  } else
+                    apry++;
                 } else
                   apry++;
               } else

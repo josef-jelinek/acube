@@ -21,35 +21,36 @@ public final class Transform {
   public final TurnTable cornerPosTable;
   private final int[] mEdgePos_to_mEdgePosSet;
 
-  public Transform(final EnumSet<Corner> cornerMask, final EnumSet<Edge> edgeMask, final EnumSet<Corner> twistMask,
-      final EnumSet<Edge> flipMask, final Reporter reporter) {
-    reporter.tableCreationStarted("transformation table (corner orientation)");
-    twist = new Twist(cornerMask, twistMask);
+  public Transform(final EnumSet<Corner> cornerMask, final EnumSet<Edge> edgeMask,
+      final EnumSet<Corner> knownTwistMask, final EnumSet<Edge> knownFlipMask, final int unknownTwisted,
+      final int unknownFlipped, final Reporter reporter) {
+    twist = new Twist(cornerMask, knownTwistMask, unknownTwisted);
+    reporter.tableCreationStarted("transformation table (corner orientation) (" + twist.stateSize() + ")");
     twistTable = MoveKit.twist(twist);
-    reporter.tableCreationStarted("transformation table (edge orientation)");
-    flip = new Flip(edgeMask, flipMask);
+    flip = new Flip(edgeMask, knownFlipMask, unknownFlipped);
+    reporter.tableCreationStarted("transformation table (edge orientation) (" + flip.stateSize() + ")");
     flipTable = MoveKit.flip(flip);
-    reporter.tableCreationStarted("transformation table (corner position)");
     cornerPos = new CornerPos(cornerMask);
+    reporter.tableCreationStarted("transformation table (corner position) (" + cornerPos.stateSize() + ")");
     cornerPosTable = MoveKit.cornerPos(cornerPos);
-    reporter.tableCreationStarted("transformation table (middle edge position)");
     mEdgePos = new MEdgePos(edgeMask);
+    reporter.tableCreationStarted("transformation table (ring edge position) (" + mEdgePos.stateSize() + ")");
     mEdgePosTable = MoveKit.mEdgePos(mEdgePos);
-    reporter.tableCreationStarted("transformation table (U edge position)");
     uEdgePos = new UEdgePos(edgeMask);
+    reporter.tableCreationStarted("transformation table (U edge position) (" + uEdgePos.stateSize() + ")");
     uEdgePosTable = MoveKit.uEdgePos(uEdgePos);
-    reporter.tableCreationStarted("transformation table (D edge position)");
     dEdgePos = new DEdgePos(edgeMask);
+    reporter.tableCreationStarted("transformation table (D edge position) (" + dEdgePos.stateSize() + ")");
     dEdgePosTable = MoveKit.dEdgePos(dEdgePos);
-    reporter.tableCreationStarted("transformation table (middle edge position set)");
     final MEdgePosSet mEdgePosSet = new MEdgePosSet(edgeMask);
+    reporter.tableCreationStarted("transformation table (ring edge position set) (" + mEdgePosSet.stateSize() + ")");
     mEdgePosSetTable = MoveKit.mEdgePosSet(mEdgePosSet);
-    reporter.tableCreationStarted("conversion table (middle edge position - middle edge position set)");
+    reporter.tableCreationStarted("conversion table (ring edge position - middle edge position set)");
     mEdgePos_to_mEdgePosSet = MoveKit.get_mEdgePos_to_mEdgePosSet(mEdgePos, mEdgePosSet);
   }
 
   public Transform(final Reporter reporter) {
-    this(Corner.valueSet, Edge.valueSet, Corner.valueSet, Edge.valueSet, reporter);
+    this(Corner.valueSet, Edge.valueSet, Corner.valueSet, Edge.valueSet, 0, 0, reporter);
   }
 
   public int get_twist(final int[] twists) {

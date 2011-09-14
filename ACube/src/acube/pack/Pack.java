@@ -36,18 +36,11 @@ public abstract class Pack<T> {
     coder.decode(values, used, x);
   }
 
-  public int startSize() {
-    return 1;
-  }
+  public abstract int startSize();
 
-  public int start(final int _) {
-    int r = 1;
-    for (int i = 0; i < values.length; i++)
-      values[i] = !usedMask[i] ? -1 : r++;
-    return pack();
-  }
+  public abstract int start(final int startIndex);
 
-  public void convert(final Pack<T> p) {
+  public final void convert(final Pack<T> p) {
     Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int pi = p.findPartIndex(partIds[i]);
@@ -56,7 +49,7 @@ public abstract class Pack<T> {
     }
   }
 
-  public boolean combine(final Pack<T> p1, final Pack<T> p2) {
+  public final boolean combine(final Pack<T> p1, final Pack<T> p2) {
     Arrays.fill(values, -1);
     for (int i = 0; i < values.length; i++) {
       final int p1i = p1.findPartIndex(partIds[i]);
@@ -100,26 +93,18 @@ public abstract class Pack<T> {
     return -1;
   }
 
-  public void swap(final int i1, final int i2) {
+  public final void swap(final int i1, final int i2) {
     final int t = values[i1];
     values[i1] = values[i2];
     values[i2] = t;
   }
 
-  public void cycle(final int i1, final int i2, final int i3, final int i4) {
+  public final void cycle(final int i1, final int i2, final int i3, final int i4) {
     final int t = values[i1];
     values[i1] = values[i2];
     values[i2] = values[i3];
     values[i3] = values[i4];
     values[i4] = t;
-  }
-
-  protected final int unknownPositions() {
-    int n = 0;
-    for (int i = 0; i < values.length; i++)
-      if (!usedMask[i])
-        n++;
-    return n;
   }
 
   public final boolean areUsedIn(final boolean[] allowedMask) {

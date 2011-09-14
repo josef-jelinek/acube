@@ -23,7 +23,7 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String infoString = "ACube 4.0a090711\n";
+  private static final String infoString = "ACube 4.0a3\n";
   private static boolean findAll = false;
   private static int maxLength = 20;
   private static Metric metric = Metric.FACE;
