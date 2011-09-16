@@ -23,7 +23,7 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String infoString = "ACube 4.0a3\n";
+  private static final String version = "4.0a4\n";
   private static boolean findAll = false;
   private static int maxLength = 20;
   private static Metric metric = Metric.FACE;
@@ -40,7 +40,7 @@ public final class ACube {
 
   private static void interactiveConsole() {
     final Console c = System.console();
-    c.printf(infoString);
+    c.printf("ACube %s\n", version);
     while (processConsoleInput(c)) {}
     c.printf("\nHave a nice day.\n");
   }
@@ -54,8 +54,7 @@ public final class ACube {
   private static void fileInput(final String fileName) {
     try {
       final BufferedReader file = new BufferedReader(new FileReader(fileName));
-      System.out.print(infoString);
-      System.out.println("File output.");
+      System.out.printf("ACube %s\nFile input.\n", version);
       while (processFileInput(file)) {}
     } catch (final FileNotFoundException e) {
       System.err.println("File \"" + fileName + "\" not found.");

@@ -31,10 +31,10 @@ public enum Turn {
   }
 
   public static EnumSet<Turn> getValidB(final EnumSet<Turn> turns) {
-    final EnumSet<Turn> turnsB = EnumSet.noneOf(Turn.class);
+    final EnumSet<Turn> turnsB = EnumSet.copyOf(turns);
     for (final Turn turn : turns)
-      if (turn.isB())
-        turnsB.add(turn);
+      if (!turn.isB())
+        turnsB.remove(turn);
     return turnsB;
   }
 

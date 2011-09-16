@@ -80,7 +80,7 @@ public final class SymTransform {
   public static final int BU = 21;
   public static final int LF = 22;
   public static final int UF = 23;
-  public static final int SymmetryCount = 24;
+  public static final int SYM_COUNT = 24;
   private static final Turn[][] turnD = {
       { F1, L1, B1, R1 }, // in D sym: doing F1 affects cube as L1, L1 as B1, B1 as R1, and R1 as F1
       { F2, L2, B2, R2 }, { F3, L3, B3, R3 }, { f1, l1, b1, r1 }, { f2, l2, b2, r2 }, { f3, l3, b3, r3 },
@@ -99,8 +99,8 @@ public final class SymTransform {
   private static final int[][] symL = {
       { I, L, LL, R }, { U, LF, DBB, BU }, { D, DL, DLL, DR }, { DD, LBB, BB, LDD }, { F, LD, BDD, UF },
       { B, BL, BLL, DB }, };
-  private static final Turn[][] output = new Turn[SymmetryCount][Turn.size];
-  private static final int[][] transition = new int[SymmetryCount][Turn.size];
+  private static final Turn[][] output = new Turn[SYM_COUNT][Turn.size];
+  private static final int[][] transition = new int[SYM_COUNT][Turn.size];
   static {
     fillOutputTab(output);
     fillTransitionTab(transition);
@@ -162,7 +162,7 @@ public final class SymTransform {
   }
 
   private static void fillTransitionTab(final int[][] tab) {
-    for (int symmetry = 0; symmetry < SymmetryCount; symmetry++)
+    for (int symmetry = 0; symmetry < SYM_COUNT; symmetry++)
       for (final Turn turn : Turn.values)
         tab[symmetry][turn.ordinal()] = symmetry;
     for (int i = 0; i < symD.length; i++)
@@ -174,7 +174,7 @@ public final class SymTransform {
     for (int i = 0; i < symL.length; i++)
       for (int j = 0; j < symL[i].length; j++)
         tab[symL[i][j]][m1.ordinal()] = tab[symL[i][j]][M1.ordinal()] = symL[i][(j + 1) % symL[i].length];
-    for (int s = 0; s < SymmetryCount; s++) {
+    for (int s = 0; s < SYM_COUNT; s++) {
       tab[s][E2.ordinal()] = tab[tab[s][E1.ordinal()]][E1.ordinal()];
       tab[s][S2.ordinal()] = tab[tab[s][S1.ordinal()]][S1.ordinal()];
       tab[s][M2.ordinal()] = tab[tab[s][M1.ordinal()]][M1.ordinal()];
@@ -182,7 +182,7 @@ public final class SymTransform {
       tab[s][s2.ordinal()] = tab[tab[s][s1.ordinal()]][s1.ordinal()];
       tab[s][m2.ordinal()] = tab[tab[s][m1.ordinal()]][m1.ordinal()];
     }
-    for (int s = 0; s < SymmetryCount; s++) {
+    for (int s = 0; s < SYM_COUNT; s++) {
       tab[s][E3.ordinal()] = tab[tab[s][E2.ordinal()]][E1.ordinal()];
       tab[s][S3.ordinal()] = tab[tab[s][S2.ordinal()]][S1.ordinal()];
       tab[s][M3.ordinal()] = tab[tab[s][M2.ordinal()]][M1.ordinal()];
@@ -190,7 +190,7 @@ public final class SymTransform {
       tab[s][s3.ordinal()] = tab[tab[s][s2.ordinal()]][s1.ordinal()];
       tab[s][m3.ordinal()] = tab[tab[s][m2.ordinal()]][m1.ordinal()];
     }
-    for (int s = 0; s < SymmetryCount; s++) {
+    for (int s = 0; s < SYM_COUNT; s++) {
       tab[s][d1.ordinal()] = tab[s][u3.ordinal()] = tab[s][E1.ordinal()];
       tab[s][f1.ordinal()] = tab[s][b3.ordinal()] = tab[s][S1.ordinal()];
       tab[s][l1.ordinal()] = tab[s][r3.ordinal()] = tab[s][M1.ordinal()];

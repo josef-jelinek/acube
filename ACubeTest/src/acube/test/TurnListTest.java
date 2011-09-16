@@ -31,9 +31,9 @@ public final class TurnListTest {
   public void one_allowed_turn_allows_one_turn_3_times() {
     final Reporter reporter = new ConsoleReporter();
     final TurnList tl = new TurnList(new Transform(reporter), EnumSet.of(U1), FACE);
-    assertEquals(1, tl.getAvailableTurns(TurnList.INITIAL_STATE).length);
-    assertEquals(U1, tl.getAvailableTurns(TurnList.INITIAL_STATE)[0]);
-    final int stateU1 = tl.getNextState(TurnList.INITIAL_STATE, U1);
+    assertEquals(1, tl.getAvailableTurns(0).length);
+    assertEquals(U1, tl.getAvailableTurns(0)[0]);
+    final int stateU1 = tl.getNextState(0, U1);
     assertEquals(1, tl.getAvailableTurns(stateU1).length);
     assertEquals(U1, tl.getAvailableTurns(stateU1)[0]);
     final int stateU1U1 = tl.getNextState(stateU1, U1);
@@ -63,8 +63,6 @@ public final class TurnListTest {
   public void all_allowed_turns_filters_duplicities() {
     final Reporter reporter = new ConsoleReporter();
     final TurnList tl = new TurnList(new Transform(reporter), Turn.valueSet, FACE);
-    for (final Turn t : Turn.values())
-      assertTrue(-1 != tl.getNextState(0, t));
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));

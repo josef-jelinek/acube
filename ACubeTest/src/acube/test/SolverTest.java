@@ -49,6 +49,6 @@ public class SolverTest {
     final ConsoleReporter reporter = new ConsoleReporter();
     state.solve(FACE, Turn.valueSet, 12, false, reporter);
     assertEquals(1, reporter.getSequences().size());
-    assertEquals("B2 D2 F U' D R . U D B2 U2", reporter.getSequences().get(0));
+    assertEquals("B2 u2 B E' B . D d F2 U2", reporter.getSequences().get(0));
   }
 }

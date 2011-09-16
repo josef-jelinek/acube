@@ -9,7 +9,7 @@ import static acube.SymTransform.I;
 import static acube.SymTransform.L;
 import static acube.SymTransform.LD;
 import static acube.SymTransform.LF;
-import static acube.SymTransform.SymmetryCount;
+import static acube.SymTransform.SYM_COUNT;
 import static acube.SymTransform.U;
 import static acube.SymTransform.getSymmetry;
 import static acube.SymTransform.getTurn;
@@ -106,7 +106,7 @@ public final class SymTest {
 
   @Test
   public void outputs_are_unique() {
-    for (int s = 0; s < SymmetryCount; s++)
+    for (int s = 0; s < SYM_COUNT; s++)
       for (final Turn t1 : Turn.values())
         for (final Turn t2 : Turn.values())
           assertTrue(t1 == t2 ^ getTurn(t1, s) != getTurn(t2, s));
@@ -125,10 +125,10 @@ public final class SymTest {
   @Test
   public void transitions_are_unique() {
     for (final Turn t : Turn.values())
-      for (int s1 = 0; s1 < SymmetryCount - 1; s1++)
-        for (int s2 = s1 + 1; s2 < SymmetryCount; s2++)
+      for (int s1 = 0; s1 < SYM_COUNT - 1; s1++)
+        for (int s2 = s1 + 1; s2 < SYM_COUNT; s2++)
           assertFalse(getSymmetry(s1, t) == getSymmetry(s2, t));
-    for (int s = 0; s < SymmetryCount; s++)
+    for (int s = 0; s < SYM_COUNT; s++)
       for (final Turn[] diffsym : diffsyms)
         for (int t1 = 0; t1 < diffsym.length - 1; t1++)
           for (int t2 = t1 + 1; t2 < diffsym.length; t2++)

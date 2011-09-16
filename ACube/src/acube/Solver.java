@@ -40,10 +40,14 @@ public final class Solver {
       dEdgePos = dep;
     }
 
-    public void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
+    private void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
       this.symmetry = symmetry;
       this.turnListState = turnListState;
       turns = turnList.getAvailableTurns(turnListState);
+    }
+
+    public void setTurnState(final int symmetry, final TurnList turnList) {
+      setTurnState(symmetry, turnList.getInitialState(symmetry), turnList);
     }
 
     public void setTurnState(final ANode node, final Turn userTurn, final TurnList turnList) {
@@ -86,10 +90,10 @@ public final class Solver {
       udEdgePos = udep;
     }
 
-    public void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
+    public void setTurnState(final int symmetry, final Turn[] turns, final TurnList turnList) {
       this.symmetry = symmetry;
-      this.turnListState = turnListState;
-      turns = turnList.getAvailableTurns(turnListState);
+      turnListState = turnList.getInitialState(symmetry);
+      this.turns = turns;
     }
 
     public void setTurnState(final BNode node, final Turn userTurn, final TurnList turnList) {
@@ -97,6 +101,12 @@ public final class Solver {
       final int turnsListState = turnList.getNextState(node.turnListState, userTurn);
       setTurnState(symmetry, turnsListState, turnList);
       turnIndex = 0;
+    }
+
+    private void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
+      this.symmetry = symmetry;
+      this.turnListState = turnListState;
+      turns = turnList.getAvailableTurns(turnListState);
     }
 
     public void setDists(final int mep_cp_d, final int mep_udep_d) {
@@ -147,7 +157,7 @@ public final class Solver {
     initStatistics();
     stackA[0].setCubeStateA(state.twist, state.flip, state.mEdgePosSet);
     stackA[0].setCubeStateAB(state.cornerPos, state.mEdgePos, state.uEdgePos, state.dEdgePos);
-    stackA[0].setTurnState(state.symmetry, TurnList.INITIAL_STATE, state.turnList);
+    stackA[0].setTurnState(state.symmetry, state.turnList);
     final int ct_ef_d = state.prune.get_twist_flip_startDist(stackA[0].twist, stackA[0].flip);
     final int ct_meps_d = state.prune.get_twist_mEdgePosSet_startDist(stackA[0].twist, stackA[0].mEdgePosSet);
     final int ef_meps_d = state.prune.get_flip_mEdgePosSet_startDist(stackA[0].flip, stackA[0].mEdgePosSet);
@@ -270,7 +280,7 @@ public final class Solver {
       return;
     }
     stackB[0].setCubeState(mepB, cp, udepB);
-    stackB[0].setTurnState(stackA[stackASize].symmetry, TurnList.INITIAL_STATE, state.turnList);
+    stackB[0].setTurnState(stackA[stackASize].symmetry, stackA[stackASize].turns, state.turnListB);
     stackB[0].setDists(mep_cp_d, mep_udep_d);
     for (int maxBLength = stackB[0].getMaxDist(); shouldContinueSearchingB(maxALength, maxBLength); maxBLength++)
       searchB(maxALength, maxBLength);
@@ -310,7 +320,7 @@ public final class Solver {
               if (mep_udep_d <= maxBLength - length) {
                 nextNode.setCubeState(mep, cp, udep);
                 nextNode.setDists(mep_cp_d, mep_udep_d);
-                nextNode.setTurnState(node, userTurn, state.turnList);
+                nextNode.setTurnState(node, userTurn, state.turnListB);
                 nextNode.length = length;
                 d++;
               } else
