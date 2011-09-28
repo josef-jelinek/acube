@@ -1,7 +1,7 @@
 package acube.pack;
 
 public final class CoderTools {
-  public static int sizeOfPermutation(final int n) { // n!
+  public static int permutationSize(final int n) { // n!
     int size = 1;
     for (int i = n; i > 1; i--)
       size *= i;
@@ -32,11 +32,11 @@ public final class CoderTools {
     return mask;
   }
 
-  public static int sizeOfPermutationOfUsed(final int[] values) {
-    return sizeOfPermutation(valuesUsed(values));
+  public static int usedPermutationSize(final int[] values) {
+    return permutationSize(valuesUsed(values));
   }
 
-  public static int encodePermutationOfUsed(final int[] values) {
+  public static int encodeUsedPermutation(final int[] values) {
     int value = 0;
     for (int i = 0; i < values.length - 1; i++)
       if (values[i] >= 0) {
@@ -76,5 +76,39 @@ public final class CoderTools {
   public static void conjugatePermutation(final int[] outValues, final int[] values, final int[] conjugatorValues) {
     for (int i = 0; i < outValues.length; i++)
       outValues[conjugatorValues[i]] = conjugatorValues[values[i]];
+  }
+
+  public static int totalOrientation(final int[] values, final int order) {
+    int total = 0;
+    for (final int value : values)
+      total += Math.max(0, value);
+    return total % order;
+  }
+
+  public static int permutationParity(final int[] values) {
+    int p = 0;
+    final int[] v = fillPermutationGaps(values);
+    final int[] t = new int[v.length];
+    for (int i = 0; i < v.length; i++)
+      if (t[i] == 1)
+        p++;
+      else
+        for (int j = v[i]; j != i; j = v[j])
+          t[j] = 1;
+    return p % 2;
+  }
+
+  private static int[] fillPermutationGaps(final int[] values) {
+    final int[] v = values.clone();
+    final int[] t = new int[v.length];
+    for (int i = 0; i < v.length; i++)
+      if (v[i] >= 0)
+        t[v[i]] = 1;
+    for (int i = 0; i < t.length; i++)
+      if (t[i] == 0)
+        for (int j = 0; j < v.length; j++)
+          if (v[j] < 0)
+            v[j] = i;
+    return v;
   }
 }

@@ -7,7 +7,14 @@ by Josef Jelinek <josef.jelinek@gmail.com>
 Forum for the project is located at
   http://www.speedsolving.com/forum/showthread.php?32153
 
-How to use aCube4 by Stachu Korick
+
+Changes in v4.0a5
+  - Added new shortcut symbols to cycle notation
+  - Added checking for valid configuration (parity and orientation checks)
+  - Joining phases A and B refined
+
+
+How to use aCube4 (thanks to Stachu Korick)
 
 Open it by cd-ing to the file and opening with
   java -jar acube.jar
@@ -30,7 +37,8 @@ or whatever teh filename is. You should see a bunch of blah blah text come up.
      [] is to detail pieces that you don't care about the positions of.
      [UF UL D*] means "I don't care about the permutation of UF, UL, and any
      of the bottom edges and corners." Use U* for all top pieces, UF* for all
-     top-front pieces (UFR UF UFL)
+     top-front pieces (UFR UF UFL); M, E, S, U, F, ... for all middle edges
+     in the corresponding layers
      UF? is to say "hey, I don't care about the orientation of this"
      With this, UF- means "flip this" and UFR+ means twist this clockwise,
      UFR- for counter-clockwise.

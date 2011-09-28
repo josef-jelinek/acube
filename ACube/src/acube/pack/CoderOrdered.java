@@ -11,14 +11,14 @@ final class CoderOrdered extends Coder {
 
   @Override
   public int encode(final int[] values) {
-    return Coder.unordered.encode(values) * CoderTools.sizeOfPermutationOfUsed(values) +
-        CoderTools.encodePermutationOfUsed(values);
+    return Coder.unordered.encode(values) * CoderTools.usedPermutationSize(values) +
+        CoderTools.encodeUsedPermutation(values);
   }
 
   @Override
   public void decode(final int[] arr, final int k, final int x) {
-    Coder.unordered.decode(arr, k, x / CoderTools.sizeOfPermutation(k));
-    CoderTools.decodePermutationToUsed(arr, x % CoderTools.sizeOfPermutation(k));
+    Coder.unordered.decode(arr, k, x / CoderTools.permutationSize(k));
+    CoderTools.decodePermutationToUsed(arr, x % CoderTools.permutationSize(k));
   }
 
   @Override

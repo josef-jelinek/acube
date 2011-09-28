@@ -23,7 +23,7 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String version = "4.0a4\n";
+  private static final String version = "4.0a5\n";
   private static boolean findAll = false;
   private static int maxLength = 20;
   private static Metric metric = Metric.FACE;
@@ -96,41 +96,41 @@ public final class ACube {
 
   private static boolean executeCommand(final Console c, String s) {
     s = s.trim();
-    if (s.equals("0"))
+    if (isOption(s, "0"))
       return false;
     try {
-      if (s.equals("1") || s.startsWith("1:")) {
-        String p = Tools.substringAfter(s, "1:").trim();
+      if (isOption(s, "1")) {
+        String p = getArg(s, "1");
         while (p.equals(""))
           p = readLine(c, "Enter cube state: ");
         cube = ReidParser.parse(p);
-      } else if (s.equals("2") || s.startsWith("2:")) {
-        String p = Tools.substringAfter(s, "2:").trim();
+      } else if (isOption(s, "2")) {
+        String p = getArg(s, "2");
         while (p.equals(""))
           p = readLine(c, "Enter cube state: ");
         cube = CycleParser.parse(p);
-      } else if (s.equals("3") || s.startsWith("3:")) {
-        String p = Tools.substringAfter(s, "3:").trim();
+      } else if (isOption(s, "3")) {
+        String p = getArg(s, "3");
         while (p.equals(""))
           p = readLine(c, "Enter turns: ");
         turns = TurnParser.parse(p);
-      } else if (s.equals("4") || s.startsWith("4:")) {
-        String p = Tools.substringAfter(s, "4:").trim();
+      } else if (isOption(s, "4")) {
+        String p = getArg(s, "4");
         while (p.equals(""))
           p = readLine(c, "Enter metric: ");
         for (final Metric m : Metric.values())
           if (p.equals(m.toString()))
             metric = m;
-      } else if (s.equals("5") || s.startsWith("5:")) {
-        String p = Tools.substringAfter(s, "5:").trim();
+      } else if (isOption(s, "5")) {
+        String p = getArg(s, "5");
         while (p.equals(""))
           p = readLine(c, "Enter number: ");
         maxLength = Math.max(1, Math.min(40, Integer.parseInt(p)));
-      } else if (s.equals("6"))
+      } else if (isOption(s, "6"))
         findAll = !findAll;
       else if (s.equals(""))
         cube.solve(metric, turns, maxLength, findAll, new ConsoleReporter(c));
-      else if (s.equals("9")) {
+      else if (isOption(s, "9")) {
         maxLength = 20;
         metric = Metric.FACE;
         turns = Turn.valueSet;
@@ -146,6 +146,14 @@ public final class ACube {
         System.err.printf("Error: %s\n", e.getMessage());
     }
     return true;
+  }
+
+  private static boolean isOption(final String s, final String opt) {
+    return s.equals(opt) || s.startsWith(opt + ":");
+  }
+
+  private static String getArg(final String s, final String opt) {
+    return Tools.substringAfter(s, opt + ":").trim();
   }
 
   private static String readLine(final Console c, final String message) {

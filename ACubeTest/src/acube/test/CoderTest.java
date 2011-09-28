@@ -15,13 +15,13 @@ public final class CoderTest {
   }
 
   @Test
-  public void test_coder_tools_size() {
-    assertEquals(40320, CoderTools.sizeOfPermutation(8));
-    assertEquals(1, CoderTools.sizeOfPermutation(0));
+  public void size() {
+    assertEquals(40320, CoderTools.permutationSize(8));
+    assertEquals(1, CoderTools.permutationSize(0));
   }
 
   @Test
-  public void test_coder_part_size() {
+  public void part_size() {
     assertEquals(40320 / 120 / 6, Coder.unordered.size(8, 3));
     assertEquals(40320 / 120, Coder.ordered.size(8, 3));
     assertEquals(1, Coder.unordered.size(4, 4));
@@ -33,7 +33,7 @@ public final class CoderTest {
   }
 
   @Test
-  public void test_coder_tools_unpack() {
+  public void unpack() {
     final int[] a = { 0, 0, 0, 0 };
     CoderTools.decodePermutationToUsed(a, 0);
     assertEquals("0 1 2 3", toString(a));
@@ -51,21 +51,21 @@ public final class CoderTest {
   }
 
   @Test
-  public void test_coder_tools_pack() {
+  public void pack() {
     final int[] a = { 1, 1, 1, 1 };
     for (int i = 0; i < 24; i++) {
       CoderTools.decodePermutationToUsed(a, i);
-      assertEquals(i, CoderTools.encodePermutationOfUsed(a));
+      assertEquals(i, CoderTools.encodeUsedPermutation(a));
     }
     final int[] b = { 0, 1, 0, 1 };
     for (int i = 0; i < 2; i++) {
       CoderTools.decodePermutationToUsed(b, i);
-      assertEquals(i, CoderTools.encodePermutationOfUsed(b));
+      assertEquals(i, CoderTools.encodeUsedPermutation(b));
     }
   }
 
   @Test
-  public void test_coder_part_unpack() {
+  public void coder_part_unpack() {
     final int[] arr = new int[4];
     Coder.unordered.decode(arr, 0, 0);
     assertEquals(". . . .", toStringU(arr));
@@ -90,7 +90,7 @@ public final class CoderTest {
   }
 
   @Test
-  public void test_coder_part_pack() {
+  public void coder_part_pack() {
     final int[] a = new int[4];
     for (int i = 0; i < 6; i++) {
       Coder.unordered.decode(a, 2, i);
@@ -102,5 +102,17 @@ public final class CoderTest {
       Coder.ordered.decode(a, 2, i);
       assertEquals(i, Coder.ordered.encode(a));
     }
+  }
+
+  @Test
+  public void parity() {
+    assertEquals(0, CoderTools.permutationParity(new int[] { 0, 1, 2 }));
+    assertEquals(1, CoderTools.permutationParity(new int[] { 0, 2, 1 }));
+    assertEquals(1, CoderTools.permutationParity(new int[] { 2, 1, 0 }));
+    assertEquals(0, CoderTools.permutationParity(new int[] { 1, 2, 0 }));
+    assertEquals(0, CoderTools.permutationParity(new int[] { -1, 1, 2 }));
+    assertEquals(1, CoderTools.permutationParity(new int[] { 0, 2, -1 }));
+    assertEquals(1, CoderTools.permutationParity(new int[] { -1, 1, 0 }));
+    assertEquals(0, CoderTools.permutationParity(new int[] { -1, 2, 0 }));
   }
 }

@@ -28,7 +28,11 @@ public class ReidParser {
       corners[i] = extractCorner(a[i + edges.length]);
       twists[i] = extractTwist(a[i + edges.length]);
     }
-    return new CubeState(corners, edges, twists, flips);
+    try {
+      return new CubeState(corners, edges, twists, flips);
+    } catch (final Exception e) {
+      throw new ParserError(e.getMessage());
+    }
   }
 
   private static void checkIfValidCorner(final String s) {

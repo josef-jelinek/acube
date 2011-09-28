@@ -1,6 +1,20 @@
 package acube.format;
 
+import static acube.Edge.BL;
+import static acube.Edge.BR;
+import static acube.Edge.DB;
+import static acube.Edge.DF;
+import static acube.Edge.DL;
+import static acube.Edge.DR;
+import static acube.Edge.FL;
+import static acube.Edge.FR;
+import static acube.Edge.UB;
+import static acube.Edge.UF;
+import static acube.Edge.UL;
+import static acube.Edge.UR;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import acube.Corner;
@@ -44,7 +58,11 @@ public class CycleParser {
       processFlipString(flips, flipMatcher.group(2), flipMatcher.group(1));
     removeCorners(corners, cornersIgnored);
     removeEdges(edges, edgesIgnored);
-    return new CubeState(corners, edges, twists, flips);
+    try {
+      return new CubeState(corners, edges, twists, flips);
+    } catch (final Exception e) {
+      throw new ParserError(e.getMessage());
+    }
   }
 
   private static void processCycle(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips,
@@ -115,6 +133,20 @@ public class CycleParser {
     flips[Edge.index(name)] = -1;
   }
 
+  private static final Map<String, EnumSet<Edge>> edgeSets = new HashMap<String, EnumSet<Edge>>() {
+    {
+      put("E", EnumSet.of(FR, FL, BR, BL));
+      put("S", EnumSet.of(UR, UL, DR, DL));
+      put("M", EnumSet.of(UF, UB, DF, DB));
+      put("U", EnumSet.of(UF, UB, UR, UL));
+      put("D", EnumSet.of(DF, DB, DR, DL));
+      put("F", EnumSet.of(UF, DF, FR, FL));
+      put("B", EnumSet.of(UB, DB, BR, BL));
+      put("L", EnumSet.of(UL, DL, FL, BL));
+      put("R", EnumSet.of(UR, DR, FR, BR));
+    }
+  };
+
   private static void processIgnoredPos(final EnumSet<Corner> corners, final EnumSet<Edge> edges, final String[] names) {
     for (final String name : names)
       if (name.endsWith("*"))
@@ -123,8 +155,10 @@ public class CycleParser {
         corners.add(Corner.corner(name));
       else if (Edge.exists(name))
         edges.add(Edge.edge(name));
+      else if (edgeSets.containsKey(name))
+        edges.addAll(edgeSets.get(name));
       else
-        throw new ParserError("Expected a corner or an edge: " + name);
+        throw new ParserError("Expected a corner, an edge, or a wildcard: " + name);
   }
 
   private static void processIgnorePosMask(final EnumSet<Corner> corners, final EnumSet<Edge> edges, final String name) {

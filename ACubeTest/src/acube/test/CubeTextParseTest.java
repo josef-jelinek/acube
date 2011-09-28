@@ -56,19 +56,6 @@ public final class CubeTextParseTest {
         }
   }
 
-  @Test
-  public void individual_piece_orientations() {
-    for (int i = 0; i < 20; i++) {
-      final String[] reid = ReidSource.split(" ");
-      for (int j = 1; j < reid[i].length(); j++) {
-        reid[i] = Tools.rotate(reid[i], 1);
-        final String stateReid = Tools.arrayToString(reid);
-        final String stateCycle = reid[i] + (j == 1 ? "+" : "-");
-        compare(stateReid, stateCycle);
-      }
-    }
-  }
-
   private void compare(final String stateReid, final String stateCycle) {
     assertEquals(stateReid, CycleParser.parse(stateCycle).reidString());
   }

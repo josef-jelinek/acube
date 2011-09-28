@@ -1,6 +1,7 @@
 package acube;
 
 import java.util.EnumSet;
+import acube.pack.CoderTools;
 import acube.prune.Prune;
 import acube.prune.PruneB;
 import acube.transform.Transform;
@@ -29,11 +30,24 @@ public final class CubeState {
   public TurnList turnListB;
 
   //public TurnList turnListB;
-  public CubeState(final Corner[] corners, final Edge[] edges, final int[] cornerTwists, final int[] edgeFlips) {
+  public CubeState(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips) {
     this.corners = corners;
     this.edges = edges;
-    twists = cornerTwists;
-    flips = edgeFlips;
+    this.twists = twists;
+    this.flips = flips;
+    checkIfValid();
+  }
+
+  private void checkIfValid() {
+    if (CoderTools.valuesUsed(twists) == twists.length && CoderTools.totalOrientation(twists, 3) != 0)
+      throw new RuntimeException("Unsolvable corner twists");
+    if (CoderTools.valuesUsed(flips) == flips.length && CoderTools.totalOrientation(flips, 2) != 0)
+      throw new RuntimeException("Unsolvable edge flips");
+    final int[] c = Corner.ordinals(corners);
+    final int[] e = Edge.ordinals(edges);
+    if (CoderTools.valuesUsed(c) >= c.length - 1 && CoderTools.valuesUsed(e) >= e.length - 1)
+      if (CoderTools.permutationParity(c) != CoderTools.permutationParity(e))
+        throw new RuntimeException("Unsolvable corner and edge swaps");
   }
 
   public String reidString() {
