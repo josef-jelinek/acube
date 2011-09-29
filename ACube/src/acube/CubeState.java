@@ -98,9 +98,10 @@ public final class CubeState {
     final EnumSet<Edge> knownFlipMask = getKnownOrientedMask(edges, flips, Edge.class);
     final int unknownTwisted = getUnknownOrientedCount(corners, twists);
     final int unknownFlipped = getUnknownOrientedCount(edges, flips);
-    transform = new Transform(cornerMask, edgeMask, knownTwistMask, knownFlipMask, unknownTwisted, unknownFlipped, r);
     r.tableCreationStarted("turn transformation and pruning table");
-    turnList = new TurnList(transform, turns, metric);
+    turnList = new TurnList(turns, metric, true);
+    turnListB = new TurnList(turns, metric, false);
+    transform = new Transform(cornerMask, edgeMask, knownTwistMask, knownFlipMask, unknownTwisted, unknownFlipped, r);
     twist = transform.get_twist(twists);
     flip = transform.get_flip(flips);
     cornerPos = transform.get_cornerPos(corners);
@@ -110,8 +111,6 @@ public final class CubeState {
     mEdgePosSet = transform.get_mEdgePosSet(edges);
     prune = new Prune(transform, r);
     transformB = new TransformB(cornerMask, edgeMask, r);
-    r.tableCreationStarted("turn transformation and pruning table B");
-    turnListB = new TurnList(transformB, turns, metric);
     pruneB = new PruneB(transformB, r);
     new Solver(findAll, false, metric, r).solve(this, maxLength);
   }

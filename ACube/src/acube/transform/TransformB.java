@@ -3,6 +3,7 @@ package acube.transform;
 import java.util.EnumSet;
 import acube.Corner;
 import acube.Edge;
+import acube.NullReporter;
 import acube.Reporter;
 
 public final class TransformB {
@@ -40,6 +41,14 @@ public final class TransformB {
     final DEdgePosB dEdgePosB = new DEdgePosB(edgeMask);
     dEdgePos_to_dEdgePosB = MoveKit.get_dEdgePos_to_dEdgePosB(dEdgePos, dEdgePosB);
     uEdgePosB_dEdgePosB_to_udEdgePosB = MoveKit.get_uEdgePosB_dEdgePosB_to_udEdgePosB(uEdgePosB, dEdgePosB, udEdgePosB);
+  }
+
+  public TransformB(final Reporter reporter) {
+    this(Corner.valueSet, Edge.valueSet, reporter);
+  }
+
+  public TransformB() {
+    this(new NullReporter());
   }
 
   public boolean is_mEdgePos_inB(final int mep) {

@@ -23,11 +23,11 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String version = "4.0a5\n";
+  private static final String version = "4.0a6\n";
   private static boolean findAll = false;
   private static int maxLength = 20;
   private static Metric metric = Metric.FACE;
-  private static EnumSet<Turn> turns = Turn.valueSet;
+  private static EnumSet<Turn> turns = Turn.essentialValueSet;
   private static final CubeState initCubeState = new CubeState(Corner.values(), Edge.values(), new int[8], new int[12]);
   private static CubeState cube = initCubeState;
 
@@ -82,7 +82,8 @@ public final class ACube {
     c.printf("#Current:\n%s\n", cube.reidString());
     c.printf("#Ignored positions: %s\n", cube.ignoredPositionsString());
     c.printf("#Ignored orientations: %s\n", cube.ignoredOrientationsString());
-    c.printf("#Turns:\n%s\n\n", TurnParser.toString(turns));
+    c.printf("#Enabled turns:\n%s\n", TurnParser.toString(turns));
+    c.printf("#Disabled turns:\n%s\n\n", TurnParser.toString(EnumSet.complementOf(turns)));
     c.printf("[1] Enter cube - standard notation\n");
     c.printf("[2] Enter cube - cycle notation\n");
     c.printf("[3] Enter allowed turns\n");

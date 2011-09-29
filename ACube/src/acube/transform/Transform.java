@@ -3,6 +3,7 @@ package acube.transform;
 import java.util.EnumSet;
 import acube.Corner;
 import acube.Edge;
+import acube.NullReporter;
 import acube.Reporter;
 
 public final class Transform {
@@ -51,6 +52,10 @@ public final class Transform {
 
   public Transform(final Reporter reporter) {
     this(Corner.valueSet, Edge.valueSet, Corner.valueSet, Edge.valueSet, 0, 0, reporter);
+  }
+
+  public Transform() {
+    this(new NullReporter());
   }
 
   public int get_twist(final int[] twists) {
