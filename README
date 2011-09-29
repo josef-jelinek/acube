@@ -7,6 +7,9 @@ by Josef Jelinek <josef.jelinek@gmail.com>
 Forum for the project is located at
   http://www.speedsolving.com/forum/showthread.php?32153
 
+Changes in v4.0a6
+  - Fixed turn pruning bug
+  - Caching a few tables to a local directory added
 
 Changes in v4.0a5
   - Added new shortcut symbols to cycle notation
