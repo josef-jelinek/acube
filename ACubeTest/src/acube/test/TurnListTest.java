@@ -20,33 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.util.EnumSet;
 import org.junit.Test;
-import acube.Reporter;
 import acube.Turn;
 import acube.TurnList;
-import acube.console.ConsoleReporter;
-import acube.transform.Transform;
 
 public final class TurnListTest {
   @Test
-  public void one_allowed_turn_allows_one_turn_3_times() {
-    final Reporter reporter = new ConsoleReporter();
-    final TurnList tl = new TurnList(new Transform(reporter), EnumSet.of(U1), FACE);
-    assertEquals(1, tl.getAvailableTurns(0).length);
-    assertEquals(U1, tl.getAvailableTurns(0)[0]);
-    final int stateU1 = tl.getNextState(0, U1);
-    assertEquals(1, tl.getAvailableTurns(stateU1).length);
-    assertEquals(U1, tl.getAvailableTurns(stateU1)[0]);
-    final int stateU1U1 = tl.getNextState(stateU1, U1);
-    assertEquals(1, tl.getAvailableTurns(stateU1U1).length);
-    assertEquals(U1, tl.getAvailableTurns(stateU1U1)[0]);
-    final int stateU1U1U1 = tl.getNextState(stateU1U1, U1);
-    assertEquals(0, tl.getAvailableTurns(stateU1U1U1).length);
-  }
-
-  @Test
   public void two_allowed_faces_filters_duplicities() {
-    final Reporter reporter = new ConsoleReporter();
-    final TurnList tl = new TurnList(new Transform(reporter), EnumSet.of(U1, U2, U3, R1, R2, R3), FACE);
+    final TurnList tl = new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3), FACE, true);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));
@@ -61,8 +41,7 @@ public final class TurnListTest {
 
   @Test
   public void all_allowed_turns_filters_duplicities() {
-    final Reporter reporter = new ConsoleReporter();
-    final TurnList tl = new TurnList(new Transform(reporter), Turn.valueSet, FACE);
+    final TurnList tl = new TurnList(Turn.valueSet, FACE, true);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));
@@ -71,8 +50,7 @@ public final class TurnListTest {
 
   @Test
   public void cube_rotations_change_filters() {
-    final Reporter reporter = new ConsoleReporter();
-    final TurnList tl = new TurnList(new Transform(reporter), Turn.valueSet, FACE);
+    final TurnList tl = new TurnList(Turn.valueSet, FACE, true);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), u1));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), u3));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, u1), u2));
@@ -81,9 +59,7 @@ public final class TurnListTest {
 
   @Test
   public void including_double_layer_turns() {
-    final Reporter reporter = new ConsoleReporter();
-    final Transform t = new Transform(reporter);
-    final TurnList tl = new TurnList(t, EnumSet.of(U1, U2, U3, R1, R2, R3, M1, M2, M3, r1, r2, r3), FACE);
+    final TurnList tl = new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3, M1, M2, M3, r1, r2, r3), FACE, true);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, R1), r1));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, R1), r3));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, r1), r2));
