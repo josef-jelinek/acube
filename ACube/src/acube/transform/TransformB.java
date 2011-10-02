@@ -5,8 +5,10 @@ import acube.Corner;
 import acube.Edge;
 import acube.NullReporter;
 import acube.Reporter;
+import acube.SymTransform;
+import acube.Turn;
 
-public final class TransformB {
+public final class TransformB implements CubeSpaceProvider {
   public final TurnTable mEdgePosTable;
   public final TurnTable udEdgePosTable;
   public final TurnTable cornerPosTable;
@@ -69,5 +71,57 @@ public final class TransformB {
 
   public int convert_uEdgePos_dEdgePos_to_udEdgePosB(final int uep, final int dep) {
     return uEdgePosB_dEdgePosB_to_udEdgePosB[uEdgePos_to_uEdgePosB[uep]][dEdgePos_to_dEdgePosB[dep]];
+  }
+
+  @Override
+  public CubeSpaceState startState(final int cubeSym) {
+    return FullState.start(cubeSym, this);
+  }
+
+  public static final class FullState extends CubeSpaceState {
+    private final TransformB t;
+    private final int cornerPos;
+    private final int mEdgePos;
+    private final int udEdgePos;
+
+    public static CubeSpaceState start(final int cubeSym, final TransformB t) {
+      final int cp = t.cornerPosTable.start(0);
+      final int mep = t.mEdgePosTable.start(0);
+      final int udep = t.udEdgePosTable.start(0);
+      return new FullState(cubeSym, cp, mep, udep, t);
+    }
+
+    private FullState(final int cs, final int cp, final int mep, final int udep, final TransformB t) {
+      super(cs);
+      cornerPos = cp;
+      mEdgePos = mep;
+      udEdgePos = udep;
+      this.t = t;
+    }
+
+    @Override
+    public CubeSpaceState turn(final Turn userTurn) {
+      final Turn cubeTurn = SymTransform.getTurn(userTurn, cubeSym);
+      if (!cubeTurn.isB())
+        return null;
+      final int cs = SymTransform.getSymmetry(cubeSym, userTurn);
+      final int cp = t.cornerPosTable.turn(cubeTurn, cornerPos);
+      final int mep = t.mEdgePosTable.turn(cubeTurn, mEdgePos);
+      final int udep = t.udEdgePosTable.turn(cubeTurn, udEdgePos);
+      return new FullState(cs, cp, mep, udep, t);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+      if (!(other instanceof FullState))
+        return false;
+      final FullState o = (FullState)other;
+      return cubeSym == o.cubeSym && cornerPos == o.cornerPos && mEdgePos == o.mEdgePos && udEdgePos == o.udEdgePos;
+    }
+
+    @Override
+    public int hashCode() {
+      return ((cubeSym * 113 + cornerPos) * 113 + mEdgePos) * 113 + udEdgePos;
+    }
   }
 }

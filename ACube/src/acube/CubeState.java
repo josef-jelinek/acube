@@ -99,8 +99,8 @@ public final class CubeState {
     final int unknownTwisted = getUnknownOrientedCount(corners, twists);
     final int unknownFlipped = getUnknownOrientedCount(edges, flips);
     r.tableCreationStarted("turn transformation and pruning table");
-    turnList = new TurnList(turns, metric, true);
-    turnListB = new TurnList(turns, metric, false);
+    turnList = new TurnList(turns, metric, TurnList.Phase.A);
+    turnListB = new TurnList(turns, metric, TurnList.Phase.B);
     transform = new Transform(cornerMask, edgeMask, knownTwistMask, knownFlipMask, unknownTwisted, unknownFlipped, r);
     twist = transform.get_twist(twists);
     flip = transform.get_flip(flips);

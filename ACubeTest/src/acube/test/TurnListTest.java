@@ -26,7 +26,7 @@ import acube.TurnList;
 public final class TurnListTest {
   @Test
   public void two_allowed_faces_filters_duplicities() {
-    final TurnList tl = new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3), FACE, true);
+    final TurnList tl = new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3), FACE, TurnList.Phase.A);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));
@@ -41,7 +41,7 @@ public final class TurnListTest {
 
   @Test
   public void all_allowed_turns_filters_duplicities() {
-    final TurnList tl = new TurnList(Turn.valueSet, FACE, true);
+    final TurnList tl = new TurnList(Turn.valueSet, FACE, TurnList.Phase.A);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), R2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), U2));
     assertTrue(-1 == tl.getNextState(tl.getNextState(tl.getNextState(0, U1), R2), R1));
@@ -50,7 +50,7 @@ public final class TurnListTest {
 
   @Test
   public void cube_rotations_change_filters() {
-    final TurnList tl = new TurnList(Turn.valueSet, FACE, true);
+    final TurnList tl = new TurnList(Turn.valueSet, FACE, TurnList.Phase.A);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, U1), u1));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, U1), u3));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, u1), u2));
@@ -59,7 +59,8 @@ public final class TurnListTest {
 
   @Test
   public void including_double_layer_turns() {
-    final TurnList tl = new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3, M1, M2, M3, r1, r2, r3), FACE, true);
+    final TurnList tl =
+        new TurnList(EnumSet.of(U1, U2, U3, R1, R2, R3, M1, M2, M3, r1, r2, r3), FACE, TurnList.Phase.A);
     assertTrue(-1 != tl.getNextState(tl.getNextState(0, R1), r1));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, R1), r3));
     assertTrue(-1 == tl.getNextState(tl.getNextState(0, r1), r2));

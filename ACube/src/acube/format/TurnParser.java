@@ -25,6 +25,6 @@ public class TurnParser {
     final StringBuilder s = new StringBuilder();
     for (final Turn t : turns)
       s.append(' ').append(t.toString());
-    return s.substring(1);
+    return s.length() == 0 ? "" : s.substring(1);
   }
 }

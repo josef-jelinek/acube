@@ -15,11 +15,17 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import acube.transform.CubeSpaceProvider;
+import acube.transform.CubeSpaceState;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
 public final class TurnList {
-  private static final int MAX_DEPTH = 2;
+  public static enum Phase {
+    A, B
+  }
+
+  private static final int MAX_DEPTH = 3;
   private static final Turn[] empty = {};
   private final Turn[][] turnListTable;
   private final int[][] nextStateTable;
@@ -37,20 +43,23 @@ public final class TurnList {
     return state < 0 ? empty : turnListTable[state];
   }
 
-  public TurnList(final EnumSet<Turn> turns, final Metric metric, final boolean phaseA) {
+  public TurnList(final EnumSet<Turn> turns, final Metric metric, final Phase phase) {
     final Turn[] sortedTurns = getSortedTurns(turns, metric);
     turnIndices = getTurnIndices(sortedTurns);
-    final String prefix = phaseA ? "ttA_" : "ttB_";
+    final String prefix = "tt" + phase.name() + maxDepth(sortedTurns) + "_";
     final int[][] table = load(prefix, sortedTurns);
     if (table != null)
       nextStateTable = table;
     else {
-      nextStateTable =
-          compactStateTable(phaseA ? createStateTable(new Transform(), sortedTurns) : createStateTable(
-              new TransformB(), sortedTurns));
+      final CubeSpaceProvider csp = phase == Phase.A ? new Transform() : new TransformB();
+      nextStateTable = compactStateTable(createStateTable(csp, sortedTurns));
       save(prefix, nextStateTable, sortedTurns);
     }
     turnListTable = getAllowedTurnsTable(nextStateTable, sortedTurns);
+  }
+
+  private static int maxDepth(final Turn[] turns) {
+    return turns.length > Turn.size / 2 ? MAX_DEPTH - 1 : MAX_DEPTH;
   }
 
   private static Turn[] getSortedTurns(final EnumSet<Turn> turns, final Metric metric) {
@@ -111,8 +120,8 @@ public final class TurnList {
       w.append(header.trim() + "\r\n");
       for (final int[] element : table) {
         String line = "";
-        for (int col = 0; col < element.length; col++)
-          line += element[col] < 0 ? "-\t" : element[col] + "\t";
+        for (final int element2 : element)
+          line += element2 < 0 ? "-\t" : element2 + "\t";
         w.append(line.trim() + "\r\n");
       }
     } catch (final Exception e) {} finally {
@@ -130,68 +139,31 @@ public final class TurnList {
     return CACHE_DIR + File.separator + prefix + name + ".txt";
   }
 
-  private static List<int[]> createStateTable(final Transform transform, final Turn[] turns) {
+  private static List<int[]> createStateTable(final CubeSpaceProvider csp, final Turn[] turns) {
     final List<State> states = new ArrayList<State>();
     final Map<State, Integer> stateIndices = new HashMap<State, Integer>();
     final List<int[]> table = new ArrayList<int[]>();
     for (int cubeSym = 0; cubeSym < SymTransform.SYM_COUNT; cubeSym++) {
-      final State state0 = State.start(cubeSym, transform);
+      final State state0 = State.start(cubeSym, csp);
       stateIndices.put(state0, states.size());
       states.add(state0);
     }
     for (int i = 0; i < states.size(); i++)
-      table.add(expandStateRow(states, i, stateIndices, transform, turns));
+      table.add(expandStateRow(states, states.get(i), stateIndices, turns));
     for (int i = 0; i < table.size(); i++)
-      linkStateRow(states.get(i), table.get(i), states, stateIndices, transform, turns);
+      linkStateRow(states.get(i), table.get(i), states, stateIndices, turns);
     return table;
   }
 
-  private static List<int[]> createStateTable(final TransformB transform, final Turn[] turns) {
-    final List<StateB> states = new ArrayList<StateB>();
-    final Map<StateB, Integer> stateIndices = new HashMap<StateB, Integer>();
-    final List<int[]> table = new ArrayList<int[]>();
-    for (int cubeSym = 0; cubeSym < SymTransform.SYM_COUNT; cubeSym++) {
-      final StateB state0 = StateB.start(cubeSym, transform);
-      stateIndices.put(state0, states.size());
-      states.add(state0);
-    }
-    for (int i = 0; i < states.size(); i++)
-      table.add(expandStateRow(states, i, stateIndices, transform, turns));
-    for (int i = 0; i < table.size(); i++)
-      linkStateRow(states.get(i), table.get(i), states, stateIndices, transform, turns);
-    return table;
-  }
-
-  private static int[] expandStateRow(final List<State> states, final int stateIndex,
-      final Map<State, Integer> stateIndices, final Transform transform, final Turn[] turns) {
-    final State state = states.get(stateIndex);
+  private static int[] expandStateRow(final List<State> states, final State state,
+      final Map<State, Integer> stateIndices, final Turn[] turns) {
     final int[] row = new int[turns.length];
     int ti = 0;
     for (final Turn turn : turns) {
-      final State newState = state.turn(turn, transform);
+      final State newState = state.turn(turn);
       if (newState == null || stateIndices.containsKey(newState))
         row[ti++] = -1;
-      else if (state.turns.length >= MAX_DEPTH)
-        row[ti++] = Integer.MAX_VALUE;
-      else {
-        row[ti++] = states.size();
-        stateIndices.put(newState, states.size());
-        states.add(newState);
-      }
-    }
-    return row;
-  }
-
-  private static int[] expandStateRow(final List<StateB> states, final int stateIndex,
-      final Map<StateB, Integer> stateIndices, final TransformB transform, final Turn[] turns) {
-    final StateB state = states.get(stateIndex);
-    final int[] row = new int[turns.length];
-    int ti = 0;
-    for (final Turn turn : turns) {
-      final StateB newState = state.turn(turn, transform);
-      if (newState == null || stateIndices.containsKey(newState))
-        row[ti++] = -1;
-      else if (state.turns.length >= MAX_DEPTH)
+      else if (state.turns.length >= maxDepth(turns))
         row[ti++] = Integer.MAX_VALUE;
       else {
         row[ti++] = states.size();
@@ -203,44 +175,20 @@ public final class TurnList {
   }
 
   private static void linkStateRow(final State state, final int[] row, final List<State> states,
-      final Map<State, Integer> stateIndices, final Transform transform, final Turn[] turns) {
+      final Map<State, Integer> stateIndices, final Turn[] turns) {
     final State state0 = states.get(state.startSym);
     int ti = 0;
     for (final Turn turn : turns)
       if (row[ti++] == Integer.MAX_VALUE)
-        row[ti - 1] = getTailStateIndex(turn, state, state0, states, stateIndices, transform);
-  }
-
-  private static void linkStateRow(final StateB state, final int[] row, final List<StateB> states,
-      final Map<StateB, Integer> stateIndices, final TransformB transform, final Turn[] turns) {
-    final StateB state0 = states.get(state.startSym);
-    int ti = 0;
-    for (final Turn turn : turns)
-      if (row[ti++] == Integer.MAX_VALUE)
-        row[ti - 1] = getTailStateIndex(turn, state, state0, states, stateIndices, transform);
+        row[ti - 1] = getTailStateIndex(turn, state, state0, states, stateIndices);
   }
 
   private static int getTailStateIndex(final Turn turn, final State state, final State state0,
-      final List<State> states, final Map<State, Integer> stateIndices, final Transform transform) {
+      final List<State> states, final Map<State, Integer> stateIndices) {
     for (int from = 1; from <= state.turns.length; from++) {
-      final State sTail = getTailState(state0, state.turns, from, transform);
+      final State sTail = getTailState(state0, state.turns, from);
       if (sTail != null) {
-        final State s = sTail.turn(turn, transform);
-        if (s != null && stateIndices.containsKey(s)) {
-          final int index = stateIndices.get(s);
-          return s.sameMove(states.get(index)) ? index : -1;
-        }
-      }
-    }
-    throw new RuntimeException("State should have been found, but was not");
-  }
-
-  private static int getTailStateIndex(final Turn turn, final StateB state, final StateB state0,
-      final List<StateB> states, final Map<StateB, Integer> stateIndices, final TransformB transform) {
-    for (int from = 1; from <= state.turns.length; from++) {
-      final StateB sTail = getTailState(state0, state.turns, from, transform);
-      if (sTail != null) {
-        final StateB s = sTail.turn(turn, transform);
+        final State s = sTail.turn(turn);
         if (s != null && stateIndices.containsKey(s)) {
           final int index = stateIndices.get(s);
           return s.sameMove(states.get(index)) ? index : -1;
@@ -250,15 +198,9 @@ public final class TurnList {
     return stateIndices.get(state0);
   }
 
-  private static State getTailState(State state, final Turn[] turns, final int from, final Transform transform) {
+  private static State getTailState(State state, final Turn[] turns, final int from) {
     for (int i = from; state != null && i < turns.length; i++)
-      state = state.turn(turns[i], transform);
-    return state;
-  }
-
-  private static StateB getTailState(StateB state, final Turn[] turns, final int from, final TransformB transform) {
-    for (int i = from; state != null && i < turns.length; i++)
-      state = state.turn(turns[i], transform);
+      state = state.turn(turns[i]);
     return state;
   }
 
@@ -334,56 +276,29 @@ public final class TurnList {
 
 final class State {
   final int startSym;
-  private final int cubeSym;
-  private final int twist;
-  private final int flip;
-  private final int cornerPos;
-  private final int mEdgePos;
-  private final int uEdgePos;
-  private final int dEdgePos;
-  public final Turn[] turns;
+  private final CubeSpaceState state;
+  final Turn[] turns;
 
-  public static State start(final int cubeSym, final Transform t) {
-    final int ct = t.twistTable.start(0);
-    final int ef = t.flipTable.start(0);
-    final int cp = t.cornerPosTable.start(0);
-    final int mep = t.mEdgePosTable.start(0);
-    final int uep = t.uEdgePosTable.start(0);
-    final int dep = t.dEdgePosTable.start(0);
-    return new State(cubeSym, cubeSym, ct, ef, cp, mep, uep, dep, new Turn[0]);
+  public static State start(final int cubeSym, final CubeSpaceProvider t) {
+    return new State(cubeSym, t.startState(cubeSym), new Turn[0]);
   }
 
-  private State(final int ss, final int cs, final int ct, final int ef, final int cp, final int mep, final int uep,
-      final int dep, final Turn[] seq) {
+  protected State(final int ss, final CubeSpaceState s, final Turn[] seq) {
     startSym = ss;
-    cubeSym = cs;
-    twist = ct;
-    flip = ef;
-    cornerPos = cp;
-    mEdgePos = mep;
-    uEdgePos = uep;
-    dEdgePos = dep;
+    state = s;
     turns = seq;
   }
 
-  private State(final int ss, final int cs, final int ct, final int ef, final int cp, final int mep, final int uep,
-      final int dep, final Turn[] seq, final Turn t) {
-    this(ss, cs, ct, ef, cp, mep, uep, dep, new Turn[seq.length + 1]);
+  private State(final int ss, final CubeSpaceState s, final Turn[] seq, final Turn t) {
+    this(ss, s, new Turn[seq.length + 1]);
     for (int i = 0; i < seq.length; i++)
       turns[i] = seq[i];
     turns[seq.length] = t;
   }
 
-  public State turn(final Turn userTurn, final Transform t) {
-    final Turn cubeTurn = SymTransform.getTurn(userTurn, cubeSym);
-    final int cs = SymTransform.getSymmetry(cubeSym, userTurn);
-    final int ct = t.twistTable.turn(cubeTurn, twist);
-    final int ef = t.flipTable.turn(cubeTurn, flip);
-    final int cp = t.cornerPosTable.turn(cubeTurn, cornerPos);
-    final int mep = t.mEdgePosTable.turn(cubeTurn, mEdgePos);
-    final int uep = t.uEdgePosTable.turn(cubeTurn, uEdgePos);
-    final int dep = t.dEdgePosTable.turn(cubeTurn, dEdgePos);
-    return new State(startSym, cs, ct, ef, cp, mep, uep, dep, turns, userTurn);
+  public State turn(final Turn userTurn) {
+    final CubeSpaceState s = state.turn(userTurn);
+    return s == null ? null : new State(startSym, s, turns, userTurn);
   }
 
   public boolean sameMove(final State s) {
@@ -400,79 +315,11 @@ final class State {
     if (!(other instanceof State))
       return false;
     final State o = (State)other;
-    return startSym == o.startSym && cubeSym == o.cubeSym && twist == o.twist && flip == o.flip &&
-        cornerPos == o.cornerPos && mEdgePos == o.mEdgePos && uEdgePos == o.uEdgePos && dEdgePos == o.dEdgePos;
+    return startSym == o.startSym && state.equals(o.state);
   }
 
   @Override
   public int hashCode() {
-    final int h = (((startSym * 113 + cubeSym) * 113 + twist) * 113 + flip) * 113 + cornerPos;
-    return ((h * 113 + mEdgePos) * 113 + uEdgePos) * 113 + dEdgePos;
-  }
-}
-
-final class StateB {
-  final int startSym;
-  private final int cubeSym;
-  private final int cornerPos;
-  private final int mEdgePos;
-  private final int udEdgePos;
-  public final Turn[] turns;
-
-  public static StateB start(final int cubeSym, final TransformB t) {
-    final int cp = t.cornerPosTable.start(0);
-    final int mep = t.mEdgePosTable.start(0);
-    final int udep = t.udEdgePosTable.start(0);
-    return new StateB(cubeSym, cubeSym, cp, mep, udep, new Turn[0]);
-  }
-
-  private StateB(final int ss, final int cs, final int cp, final int mep, final int udep, final Turn[] seq) {
-    startSym = ss;
-    cubeSym = cs;
-    cornerPos = cp;
-    mEdgePos = mep;
-    udEdgePos = udep;
-    turns = seq;
-  }
-
-  private StateB(final int ss, final int cs, final int cp, final int mep, final int udep, final Turn[] seq, final Turn t) {
-    this(ss, cs, cp, mep, udep, new Turn[seq.length + 1]);
-    for (int i = 0; i < seq.length; i++)
-      turns[i] = seq[i];
-    turns[seq.length] = t;
-  }
-
-  public StateB turn(final Turn userTurn, final TransformB t) {
-    final Turn cubeTurn = SymTransform.getTurn(userTurn, cubeSym);
-    if (!cubeTurn.isB())
-      return null;
-    final int cs = SymTransform.getSymmetry(cubeSym, userTurn);
-    final int cp = t.cornerPosTable.turn(cubeTurn, cornerPos);
-    final int mep = t.mEdgePosTable.turn(cubeTurn, mEdgePos);
-    final int udep = t.udEdgePosTable.turn(cubeTurn, udEdgePos);
-    return new StateB(startSym, cs, cp, mep, udep, turns, userTurn);
-  }
-
-  public boolean sameMove(final StateB s) {
-    if (turns.length != s.turns.length)
-      return false;
-    for (int i = 0; i < turns.length; i++)
-      if (turns[i] != s.turns[i])
-        return false;
-    return true;
-  }
-
-  @Override
-  public boolean equals(final Object other) {
-    if (!(other instanceof StateB))
-      return false;
-    final StateB o = (StateB)other;
-    return startSym == o.startSym && cubeSym == o.cubeSym && cornerPos == o.cornerPos && mEdgePos == o.mEdgePos &&
-        udEdgePos == o.udEdgePos;
-  }
-
-  @Override
-  public int hashCode() {
-    return (((startSym * 113 + cubeSym) * 113 + cornerPos) * 113 + mEdgePos) * 113 + udEdgePos;
+    return startSym * 113 + state.hashCode();
   }
 }
