@@ -1,9 +1,5 @@
 package acube.test;
 
-import static acube.Corner.DBR;
-import static acube.Corner.DFL;
-import static acube.Corner.DLB;
-import static acube.Corner.DRF;
 import static acube.Corner.UBL;
 import static acube.Corner.UFR;
 import static acube.Corner.ULF;
@@ -50,7 +46,7 @@ import acube.Corner;
 import acube.Edge;
 import acube.Turn;
 import acube.console.ConsoleReporter;
-import acube.transform.MoveTableComposed;
+import acube.transform.MoveTable2in1;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 import acube.transform.TurnTable;
@@ -111,7 +107,7 @@ public final class TransformTest {
   @Test
   public void table_composed_move() {
     final Transform t = new Transform(cornerMask, edgeMask, twistMask, flipMask, 4, 2, new ConsoleReporter());
-    final MoveTableComposed move = new MoveTableComposed(t.mEdgePosSetTable, t.dEdgePosTable);
+    final MoveTable2in1 move = new MoveTable2in1(t.mEdgePosSetTable, t.dEdgePosTable);
     assertEquals(move.stateSize(), t.mEdgePosSetTable.stateSize() * t.dEdgePosTable.stateSize());
     assertEquals(move.startSize(), t.mEdgePosSetTable.startSize() * t.dEdgePosTable.startSize());
     for (int i = 0; i < move.stateSize(); i++)
@@ -230,16 +226,5 @@ public final class TransformTest {
         dInB++;
     assertEquals(12 * 11, dep.stateSize());
     assertEquals(8 * 7, dInB);
-  }
-
-  @Test
-  public void setup_from_array() {
-    final Transform t = new Transform(Corner.valueSet, Edge.valueSet, twistMask, flipMask, 0, 0, new ConsoleReporter());
-    assertEquals("0 1 2 3 4 5 6 7", t.cornerPosToString(t.get_cornerPos(Corner.values())));
-    assertEquals("7 6 5 4 3 2 0 1",
-        t.cornerPosToString(t.get_cornerPos(new Corner[] { DBR, DLB, DFL, DRF, ULF, UBL, UFR, URB, })));
-    assertEquals(". . . . . . . . 0 1 2 3", t.mEdgePosToString(t.get_mEdgePos(Edge.values())));
-    assertEquals("0 1 2 3 . . . . . . . .", t.uEdgePosToString(t.get_uEdgePos(Edge.values())));
-    assertEquals(". . . . 0 1 2 3 . . . .", t.dEdgePosToString(t.get_dEdgePos(Edge.values())));
   }
 }

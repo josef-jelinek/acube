@@ -3,16 +3,16 @@ package acube.prune;
 import java.util.EnumSet;
 import acube.Reporter;
 import acube.Turn;
-import acube.transform.MoveTableComposed;
+import acube.transform.MoveTable2in1;
 import acube.transform.Transform;
 
 public class PruneCorners {
   private final PruneTable twist_cornerPos;
-  private final MoveTableComposed moveTable_twist_cornerPos;
+  private final MoveTable2in1 moveTable_twist_cornerPos;
 
   public PruneCorners(final Transform transform, final Reporter reporter) {
     final EnumSet<Turn> turns = Turn.essentialValueSet;
-    moveTable_twist_cornerPos = new MoveTableComposed(transform.twistTable, transform.cornerPosTable);
+    moveTable_twist_cornerPos = new MoveTable2in1(transform.twistTable, transform.cornerPosTable);
     reporter.tableCreationStarted("pruning table corner orientation + corner position)");
     twist_cornerPos = new PruneTable(moveTable_twist_cornerPos, turns);
   }

@@ -3,7 +3,9 @@ package acube;
 import java.util.EnumSet;
 import acube.pack.CoderTools;
 import acube.prune.Prune;
+import acube.prune.PruneA;
 import acube.prune.PruneB;
+import acube.transform.EncodedCube;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
@@ -12,33 +14,16 @@ public final class CubeState {
   private final Edge[] edges;
   private final int[] twists;
   private final int[] flips;
-  public int twist;
-  public int flip;
-  public int twistFull;
-  public int flipFull;
-  public int mEdgePosSet;
-  public int cornerPos;
-  public int mEdgePos;
-  public int uEdgePos;
-  public int dEdgePos;
-  public int symmetry = SymTransform.I;
-  public Transform transform;
-  public TransformB transformB;
-  public Prune prune;
-  public PruneB pruneB;
-  public TurnList turnList;
-  public TurnList turnListB;
 
-  //public TurnList turnListB;
   public CubeState(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips) {
     this.corners = corners;
     this.edges = edges;
     this.twists = twists;
     this.flips = flips;
-    checkIfValid();
+    checkValidity();
   }
 
-  private void checkIfValid() {
+  private void checkValidity() {
     if (CoderTools.valuesUsed(twists) == twists.length && CoderTools.totalOrientation(twists, 3) != 0)
       throw new RuntimeException("Unsolvable corner twists");
     if (CoderTools.valuesUsed(flips) == flips.length && CoderTools.totalOrientation(flips, 2) != 0)
@@ -48,6 +33,50 @@ public final class CubeState {
     if (CoderTools.valuesUsed(c) >= c.length - 1 && CoderTools.valuesUsed(e) >= e.length - 1)
       if (CoderTools.permutationParity(c) != CoderTools.permutationParity(e))
         throw new RuntimeException("Unsolvable corner and edge swaps");
+  }
+
+  public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
+      final Reporter r) {
+    r.solvingStarted(reidString());
+    final EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
+    final EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
+    final EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
+    final EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
+    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
+    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
+    final TwoPhaseSolver solver = new TwoPhaseSolver(turns, metric, r);
+    solver.setFindAll(findAll);
+    solver.setMaxSearchLength(maxLength);
+    final Transform transform =
+        new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
+    final PruneA pruneA = new PruneA(transform, r);
+    final TransformB transformB = new TransformB(knownCorners, knownEdges, r);
+    final PruneB pruneB = new PruneB(transformB, r);
+    solver.setTables(transform, transformB, pruneA, pruneB);
+    solver.solve(encodeCube(transform));
+  }
+
+  public void solveOptimal(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
+      final Reporter r) {
+    r.solvingStarted(reidString());
+    final EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
+    final EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
+    final EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
+    final EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
+    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
+    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
+    final OptimalSolver solver = new OptimalSolver(turns, metric, r);
+    solver.setFindAll(findAll);
+    solver.setMaxSearchLength(maxLength);
+    final Transform transform =
+        new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
+    final Prune prune = new Prune(transform, r);
+    solver.setTables(transform, prune);
+    solver.solve(encodeCube(transform));
+  }
+
+  private EncodedCube encodeCube(final Transform transform) {
+    return transform.encode(SymTransform.I, corners, edges, twists, flips);
   }
 
   public String reidString() {
@@ -87,32 +116,6 @@ public final class CubeState {
       s.append(" }");
     }
     return s.toString();
-  }
-
-  public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
-      final Reporter r) {
-    r.solvingStarted(reidString());
-    final EnumSet<Corner> cornerMask = getKnownMask(corners, Corner.class);
-    final EnumSet<Edge> edgeMask = getKnownMask(edges, Edge.class);
-    final EnumSet<Corner> knownTwistMask = getKnownOrientedMask(corners, twists, Corner.class);
-    final EnumSet<Edge> knownFlipMask = getKnownOrientedMask(edges, flips, Edge.class);
-    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
-    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
-    r.tableCreationStarted("turn transformation and pruning table");
-    turnList = new TurnList(turns, metric, TurnList.Phase.A);
-    turnListB = new TurnList(turns, metric, TurnList.Phase.B);
-    transform = new Transform(cornerMask, edgeMask, knownTwistMask, knownFlipMask, unknownTwisted, unknownFlipped, r);
-    twist = transform.get_twist(twists);
-    flip = transform.get_flip(flips);
-    cornerPos = transform.get_cornerPos(corners);
-    mEdgePos = transform.get_mEdgePos(edges);
-    uEdgePos = transform.get_uEdgePos(edges);
-    dEdgePos = transform.get_dEdgePos(edges);
-    mEdgePosSet = transform.get_mEdgePosSet(edges);
-    prune = new Prune(transform, r);
-    transformB = new TransformB(cornerMask, edgeMask, r);
-    pruneB = new PruneB(transformB, r);
-    new Solver(findAll, false, metric, r).solve(this, maxLength);
   }
 
   private <T extends Enum<T>> EnumSet<T> getKnownMask(final T[] a, final Class<T> type) {

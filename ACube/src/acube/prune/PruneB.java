@@ -4,19 +4,19 @@ import static java.lang.Math.max;
 import java.util.EnumSet;
 import acube.Reporter;
 import acube.Turn;
-import acube.transform.MoveTableComposed;
+import acube.transform.MoveTable2in1;
 import acube.transform.TransformB;
 
 public final class PruneB {
   private final PruneTable mEdgePos_cornerPos;
   private final PruneTable mEdgePos_oEdgePos;
-  private final MoveTableComposed moveTable_mEdgePos_cornerPos;
-  private final MoveTableComposed moveTable_mEdgePos_udEdgePos;
+  private final MoveTable2in1 moveTable_mEdgePos_cornerPos;
+  private final MoveTable2in1 moveTable_mEdgePos_udEdgePos;
 
   public PruneB(final TransformB transform, final Reporter reporter) {
     final EnumSet<Turn> turns = Turn.essentialValueSetB;
-    moveTable_mEdgePos_cornerPos = new MoveTableComposed(transform.mEdgePosTable, transform.cornerPosTable);
-    moveTable_mEdgePos_udEdgePos = new MoveTableComposed(transform.mEdgePosTable, transform.udEdgePosTable);
+    moveTable_mEdgePos_cornerPos = new MoveTable2in1(transform.mEdgePosTable, transform.cornerPosTable);
+    moveTable_mEdgePos_udEdgePos = new MoveTable2in1(transform.mEdgePosTable, transform.udEdgePosTable);
     reporter.tableCreationStarted("pruning table (middle edge position + corner position)");
     mEdgePos_cornerPos = new PruneTable(moveTable_mEdgePos_cornerPos, turns);
     reporter.tableCreationStarted("pruning table (middle edge position + U/D edge position)");

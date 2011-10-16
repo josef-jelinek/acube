@@ -78,8 +78,9 @@ public final class TransformB implements CubeSpaceProvider {
     return FullState.start(cubeSym, this);
   }
 
-  public static final class FullState extends CubeSpaceState {
+  public static final class FullState implements CubeSpaceState {
     private final TransformB t;
+    private final int cubeSym;
     private final int cornerPos;
     private final int mEdgePos;
     private final int udEdgePos;
@@ -92,7 +93,7 @@ public final class TransformB implements CubeSpaceProvider {
     }
 
     private FullState(final int cs, final int cp, final int mep, final int udep, final TransformB t) {
-      super(cs);
+      cubeSym = cs;
       cornerPos = cp;
       mEdgePos = mep;
       udEdgePos = udep;

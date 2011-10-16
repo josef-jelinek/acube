@@ -1,5 +1,7 @@
 package acube.console;
 
+import static java.lang.System.err;
+import static java.lang.System.out;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.FileNotFoundException;
@@ -23,8 +25,9 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String version = "4.0a6\n";
+  private static final String version = "4.0a7\n";
   private static boolean findAll = false;
+  private static boolean findOptimal = false;
   private static int maxLength = 20;
   private static Metric metric = Metric.FACE;
   private static EnumSet<Turn> turns = Turn.essentialValueSet;
@@ -54,12 +57,12 @@ public final class ACube {
   private static void fileInput(final String fileName) {
     try {
       final BufferedReader file = new BufferedReader(new FileReader(fileName));
-      System.out.printf("ACube %s\nFile input.\n", version);
+      out.printf("ACube %s\nFile input.\n", version);
       while (processFileInput(file)) {}
     } catch (final FileNotFoundException e) {
-      System.err.println("File \"" + fileName + "\" not found.");
+      err.println("File \"" + fileName + "\" not found.");
     } catch (final IOException e) {
-      System.err.println(e.getMessage());
+      err.println(e.getMessage());
     }
   }
 
@@ -68,10 +71,10 @@ public final class ACube {
       final String line = file.readLine();
       if (line == null)
         return false;
-      System.out.println("Input line: " + line);
+      out.println("Input line: " + line);
       return line.startsWith("#") || executeCommand(null, line);
     } catch (final Problem e) {
-      System.err.printf("Problem: %s\n", e.getMessage());
+      err.printf("Problem: %s\n", e.getMessage());
       return false;
     }
   }
@@ -80,19 +83,24 @@ public final class ACube {
     c.printf("----------------------------\n");
     c.printf("#Template:\nUF UR UB UL DF DR DB DL FR FL BR BL UFR URB UBL ULF DRF DFL DLB DBR\n");
     c.printf("#Current:\n%s\n", cube.reidString());
-    c.printf("#Ignored positions: %s\n", cube.ignoredPositionsString());
-    c.printf("#Ignored orientations: %s\n", cube.ignoredOrientationsString());
-    c.printf("#Enabled turns:\n%s\n", TurnParser.toString(turns));
-    c.printf("#Disabled turns:\n%s\n\n", TurnParser.toString(EnumSet.complementOf(turns)));
+    c.printf("#Ignored positions: %s\n", noneIfEmpty(cube.ignoredPositionsString()));
+    c.printf("#Ignored orientations: %s\n", noneIfEmpty(cube.ignoredOrientationsString()));
+    c.printf("#Enabled turns:\n%s\n", noneIfEmpty(TurnParser.toString(turns)));
+    c.printf("#Disabled turns:\n%s\n\n", noneIfEmpty(TurnParser.toString(EnumSet.complementOf(turns))));
     c.printf("[1] Enter cube - standard notation\n");
     c.printf("[2] Enter cube - cycle notation\n");
     c.printf("[3] Enter allowed turns\n");
     c.printf("[4] Set metric to %s (%s)\n", Metric.nameString, metric.toString());
     c.printf("[5] Maximum length (%d)\n", maxLength);
     c.printf("[6] Find all sequences (%s)\n", findAll ? "yes" : "no");
+    c.printf("[7] Use optimal solver (%s)\n", findOptimal ? "yes" : "no");
     c.printf("[ ] Solve\n");
     c.printf("[9] Reset\n");
     c.printf("[0] Exit\n");
+  }
+
+  private static String noneIfEmpty(final String s) {
+    return "".equals(s) ? "none" : s;
   }
 
   private static boolean executeCommand(final Console c, String s) {
@@ -129,7 +137,12 @@ public final class ACube {
         maxLength = Math.max(1, Math.min(40, Integer.parseInt(p)));
       } else if (isOption(s, "6"))
         findAll = !findAll;
+      else if (isOption(s, "7"))
+        findOptimal = !findOptimal;
       else if (s.equals(""))
+        if (findOptimal)
+          cube.solveOptimal(metric, turns, maxLength, findAll, new ConsoleReporter(c));
+        else
         cube.solve(metric, turns, maxLength, findAll, new ConsoleReporter(c));
       else if (isOption(s, "9")) {
         maxLength = 20;
@@ -139,12 +152,12 @@ public final class ACube {
       } else if (c != null)
         c.printf("Unrecognized command\n");
       else
-        System.err.printf("Unrecognized command\n");
+        err.printf("Unrecognized command\n");
     } catch (final ParserError e) {
       if (c != null)
         c.printf("Error: %s\n", e.getMessage());
       else
-        System.err.printf("Error: %s\n", e.getMessage());
+        err.printf("Error: %s\n", e.getMessage());
     }
     return true;
   }

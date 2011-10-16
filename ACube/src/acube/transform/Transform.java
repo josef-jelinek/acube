@@ -60,62 +60,25 @@ public final class Transform implements CubeSpaceProvider {
     this(new NullReporter());
   }
 
-  public int get_twist(final int[] twists) {
-    twist.setup(twists);
-    return twist.pack();
-  }
-
-  public int get_flip(final int[] flips) {
-    flip.setup(flips);
-    return flip.pack();
-  }
-
-  public int get_cornerPos(final Corner[] corners) {
-    cornerPos.setup(corners);
-    return cornerPos.pack();
-  }
-
-  public int get_mEdgePos(final Edge[] edges) {
-    mEdgePos.setup(edges);
-    return mEdgePos.pack();
-  }
-
-  public int get_uEdgePos(final Edge[] edges) {
-    uEdgePos.setup(edges);
-    return uEdgePos.pack();
-  }
-
-  public int get_dEdgePos(final Edge[] edges) {
-    dEdgePos.setup(edges);
-    return dEdgePos.pack();
-  }
-
-  public int get_mEdgePosSet(final Edge[] edges) {
-    return convert_mEdgePos_to_mEdgePosSet(get_mEdgePos(edges));
-  }
-
-  private int convert_mEdgePos_to_mEdgePosSet(final int mep) {
+  public int mEdgePos_to_mEdgePosSet(final int mep) {
     return mEdgePos_to_mEdgePosSet[mep];
   }
 
-  public String cornerPosToString(final int cp) {
-    cornerPos.unpack(cp);
-    return cornerPos.toString();
-  }
-
-  public String mEdgePosToString(final int mep) {
-    mEdgePos.unpack(mep);
-    return mEdgePos.toString();
-  }
-
-  public String uEdgePosToString(final int uep) {
-    uEdgePos.unpack(uep);
-    return uEdgePos.toString();
-  }
-
-  public String dEdgePosToString(final int dep) {
-    dEdgePos.unpack(dep);
-    return dEdgePos.toString();
+  public EncodedCube encode(final int cubeSym, final Corner[] corners, final Edge[] edges, final int[] twists,
+      final int[] flips) {
+    twist.setup(twists);
+    final int ct = twist.pack();
+    flip.setup(flips);
+    final int ef = flip.pack();
+    cornerPos.setup(corners);
+    final int cp = cornerPos.pack();
+    mEdgePos.setup(edges);
+    final int mep = mEdgePos.pack();
+    uEdgePos.setup(edges);
+    final int uep = uEdgePos.pack();
+    dEdgePos.setup(edges);
+    final int dep = dEdgePos.pack();
+    return new EncodedCube(cubeSym, ct, ef, cp, mep, uep, dep);
   }
 
   @Override
@@ -123,14 +86,9 @@ public final class Transform implements CubeSpaceProvider {
     return FullState.start(cubeSym, this);
   }
 
-  private static final class FullState extends CubeSpaceState {
+  private static final class FullState implements CubeSpaceState {
     private final Transform t;
-    private final int twist;
-    private final int flip;
-    private final int cornerPos;
-    private final int mEdgePos;
-    private final int uEdgePos;
-    private final int dEdgePos;
+    private final EncodedCube cube;
 
     public static CubeSpaceState start(final int cubeSym, final Transform t) {
       final int ct = t.twistTable.start(0);
@@ -139,47 +97,37 @@ public final class Transform implements CubeSpaceProvider {
       final int mep = t.mEdgePosTable.start(0);
       final int uep = t.uEdgePosTable.start(0);
       final int dep = t.dEdgePosTable.start(0);
-      return new FullState(cubeSym, ct, ef, cp, mep, uep, dep, t);
+      return new FullState(new EncodedCube(cubeSym, ct, ef, cp, mep, uep, dep), t);
     }
 
-    private FullState(final int cs, final int ct, final int ef, final int cp, final int mep, final int uep,
-        final int dep, final Transform t) {
-      super(cs);
-      twist = ct;
-      flip = ef;
-      cornerPos = cp;
-      mEdgePos = mep;
-      uEdgePos = uep;
-      dEdgePos = dep;
+    private FullState(final EncodedCube c, final Transform t) {
+      cube = c;
       this.t = t;
     }
 
     @Override
     public CubeSpaceState turn(final Turn userTurn) {
-      final Turn cubeTurn = SymTransform.getTurn(userTurn, cubeSym);
-      final int cs = SymTransform.getSymmetry(cubeSym, userTurn);
-      final int ct = t.twistTable.turn(cubeTurn, twist);
-      final int ef = t.flipTable.turn(cubeTurn, flip);
-      final int cp = t.cornerPosTable.turn(cubeTurn, cornerPos);
-      final int mep = t.mEdgePosTable.turn(cubeTurn, mEdgePos);
-      final int uep = t.uEdgePosTable.turn(cubeTurn, uEdgePos);
-      final int dep = t.dEdgePosTable.turn(cubeTurn, dEdgePos);
-      return new FullState(cs, ct, ef, cp, mep, uep, dep, t);
+      final Turn cubeTurn = SymTransform.getTurn(userTurn, cube.symmetry);
+      final int cs = SymTransform.getSymmetry(cube.symmetry, userTurn);
+      final int ct = t.twistTable.turn(cubeTurn, cube.twist);
+      final int ef = t.flipTable.turn(cubeTurn, cube.flip);
+      final int cp = t.cornerPosTable.turn(cubeTurn, cube.cornerPos);
+      final int mep = t.mEdgePosTable.turn(cubeTurn, cube.mEdgePos);
+      final int uep = t.uEdgePosTable.turn(cubeTurn, cube.uEdgePos);
+      final int dep = t.dEdgePosTable.turn(cubeTurn, cube.dEdgePos);
+      return new FullState(new EncodedCube(cs, ct, ef, cp, mep, uep, dep), t);
     }
 
     @Override
     public boolean equals(final Object other) {
       if (!(other instanceof FullState))
         return false;
-      final FullState o = (FullState)other;
-      return cubeSym == o.cubeSym && twist == o.twist && flip == o.flip && cornerPos == o.cornerPos &&
-          mEdgePos == o.mEdgePos && uEdgePos == o.uEdgePos && dEdgePos == o.dEdgePos;
+      return cube.equals(((FullState)other).cube);
     }
 
     @Override
     public int hashCode() {
-      final int h = ((cubeSym * 113 + twist) * 113 + flip) * 113 + cornerPos;
-      return ((h * 113 + mEdgePos) * 113 + uEdgePos) * 113 + dEdgePos;
+      return cube.hashCode();
     }
   }
 }

@@ -4,89 +4,155 @@ import static java.lang.Math.max;
 import java.util.EnumSet;
 import acube.Reporter;
 import acube.Turn;
-import acube.transform.MoveTableComposed;
+import acube.transform.MoveTable2in1;
 import acube.transform.Transform;
+import acube.transform.TurnTable;
 
 public final class Prune {
+  private static final int MAX_TABLE_SIZE = 100000000;
   private final PruneTable twist;
   private final PruneTable flip;
+  private final PruneTable cornerPos;
+  private final PruneTable mEdgePos;
+  private final PruneTable uEdgePos;
+  private final PruneTable dEdgePos;
   private final PruneTable twist_flip;
-  private final PruneTable twist_mEdgePosSet;
-  private final PruneTable flip_mEdgePosSet;
-  private final MoveTableComposed moveTable_twist_flip;
-  private final MoveTableComposed moveTable_twist_mEdgePosSet;
-  private final MoveTableComposed moveTable_flip_mEdgePosSet;
+  private final PruneTable twist_cornerPos;
+  private final PruneTable flip_cornerPos;
+  private final MoveTable2in1 merged_twist_flip;
+  private final MoveTable2in1 merged_twist_cornerPos;
+  private final MoveTable2in1 merged_flip_cornerPos;
 
   public Prune(final Transform transform, final Reporter reporter) {
     final EnumSet<Turn> turns = Turn.essentialValueSet;
     reporter.tableCreationStarted("pruning table (corner twist)");
-    twist = new PruneTable(transform.twistTable, turns);
+    twist = createPruneTable(transform.twistTable, turns);
     reporter.tableCreationStarted("pruning table (edge flip)");
-    flip = new PruneTable(transform.flipTable, turns);
-    final boolean combine_twist_flip = twist.stateSize() * flip.stateSize() <= 100000000;
-    moveTable_twist_flip = combine_twist_flip ? new MoveTableComposed(transform.twistTable, transform.flipTable) : null;
-    moveTable_twist_mEdgePosSet = new MoveTableComposed(transform.twistTable, transform.mEdgePosSetTable);
-    moveTable_flip_mEdgePosSet = new MoveTableComposed(transform.flipTable, transform.mEdgePosSetTable);
+    flip = createPruneTable(transform.flipTable, turns);
+    reporter.tableCreationStarted("pruning table (corner position)");
+    cornerPos = createPruneTable(transform.cornerPosTable, turns);
+    reporter.tableCreationStarted("pruning table (E edge position)");
+    mEdgePos = createPruneTable(transform.mEdgePosTable, turns);
+    reporter.tableCreationStarted("pruning table (U edge position)");
+    uEdgePos = createPruneTable(transform.uEdgePosTable, turns);
+    reporter.tableCreationStarted("pruning table (D edge position)");
+    dEdgePos = createPruneTable(transform.dEdgePosTable, turns);
+    final boolean combine_ct_ef = twist.stateSize() * flip.stateSize() <= MAX_TABLE_SIZE;
+    merged_twist_flip = combine_ct_ef ? new MoveTable2in1(transform.twistTable, transform.flipTable) : null;
+    final boolean combine_ct_cp = twist.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
+    merged_twist_cornerPos = combine_ct_cp ? new MoveTable2in1(transform.twistTable, transform.cornerPosTable) : null;
+    final boolean combine_ef_cp = flip.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
+    merged_flip_cornerPos = combine_ef_cp ? new MoveTable2in1(transform.flipTable, transform.cornerPosTable) : null;
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
-    twist_flip = combine_twist_flip ? new PruneTable(moveTable_twist_flip, turns) : null;
-    reporter.tableCreationStarted("pruning table (corner twist + middle edge position set)");
-    twist_mEdgePosSet = new PruneTable(moveTable_twist_mEdgePosSet, turns);
-    reporter.tableCreationStarted("pruning table (edge flip + middle edge position set)");
-    flip_mEdgePosSet = new PruneTable(moveTable_flip_mEdgePosSet, turns);
+    twist_flip = createPruneTable(merged_twist_flip, turns);
+    reporter.tableCreationStarted("pruning table (corner twist + corner position)");
+    twist_cornerPos = createPruneTable(merged_twist_cornerPos, turns);
+    reporter.tableCreationStarted("pruning table (edge flip + corner position)");
+    flip_cornerPos = createPruneTable(merged_flip_cornerPos, turns);
+  }
+
+  private static PruneTable createPruneTable(final TurnTable moveTable, final EnumSet<Turn> turns) {
+    return moveTable == null ? null : new PruneTable(moveTable, turns);
+  }
+
+  public int get_twist_startDist(final int ct) {
+    return twist.startDist(ct);
+  }
+
+  public int get_twist_dist(final int lastDist, final int ct) {
+    return twist.dist(lastDist, ct);
+  }
+
+  public int get_flip_startDist(final int ef) {
+    return flip.startDist(ef);
+  }
+
+  public int get_flip_dist(final int lastDist, final int ef) {
+    return flip.dist(lastDist, ef);
+  }
+
+  public int get_cornerPos_startDist(final int cp) {
+    return cornerPos.startDist(cp);
+  }
+
+  public int get_cornerPos_dist(final int lastDist, final int cp) {
+    return cornerPos.dist(lastDist, cp);
+  }
+
+  public int get_mEdgePos_startDist(final int mep) {
+    return mEdgePos.startDist(mep);
+  }
+
+  public int get_mEdgePos_dist(final int lastDist, final int mep) {
+    return mEdgePos.dist(lastDist, mep);
+  }
+
+  public int get_uEdgePos_startDist(final int uep) {
+    return uEdgePos.startDist(uep);
+  }
+
+  public int get_uEdgePos_dist(final int lastDist, final int uep) {
+    return uEdgePos.dist(lastDist, uep);
+  }
+
+  public int get_dEdgePos_startDist(final int dep) {
+    return dEdgePos.startDist(dep);
+  }
+
+  public int get_dEdgePos_dist(final int lastDist, final int dep) {
+    return dEdgePos.dist(lastDist, dep);
   }
 
   public int get_twist_flip_startDist(final int ct, final int ef) {
-    return twist_flip == null ? 0 : twist_flip.startDist(moveTable_twist_flip.state(ct, ef));
-  }
-
-  public int get_twist_startDist(final int ctf) {
-    return twist.startDist(ctf);
-  }
-
-  public int get_flip_startDist(final int eff) {
-    return flip.startDist(eff);
-  }
-
-  public int get_twist_mEdgePosSet_startDist(final int ct, final int meps) {
-    return twist_mEdgePosSet.startDist(moveTable_twist_mEdgePosSet.state(ct, meps));
-  }
-
-  public int get_flip_mEdgePosSet_startDist(final int ef, final int meps) {
-    return flip_mEdgePosSet.startDist(moveTable_flip_mEdgePosSet.state(ef, meps));
+    return twist_flip == null ? 0 : twist_flip.startDist(merged_twist_flip.state(ct, ef));
   }
 
   public int get_twist_flip_dist(final int lastDist, final int ct, final int ef) {
-    return twist_flip == null ? 0 : twist_flip.dist(lastDist, moveTable_twist_flip.state(ct, ef));
+    return twist_flip == null ? 0 : twist_flip.dist(lastDist, merged_twist_flip.state(ct, ef));
   }
 
-  public int get_twistFull_dist(final int lastDist, final int ctf) {
-    return twist.dist(lastDist, ctf);
+  public int get_twist_cornerPos_startDist(final int ct, final int cp) {
+    return twist_cornerPos == null ? 0 : twist_cornerPos.startDist(merged_twist_cornerPos.state(ct, cp));
   }
 
-  public int get_flipFull_dist(final int lastDist, final int eff) {
-    return flip.dist(lastDist, eff);
+  public int get_twist_cornerPos_dist(final int lastDist, final int ct, final int cp) {
+    return twist_cornerPos == null ? 0 : twist_cornerPos.dist(lastDist, merged_twist_cornerPos.state(ct, cp));
   }
 
-  public int get_twist_mEdgePosSet_dist(final int lastDist, final int ct, final int meps) {
-    return twist_mEdgePosSet.dist(lastDist, moveTable_twist_mEdgePosSet.state(ct, meps));
+  public int get_flip_cornerPos_startDist(final int ef, final int cp) {
+    return flip_cornerPos == null ? 0 : flip_cornerPos.startDist(merged_flip_cornerPos.state(ef, cp));
   }
 
-  public int get_flip_mEdgePosSet_dist(final int lastDist, final int ef, final int meps) {
-    return flip_mEdgePosSet.dist(lastDist, moveTable_flip_mEdgePosSet.state(ef, meps));
+  public int get_flip_cornerPos_dist(final int lastDist, final int ef, final int cp) {
+    return flip_cornerPos == null ? 0 : flip_cornerPos.dist(lastDist, merged_flip_cornerPos.state(ef, cp));
   }
 
   public int maxDist() {
-    return max(max(max(twist.maxDist(), flip.maxDist()), twist_flip == null ? 0 : twist_flip.maxDist()),
-        max(twist_mEdgePosSet.maxDist(), flip_mEdgePosSet.maxDist()));
+    return max(
+        max(max(max(maxD(twist), maxD(flip)), maxD(cornerPos)),
+            max(maxD(mEdgePos), max(maxD(uEdgePos), maxD(dEdgePos)))),
+        max(maxD(twist_flip), max(maxD(twist_cornerPos), maxD(flip_cornerPos))));
+  }
+
+  private static int maxD(final PruneTable table) {
+    return table == null ? 0 : table.maxDist();
   }
 
   public int stateSize() {
-    return (twist_flip == null ? 0 : twist_flip.stateSize()) + twist_mEdgePosSet.stateSize() +
-        flip_mEdgePosSet.stateSize() + twist.stateSize() + flip.stateSize();
+    return states(twist) + states(flip) + states(cornerPos) + states(mEdgePos) + states(uEdgePos) + states(dEdgePos) +
+        states(twist_flip) + states(twist_cornerPos) + states(flip_cornerPos);
+  }
+
+  private static int states(final PruneTable table) {
+    return table == null ? 0 : table.stateSize();
   }
 
   public int memorySize() {
-    return (twist_flip == null ? 0 : twist_flip.memorySize()) + twist_mEdgePosSet.memorySize() +
-        flip_mEdgePosSet.memorySize() + twist.memorySize() + flip.memorySize();
+    return bytes(twist) + bytes(flip) + bytes(cornerPos) + bytes(mEdgePos) + bytes(uEdgePos) + bytes(dEdgePos) +
+        bytes(twist_flip) + bytes(twist_cornerPos) + bytes(flip_cornerPos);
+  }
+
+  private static int bytes(final PruneTable table) {
+    return table == null ? 0 : table.memorySize();
   }
 }

@@ -7,6 +7,9 @@ by Josef Jelinek <josef.jelinek@gmail.com>
 Forum for the project is located at
   http://www.speedsolving.com/forum/showthread.php?32153
 
+Changes in v4.0a7
+  - Added experimental optimal - one phase solver mode
+
 Changes in v4.0a6
   - Fixed turn pruning bug
   - Caching a few tables to a local directory added
@@ -87,6 +90,10 @@ or whatever teh filename is. You should see a bunch of blah blah text come up.
 
 [6]  Toggling between finding a bunch (hopefully all) of the optimal solutions
      or just the first optimal solution
+
+[7]  Toggling between optimal and sub-optimal (two-phase) solver.
+     Optimal solver uses more memory and takes more time to build its tables,
+     but it can get to optimal solutions faster.
 
 [9]  Once you hit this guy, all of your options should be reset.
 

@@ -2,7 +2,7 @@ package acube.transform;
 
 import acube.Turn;
 
-public final class MoveTableComposed implements TurnTable {
+public final class MoveTable2in1 implements TurnTable {
   private final TurnTable move1;
   private final TurnTable move2;
   private final int stateSize1;
@@ -10,7 +10,7 @@ public final class MoveTableComposed implements TurnTable {
   private final int startSize1;
   private final int startSize2;
 
-  public MoveTableComposed(final TurnTable move1, final TurnTable move2) {
+  public MoveTable2in1(final TurnTable move1, final TurnTable move2) {
     this.move1 = move1;
     this.move2 = move2;
     stateSize1 = move1.stateSize();
@@ -39,7 +39,6 @@ public final class MoveTableComposed implements TurnTable {
     return state(move1.start(i / startSize2), move2.start(i % startSize2));
   }
 
-  // TODO: this is a hotspot - figure out whether it can be optimized / inlined
   @Override
   public int turn(final Turn turn, final int state) {
     return state(move1.turn(turn, state / stateSize2), move2.turn(turn, state % stateSize2));

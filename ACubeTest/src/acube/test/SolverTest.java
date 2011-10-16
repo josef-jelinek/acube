@@ -35,12 +35,30 @@ public class SolverTest {
   }
 
   @Test
+  public void solve_optimal_T() {
+    final CubeState state = CycleParser.parse("(UL UR) (URF UBR)");
+    final ConsoleReporter reporter = new ConsoleReporter();
+    state.solveOptimal(FACE, TurnParser.parse("U U' D D' F2 B2 R2"), 12, false, reporter);
+    assertEquals(1, reporter.getSequences().size());
+    assertEquals("U F2 U' F2 D R2 B2 U B2 D' R2", reporter.getSequences().get(0));
+  }
+
+  @Test
   public void solve_with_wide_turns() {
     final CubeState state = CycleParser.parse("(UF UB) (DF DB)");
     final ConsoleReporter reporter = new ConsoleReporter();
     state.solve(FACE, EnumSet.of(U2, r2), 12, false, reporter);
     assertEquals(1, reporter.getSequences().size());
     assertEquals(". U2 r2 U2 r2 U2 r2 U2 r2 U2 r2 U2 r2", reporter.getSequences().get(0));
+  }
+
+  @Test
+  public void solve_optimal_with_wide_turns() {
+    final CubeState state = CycleParser.parse("(UF UB) (DF DB)");
+    final ConsoleReporter reporter = new ConsoleReporter();
+    state.solveOptimal(FACE, EnumSet.of(U2, r2), 12, false, reporter);
+    assertEquals(1, reporter.getSequences().size());
+    assertEquals("U2 r2 U2 r2 U2 r2 U2 r2 U2 r2 U2 r2", reporter.getSequences().get(0));
   }
 
   @Test

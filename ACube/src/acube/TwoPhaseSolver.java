@@ -2,10 +2,14 @@ package acube;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import java.util.EnumSet;
+import acube.prune.PruneA;
+import acube.prune.PruneB;
+import acube.transform.EncodedCube;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
-public final class Solver {
+public final class TwoPhaseSolver {
   static final class ANode {
     int length;
     Turn[] turns;
@@ -17,10 +21,6 @@ public final class Solver {
     int twist;
     int flip;
     int mEdgePosSet;
-    int cornerPos;
-    int uEdgePos;
-    int dEdgePos;
-    int mEdgePos;
     int twist_flip_dist;
     int twist_mEdgePosSet_dist;
     int flip_mEdgePosSet_dist;
@@ -31,13 +31,6 @@ public final class Solver {
       twist = ct;
       flip = ef;
       mEdgePosSet = meps;
-    }
-
-    void setCubeStateAB(final int cp, final int mep, final int uep, final int dep) {
-      cornerPos = cp;
-      mEdgePos = mep;
-      uEdgePos = uep;
-      dEdgePos = dep;
     }
 
     private void setTurnState(final int symmetry, final int turnListState, final TurnList turnList) {
@@ -120,56 +113,69 @@ public final class Solver {
   }
 
   private static final int MAX_PHASE_STACK_SIZE = 50;
-  private static final int CYCLES_BETWEEN_USER_CHECK = 50000;
-  private CubeState state;
-  private final boolean findAll;
-  private final boolean findOptimal;
+  private static final int CYCLES_BETWEEN_USER_CHECK = 100000;
+  private final TurnList turnList;
+  private final TurnList turnListB;
   private final Metric metric;
   private final Reporter reporter;
-  private int maxSearchLength;
   private final ANode[] stackA = new ANode[MAX_PHASE_STACK_SIZE];
   private final BNode[] stackB = new BNode[MAX_PHASE_STACK_SIZE];
-  private int stackASize; // current size of the stack for Phase A
-  private int stackBSize; // current size of the stack for Phase B
+  private int stackASize;
+  private int stackBSize;
   private boolean isInterrupted;
+  private boolean findAll;
+  private int maxSearchLength;
+  private Transform transform;
+  private TransformB transformB;
+  private PruneA pruneA;
+  private PruneB pruneB;
+  private EncodedCube cube;
   // statistics
   private long aprn, bprn, apry, bpry;
 
-  public Solver(final boolean findAll, final boolean findOptimal, final Metric metric, final Reporter reporter) {
-    this.findAll = findAll;
-    this.findOptimal = findOptimal;
+  public TwoPhaseSolver(final EnumSet<Turn> turns, final Metric metric, final Reporter reporter) {
     this.metric = metric;
     this.reporter = reporter;
+    reporter.tableCreationStarted("turn transformation and pruning table");
+    turnList = new TurnList(turns, metric, TurnList.Phase.A);
+    turnListB = new TurnList(turns, metric, TurnList.Phase.B);
     for (int i = 0; i < stackA.length; i++)
       stackA[i] = new ANode();
     for (int i = 0; i < stackB.length; i++)
       stackB[i] = new BNode();
   }
 
-  public void solve(final CubeState state, final int maxLength) {
-    this.state = state;
-    isInterrupted = false;
-    solveA(maxLength);
+  public void setFindAll(final boolean enabled) {
+    findAll = enabled;
   }
 
-  private void solveA(final int maxLength) {
+  public void setMaxSearchLength(final int maxLength) {
     maxSearchLength = min(maxLength, MAX_PHASE_STACK_SIZE);
+  }
+
+  public void
+      setTables(final Transform transform, final TransformB transformB, final PruneA pruneA, final PruneB pruneB) {
+    this.transform = transform;
+    this.transformB = transformB;
+    this.pruneA = pruneA;
+    this.pruneB = pruneB;
+  }
+
+  public void solve(final EncodedCube cube) {
+    this.cube = cube;
+    isInterrupted = false;
     initStatistics();
-    stackA[0].setCubeStateA(state.twist, state.flip, state.mEdgePosSet);
-    stackA[0].setCubeStateAB(state.cornerPos, state.mEdgePos, state.uEdgePos, state.dEdgePos);
-    stackA[0].setTurnState(state.symmetry, state.turnList);
-    final int ct_ef_d = state.prune.get_twist_flip_startDist(stackA[0].twist, stackA[0].flip);
-    final int ct_meps_d = state.prune.get_twist_mEdgePosSet_startDist(stackA[0].twist, stackA[0].mEdgePosSet);
-    final int ef_meps_d = state.prune.get_flip_mEdgePosSet_startDist(stackA[0].flip, stackA[0].mEdgePosSet);
-    final int ct_d = state.prune.get_twist_startDist(stackA[0].twist);
-    final int ef_d = state.prune.get_flip_startDist(stackA[0].flip);
+    stackA[0].setCubeStateA(cube.twist, cube.flip, transform.mEdgePos_to_mEdgePosSet(cube.mEdgePos));
+    stackA[0].setTurnState(cube.symmetry, turnList);
+    final int ct_ef_d = pruneA.get_twist_flip_startDist(stackA[0].twist, stackA[0].flip);
+    final int ct_meps_d = pruneA.get_twist_mEdgePosSet_startDist(stackA[0].twist, stackA[0].mEdgePosSet);
+    final int ef_meps_d = pruneA.get_flip_mEdgePosSet_startDist(stackA[0].flip, stackA[0].mEdgePosSet);
+    final int ct_d = pruneA.get_twist_startDist(stackA[0].twist);
+    final int ef_d = pruneA.get_flip_startDist(stackA[0].flip);
     stackA[0].setDists(ct_ef_d, ct_meps_d, ef_meps_d, ct_d, ef_d);
     for (int maxALength = stackA[0].getMaxDist(); shouldContinueSearchingA(maxALength); maxALength++) {
       reporter.depthChanged(maxALength);
-      if (findOptimal)
-        searchAOptimal();
-      else
-        searchA(maxALength);
+      searchA(maxALength);
     }
     reportStatistics();
   }
@@ -183,15 +189,7 @@ public final class Solver {
   }
 
   private void reportStatistics() {
-    if (findOptimal)
-      reporter.onePhaseStatistics(aprn, apry);
-    else
-      reporter.twoPhaseStatistics(aprn, apry, bprn, bpry);
-  }
-
-  private boolean searchAOptimal() {
-    // TODO copy searchA, factor out common code
-    return false;
+    reporter.twoPhaseStatistics(aprn, apry, bprn, bpry);
   }
 
   private void searchA(final int maxALength) {
@@ -212,24 +210,24 @@ public final class Solver {
           final ANode nextNode = stackA[d + 1];
           final int length = node.length + metric.length(cubeTurn);
           if (length <= maxALength && length <= maxSearchLength) {
-            final int ct = state.transform.twistTable.turn(cubeTurn, node.twist);
-            final int ef = state.transform.flipTable.turn(cubeTurn, node.flip);
+            final int ct = transform.twistTable.turn(cubeTurn, node.twist);
+            final int ef = transform.flipTable.turn(cubeTurn, node.flip);
             aprn++;
             if (aprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
               return;
-            final int ct_ef_d = state.prune.get_twist_flip_dist(node.twist_flip_dist, ct, ef);
+            final int ct_ef_d = pruneA.get_twist_flip_dist(node.twist_flip_dist, ct, ef);
             if (ct_ef_d <= maxALength - length) {
-              final int meps = state.transform.mEdgePosSetTable.turn(cubeTurn, node.mEdgePosSet);
-              final int ct_meps_d = state.prune.get_twist_mEdgePosSet_dist(node.twist_mEdgePosSet_dist, ct, meps);
+              final int meps = transform.mEdgePosSetTable.turn(cubeTurn, node.mEdgePosSet);
+              final int ct_meps_d = pruneA.get_twist_mEdgePosSet_dist(node.twist_mEdgePosSet_dist, ct, meps);
               if (ct_meps_d <= maxALength - length) {
-                final int ef_meps_d = state.prune.get_flip_mEdgePosSet_dist(node.flip_mEdgePosSet_dist, ef, meps);
+                final int ef_meps_d = pruneA.get_flip_mEdgePosSet_dist(node.flip_mEdgePosSet_dist, ef, meps);
                 if (ef_meps_d <= maxALength - length) {
-                  final int ct_d = state.prune.get_twistFull_dist(node.twist_dist, ct);
-                  final int ef_d = state.prune.get_flipFull_dist(node.flip_dist, ef);
+                  final int ct_d = pruneA.get_twistFull_dist(node.twist_dist, ct);
+                  final int ef_d = pruneA.get_flipFull_dist(node.flip_dist, ef);
                   if (ct_d <= maxALength - length && ef_d <= maxALength - length) {
                     nextNode.setCubeStateA(ct, ef, meps);
                     nextNode.setDists(ct_ef_d, ct_meps_d, ef_meps_d, ct_d, ef_d);
-                    nextNode.setTurnState(node, userTurn, state.turnList);
+                    nextNode.setTurnState(node, userTurn, turnList);
                     nextNode.length = length;
                     d++;
                   } else
@@ -249,11 +247,10 @@ public final class Solver {
   }
 
   private void solveB(final int maxALength) {
-    int cp = stackA[0].cornerPos;
-    int mep = stackA[0].mEdgePos;
-    int uep = stackA[0].uEdgePos;
-    int dep = stackA[0].dEdgePos;
-    final Transform transform = state.transform;
+    int cp = cube.cornerPos;
+    int mep = cube.mEdgePos;
+    int uep = cube.uEdgePos;
+    int dep = cube.dEdgePos;
     for (int i = 0; i < stackASize; i++) {
       final Turn turn = stackA[i].cubeTurn;
       cp = transform.cornerPosTable.turn(turn, cp);
@@ -261,7 +258,6 @@ public final class Solver {
       uep = transform.uEdgePosTable.turn(turn, uep);
       dep = transform.dEdgePosTable.turn(turn, dep);
     }
-    final TransformB transformB = state.transformB;
     /* entry to the phase B need not be correct if midges are not completely
      * defined and some U or D edges are in the ring */
     if (!transformB.is_mEdgePos_inB(mep) || !transformB.is_uEdgePos_inB(uep) || !transformB.is_dEdgePos_inB(dep))
@@ -269,18 +265,18 @@ public final class Solver {
     final int udepB = transformB.convert_uEdgePos_dEdgePos_to_udEdgePosB(uep, dep);
     final int mepB = transformB.convertTo_mEdgePos(mep);
     bprn++;
-    final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_startDist(mepB, cp);
+    final int mep_cp_d = pruneB.get_mEdgePos_cornerPos_startDist(mepB, cp);
     if (mep_cp_d > maxSearchLength - maxALength) {
       bpry++;
       return;
     }
-    final int mep_udep_d = state.pruneB.get_mEdgePos_udEdgePos_startDist(mepB, udepB);
+    final int mep_udep_d = pruneB.get_mEdgePos_udEdgePos_startDist(mepB, udepB);
     if (mep_udep_d > maxSearchLength - maxALength) {
       bpry++;
       return;
     }
     stackB[0].setCubeState(mepB, cp, udepB);
-    stackB[0].setTurnState(stackA[stackASize].symmetry, stackA[stackASize].turns, state.turnListB);
+    stackB[0].setTurnState(stackA[stackASize].symmetry, stackA[stackASize].turns, turnListB);
     stackB[0].setDists(mep_cp_d, mep_udep_d);
     for (int maxBLength = stackB[0].getMaxDist(); shouldContinueSearchingB(maxALength, maxBLength); maxBLength++)
       searchB(maxALength, maxBLength);
@@ -308,19 +304,19 @@ public final class Solver {
           final int length = node.length + metric.length(userTurn);
           if (cubeTurn.isB() && maxALength + length <= maxSearchLength && length <= maxBLength) {
             final BNode nextNode = stackB[d + 1];
-            final int mep = state.transformB.mEdgePosTable.turn(cubeTurn, node.mEdgePos);
-            final int cp = state.transformB.cornerPosTable.turn(cubeTurn, node.cornerPos);
+            final int mep = transformB.mEdgePosTable.turn(cubeTurn, node.mEdgePos);
+            final int cp = transformB.cornerPosTable.turn(cubeTurn, node.cornerPos);
             bprn++;
             if (bprn % CYCLES_BETWEEN_USER_CHECK == 0 && (isInterrupted = reporter.shouldStop()))
               return;
-            final int mep_cp_d = state.pruneB.get_mEdgePos_cornerPos_dist(node.mEdgePos_cornerPos_dist, mep, cp);
+            final int mep_cp_d = pruneB.get_mEdgePos_cornerPos_dist(node.mEdgePos_cornerPos_dist, mep, cp);
             if (mep_cp_d <= maxBLength - length) {
-              final int udep = state.transformB.udEdgePosTable.turn(cubeTurn, node.udEdgePos);
-              final int mep_udep_d = state.pruneB.get_mEdgePos_udEdgePos_dist(node.mEdgePos_udEdgePos_dist, mep, udep);
+              final int udep = transformB.udEdgePosTable.turn(cubeTurn, node.udEdgePos);
+              final int mep_udep_d = pruneB.get_mEdgePos_udEdgePos_dist(node.mEdgePos_udEdgePos_dist, mep, udep);
               if (mep_udep_d <= maxBLength - length) {
                 nextNode.setCubeState(mep, cp, udep);
                 nextNode.setDists(mep_cp_d, mep_udep_d);
-                nextNode.setTurnState(node, userTurn, state.turnListB);
+                nextNode.setTurnState(node, userTurn, turnListB);
                 nextNode.length = length;
                 d++;
               } else
