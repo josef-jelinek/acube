@@ -12,4 +12,6 @@ public interface TurnTable {
   public int memorySize();
 
   public int turn(Turn turn, int state);
+
+  public String key();
 }

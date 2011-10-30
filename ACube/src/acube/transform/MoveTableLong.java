@@ -1,5 +1,6 @@
 package acube.transform;
 
+import acube.Tools;
 import acube.Turn;
 
 final class MoveTableLong extends MoveTable {
@@ -8,7 +9,10 @@ final class MoveTableLong extends MoveTable {
   public MoveTableLong(final TurnTable move, final Turn[][] base, final Turn[][] same) {
     super(move);
     table = new int[Turn.values.length][];
-    fill(base, same);
+    if (!Tools.loadTable(table, move.key())) {
+      fill(base, same);
+      Tools.saveTable(table, move.key());
+    }
   }
 
   @Override

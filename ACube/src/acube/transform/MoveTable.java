@@ -28,6 +28,11 @@ public abstract class MoveTable implements TurnTable {
     return move.start(i);
   }
 
+  @Override
+  public String key() {
+    return move.key();
+  }
+
   protected abstract void set(Turn turn, int state, int newstate);
 
   protected abstract void set(Turn turn, Turn turn2);

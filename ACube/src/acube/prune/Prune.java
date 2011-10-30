@@ -1,7 +1,6 @@
 package acube.prune;
 
 import static java.lang.Math.max;
-import java.util.EnumSet;
 import acube.Reporter;
 import acube.Turn;
 import acube.transform.MoveTable2in1;
@@ -24,19 +23,18 @@ public final class Prune {
   private final MoveTable2in1 merged_flip_cornerPos;
 
   public Prune(final Transform transform, final Reporter reporter) {
-    final EnumSet<Turn> turns = Turn.essentialValueSet;
     reporter.tableCreationStarted("pruning table (corner twist)");
-    twist = createPruneTable(transform.twistTable, turns);
+    twist = createPruneTable(transform.twistTable);
     reporter.tableCreationStarted("pruning table (edge flip)");
-    flip = createPruneTable(transform.flipTable, turns);
+    flip = createPruneTable(transform.flipTable);
     reporter.tableCreationStarted("pruning table (corner position)");
-    cornerPos = createPruneTable(transform.cornerPosTable, turns);
+    cornerPos = createPruneTable(transform.cornerPosTable);
     reporter.tableCreationStarted("pruning table (E edge position)");
-    mEdgePos = createPruneTable(transform.mEdgePosTable, turns);
+    mEdgePos = createPruneTable(transform.mEdgePosTable);
     reporter.tableCreationStarted("pruning table (U edge position)");
-    uEdgePos = createPruneTable(transform.uEdgePosTable, turns);
+    uEdgePos = createPruneTable(transform.uEdgePosTable);
     reporter.tableCreationStarted("pruning table (D edge position)");
-    dEdgePos = createPruneTable(transform.dEdgePosTable, turns);
+    dEdgePos = createPruneTable(transform.dEdgePosTable);
     final boolean combine_ct_ef = twist.stateSize() * flip.stateSize() <= MAX_TABLE_SIZE;
     merged_twist_flip = combine_ct_ef ? new MoveTable2in1(transform.twistTable, transform.flipTable) : null;
     final boolean combine_ct_cp = twist.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
@@ -44,15 +42,15 @@ public final class Prune {
     final boolean combine_ef_cp = flip.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
     merged_flip_cornerPos = combine_ef_cp ? new MoveTable2in1(transform.flipTable, transform.cornerPosTable) : null;
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
-    twist_flip = createPruneTable(merged_twist_flip, turns);
+    twist_flip = createPruneTable(merged_twist_flip);
     reporter.tableCreationStarted("pruning table (corner twist + corner position)");
-    twist_cornerPos = createPruneTable(merged_twist_cornerPos, turns);
+    twist_cornerPos = createPruneTable(merged_twist_cornerPos);
     reporter.tableCreationStarted("pruning table (edge flip + corner position)");
-    flip_cornerPos = createPruneTable(merged_flip_cornerPos, turns);
+    flip_cornerPos = createPruneTable(merged_flip_cornerPos);
   }
 
-  private static PruneTable createPruneTable(final TurnTable moveTable, final EnumSet<Turn> turns) {
-    return moveTable == null ? null : new PruneTable(moveTable, turns);
+  private static PruneTable createPruneTable(final TurnTable moveTable) {
+    return moveTable == null ? null : new PruneTable(moveTable, Turn.essentialValueSet);
   }
 
   public int get_twist_startDist(final int ct) {

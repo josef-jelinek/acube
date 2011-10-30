@@ -2,12 +2,6 @@ package acube;
 
 import static acube.SymTransform.SYM_COUNT;
 import static java.lang.Math.max;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -47,13 +41,13 @@ public final class TurnList {
     final Turn[] sortedTurns = getSortedTurns(turns, metric);
     turnIndices = getTurnIndices(sortedTurns);
     final String prefix = "tt" + phase.name() + maxDepth(sortedTurns) + "_";
-    final int[][] table = load(prefix, sortedTurns);
+    final int[][] table = Tools.loadTable(prefix, sortedTurns);
     if (table != null)
       nextStateTable = table;
     else {
       final CubeSpaceProvider csp = phase == Phase.A ? new Transform() : new TransformB();
       nextStateTable = compactStateTable(createStateTable(csp, sortedTurns));
-      save(prefix, nextStateTable, sortedTurns);
+      Tools.saveTable(prefix, nextStateTable, sortedTurns);
     }
     turnListTable = getAllowedTurnsTable(nextStateTable, sortedTurns);
   }
@@ -80,63 +74,6 @@ public final class TurnList {
     for (final Turn turn : turns)
       a[turn.ordinal()] = ti++;
     return a;
-  }
-
-  private static final String CACHE_DIR = "cache";
-
-  private int[][] load(final String prefix, final Turn[] turns) {
-    BufferedReader r = null;
-    try {
-      if (new File(fileName(prefix, turns)).exists()) {
-        r = new BufferedReader(new FileReader(fileName(prefix, turns)));
-        final List<int[]> list = new ArrayList<int[]>();
-        String line = r.readLine(); // header
-        while ((line = r.readLine()) != null && line.length() > 0) {
-          final String[] items = line.split("\\s+");
-          final int[] row = new int[turns.length];
-          for (int i = 0; i < turns.length; i++)
-            row[i] = items[i].equals("-") ? -1 : Integer.parseInt(items[i]);
-          list.add(row);
-        }
-        return list.toArray(new int[0][]);
-      }
-    } catch (final Exception e) {} finally {
-      try {
-        if (r != null)
-          r.close();
-      } catch (final IOException ee) {}
-    }
-    return null;
-  }
-
-  private void save(final String prefix, final int[][] table, final Turn[] turns) {
-    Writer w = null;
-    try {
-      new File(CACHE_DIR).mkdir();
-      w = new FileWriter(fileName(prefix, turns));
-      String header = "";
-      for (final Turn t : turns)
-        header += t + "\t";
-      w.append(header.trim() + "\r\n");
-      for (final int[] element : table) {
-        String line = "";
-        for (final int element2 : element)
-          line += element2 < 0 ? "-\t" : element2 + "\t";
-        w.append(line.trim() + "\r\n");
-      }
-    } catch (final Exception e) {} finally {
-      try {
-        if (w != null)
-          w.close();
-      } catch (final Exception ee) {}
-    }
-  }
-
-  private static String fileName(final String prefix, final Turn[] turns) {
-    String name = "";
-    for (final Turn t : turns)
-      name += t.name();
-    return CACHE_DIR + File.separator + prefix + name + ".txt";
   }
 
   private static List<int[]> createStateTable(final CubeSpaceProvider csp, final Turn[] turns) {

@@ -8,6 +8,7 @@ import static acube.Edge.UB;
 import static acube.Edge.UF;
 import static acube.Edge.UL;
 import static acube.Edge.UR;
+import static acube.Tools.edgesKey;
 import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
@@ -18,7 +19,8 @@ class UDEdgePosB extends Move<Edge> {
   private static final EnumSet<Edge> UD_EDGES = EnumSet.of(UF, UR, UB, UL, DF, DR, DB, DL);
 
   public UDEdgePosB(final EnumSet<Edge> edgeMask) {
-    super(new PackPositionOrdered<Edge>(PackKit.udEdgeMaskB(edgeMask), UD_EDGES.toArray(new Edge[0])));
+    super(new PackPositionOrdered<Edge>(PackKit.udEdgeMaskB(edgeMask), UD_EDGES.toArray(new Edge[0])), "UDEPB-" +
+        edgesKey(edgeMask));
   }
 
   @Override

@@ -26,8 +26,8 @@ import acube.Turn;
 import acube.pack.Pack;
 
 abstract class MoveToB<T> extends Move<T> {
-  protected MoveToB(final Pack<T> pack) {
-    super(pack);
+  protected MoveToB(final Pack<T> pack, final String key) {
+    super(pack, key);
   }
 
   public abstract boolean isInB();
@@ -36,10 +36,12 @@ abstract class MoveToB<T> extends Move<T> {
 abstract class Move<T> implements TurnTable {
   protected final Pack<T> pack;
   private final int stateSize;
+  private final String key;
 
-  protected Move(final Pack<T> pack) {
+  protected Move(final Pack<T> pack, final String key) {
     this.pack = pack;
     stateSize = pack.size();
+    this.key = key;
   }
 
   @Override
@@ -166,5 +168,10 @@ abstract class Move<T> implements TurnTable {
   @Override
   public String toString() {
     return pack.toString();
+  }
+
+  @Override
+  public String key() {
+    return key;
   }
 }

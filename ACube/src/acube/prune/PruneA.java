@@ -1,11 +1,11 @@
 package acube.prune;
 
 import static java.lang.Math.max;
-import java.util.EnumSet;
 import acube.Reporter;
 import acube.Turn;
 import acube.transform.MoveTable2in1;
 import acube.transform.Transform;
+import acube.transform.TurnTable;
 
 public final class PruneA {
   private final PruneTable twist;
@@ -18,21 +18,24 @@ public final class PruneA {
   private final MoveTable2in1 moveTable_flip_mEdgePosSet;
 
   public PruneA(final Transform transform, final Reporter reporter) {
-    final EnumSet<Turn> turns = Turn.essentialValueSet;
     reporter.tableCreationStarted("pruning table (corner twist)");
-    twist = new PruneTable(transform.twistTable, turns);
+    twist = createPruneTable(transform.twistTable);
     reporter.tableCreationStarted("pruning table (edge flip)");
-    flip = new PruneTable(transform.flipTable, turns);
+    flip = createPruneTable(transform.flipTable);
     final boolean combine_twist_flip = twist.stateSize() * flip.stateSize() <= 100000000;
     moveTable_twist_flip = combine_twist_flip ? new MoveTable2in1(transform.twistTable, transform.flipTable) : null;
     moveTable_twist_mEdgePosSet = new MoveTable2in1(transform.twistTable, transform.mEdgePosSetTable);
     moveTable_flip_mEdgePosSet = new MoveTable2in1(transform.flipTable, transform.mEdgePosSetTable);
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
-    twist_flip = combine_twist_flip ? new PruneTable(moveTable_twist_flip, turns) : null;
+    twist_flip = createPruneTable(moveTable_twist_flip);
     reporter.tableCreationStarted("pruning table (corner twist + middle edge position set)");
-    twist_mEdgePosSet = new PruneTable(moveTable_twist_mEdgePosSet, turns);
+    twist_mEdgePosSet = createPruneTable(moveTable_twist_mEdgePosSet);
     reporter.tableCreationStarted("pruning table (edge flip + middle edge position set)");
-    flip_mEdgePosSet = new PruneTable(moveTable_flip_mEdgePosSet, turns);
+    flip_mEdgePosSet = createPruneTable(moveTable_flip_mEdgePosSet);
+  }
+
+  private static PruneTable createPruneTable(final TurnTable moveTable) {
+    return moveTable == null ? null : new PruneTable(moveTable, Turn.essentialValueSet);
   }
 
   public int get_twist_flip_startDist(final int ct, final int ef) {

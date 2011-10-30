@@ -1,6 +1,7 @@
 package acube.prune;
 
 import java.util.EnumSet;
+import acube.Tools;
 import acube.Turn;
 import acube.transform.TurnTable;
 
@@ -14,20 +15,30 @@ public final class PruneTable {
   public PruneTable(final TurnTable turnTable, final EnumSet<Turn> turns) {
     this.turnTable = turnTable;
     this.turns = turns.toArray(new Turn[turns.size()]);
-    table = new byte[(turnTable.stateSize() + 3) / 4];
-    int lastFilledSize = startDistFill();
-    int totalSize = 0;
-    int dist = 0;
-    final int switchSize = turnTable.stateSize() / 2;
-    while (lastFilledSize > 0) {
-      final boolean isForward = totalSize < switchSize;
-      logLine(dist, lastFilledSize, totalSize + lastFilledSize, turnTable.stateSize(), isForward);
-      totalSize += lastFilledSize;
-      final int lastDist = dist++ % 3;
-      lastFilledSize = isForward ? forwardDistFill(dist, lastDist) : backwardDistFill(dist, lastDist);
+    final int[] sizes = new int[2];
+    final byte[] tab = Tools.loadTable(turnTable.key(), sizes);
+    final int size = (turnTable.stateSize() + 3) / 4;
+    if (tab != null && tab.length == size) {
+      table = tab;
+      stateSize = sizes[0];
+      maxDist = sizes[1];
+    } else {
+      table = new byte[size];
+      int lastFilledSize = startDistFill();
+      int totalSize = 0;
+      int dist = 0;
+      final int switchSize = turnTable.stateSize() / 2;
+      while (lastFilledSize > 0) {
+        final boolean isForward = totalSize < switchSize;
+        logLine(dist, lastFilledSize, totalSize + lastFilledSize, turnTable.stateSize(), isForward);
+        totalSize += lastFilledSize;
+        final int lastDist = dist++ % 3;
+        lastFilledSize = isForward ? forwardDistFill(dist, lastDist) : backwardDistFill(dist, lastDist);
+      }
+      stateSize = totalSize;
+      maxDist = dist - 1;
+      Tools.saveTable(turnTable.key(), new int[] { stateSize, maxDist }, table);
     }
-    stateSize = totalSize;
-    maxDist = dist - 1;
   }
 
   private int startDistFill() {

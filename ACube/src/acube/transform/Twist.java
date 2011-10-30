@@ -8,6 +8,7 @@ import static acube.Corner.UBL;
 import static acube.Corner.UFR;
 import static acube.Corner.ULF;
 import static acube.Corner.URB;
+import static acube.Tools.cornersKey;
 import java.util.EnumSet;
 import acube.Corner;
 import acube.Turn;
@@ -17,14 +18,15 @@ import acube.pack.PackOrientation;
 public final class Twist extends Move<Corner> {
   private final PackOrientation<Corner> packOrientation;
 
-  private Twist(final PackOrientation<Corner> packOrientation) {
-    super(packOrientation);
+  private Twist(final PackOrientation<Corner> packOrientation, final String key) {
+    super(packOrientation, key);
     this.packOrientation = packOrientation;
   }
 
   public Twist(final EnumSet<Corner> cornerMask, final EnumSet<Corner> knownTwistMask, final int unknownTwisted) {
     this(new PackOrientation<Corner>(PackKit.cornerMask(cornerMask), PackKit.cornerMask(knownTwistMask),
-        unknownTwisted, Corner.values(), 3));
+        unknownTwisted, Corner.values(), 3), "CT-" + cornersKey(cornerMask) + "-" + cornersKey(knownTwistMask) + "-" +
+        unknownTwisted);
   }
 
   @Override

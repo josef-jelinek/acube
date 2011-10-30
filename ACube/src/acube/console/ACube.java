@@ -25,7 +25,7 @@ import acube.format.TurnParser;
  *         href="http://rubikscube.info">http://rubikscube.info</a>
  * @version 4.0 */
 public final class ACube {
-  private static final String version = "4.0a7\n";
+  private static final String version = "4.0a8\n";
   private static boolean findAll = false;
   private static boolean findOptimal = false;
   private static int maxLength = 20;

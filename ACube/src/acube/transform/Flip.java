@@ -8,6 +8,7 @@ import static acube.Edge.FL;
 import static acube.Edge.FR;
 import static acube.Edge.UB;
 import static acube.Edge.UF;
+import static acube.Tools.edgesKey;
 import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
@@ -17,14 +18,14 @@ import acube.pack.PackOrientation;
 public final class Flip extends Move<Edge> {
   private final PackOrientation<Edge> packOrientation;
 
-  private Flip(final PackOrientation<Edge> packOrientation) {
-    super(packOrientation);
+  private Flip(final PackOrientation<Edge> packOrientation, final String key) {
+    super(packOrientation, key);
     this.packOrientation = packOrientation;
   }
 
   public Flip(final EnumSet<Edge> edgeMask, final EnumSet<Edge> knownFlipMask, final int unknownFlipped) {
     this(new PackOrientation<Edge>(PackKit.edgeMask(edgeMask), PackKit.edgeMask(knownFlipMask), unknownFlipped,
-        Edge.values(), 2));
+        Edge.values(), 2), "EF-" + edgesKey(edgeMask) + "-" + edgesKey(knownFlipMask) + "-" + unknownFlipped);
   }
 
   @Override

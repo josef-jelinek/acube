@@ -47,4 +47,9 @@ public final class MoveTable2in1 implements TurnTable {
   public int state(final int state1, final int state2) {
     return state1 * stateSize2 + state2;
   }
+
+  @Override
+  public String key() {
+    return move1.key() + "--" + move2.key();
+  }
 }

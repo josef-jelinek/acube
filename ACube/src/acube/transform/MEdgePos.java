@@ -4,6 +4,7 @@ import static acube.Edge.BL;
 import static acube.Edge.BR;
 import static acube.Edge.FL;
 import static acube.Edge.FR;
+import static acube.Tools.edgesKey;
 import java.util.EnumSet;
 import acube.Edge;
 import acube.Turn;
@@ -15,7 +16,8 @@ final class MEdgePos extends MoveToB<Edge> {
   private static final boolean[] RING_EDGE_ARRAY = PackKit.getEdgeMaskFor(RING_EDGES);
 
   public MEdgePos(final EnumSet<Edge> edgeMask) {
-    super(new PackPositionOrdered<Edge>(PackKit.edgeMask(edgeMask), PackKit.edgeMask(RING_EDGES), Edge.values()));
+    super(new PackPositionOrdered<Edge>(PackKit.edgeMask(edgeMask), PackKit.edgeMask(RING_EDGES), Edge.values()),
+        "MEP-" + edgesKey(edgeMask));
   }
 
   @Override
