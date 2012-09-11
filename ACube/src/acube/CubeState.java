@@ -9,11 +9,15 @@ import acube.transform.EncodedCube;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
+
 public final class CubeState {
-  private final Corner[] corners;
-  private final Edge[] edges;
-  private final int[] twists;
-  private final int[] flips;
+
+  // corners and edges are used to store permutations regardless of orientations of the pieces
+  private final Corner[] corners; // null if the corner at the position is unknown
+  private final Edge[] edges; // null if the edge at the position is unknown
+  // twists (for corners) and flips (for edges) store orientations of the pieces at the corresponding positions
+  private final int[] twists; // values mod 3: 0, 1, 3 (-1 for ignored)
+  private final int[] flips;  // values mod 2: 0, 1 (-1 for ignored)
 
   public CubeState(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips) {
     this.corners = corners;
@@ -79,6 +83,7 @@ public final class CubeState {
     return transform.encode(SymTransform.I, corners, edges, twists, flips);
   }
 
+  // string representation in extended 'Reid' notation (used by other programs)
   public String reidString() {
     final StringBuilder s = new StringBuilder();
     for (int i = 0; i < edges.length; i++)
@@ -88,6 +93,7 @@ public final class CubeState {
     return s.substring(1);
   }
 
+  // returns string enumerating all pieces that have their positions ignored
   public String ignoredPositionsString() {
     final StringBuilder s = new StringBuilder();
     for (final Edge e : EnumSet.complementOf(getKnownMask(edges, Edge.class)))
@@ -97,6 +103,7 @@ public final class CubeState {
     return s.length() > 0 ? s.substring(1) : "";
   }
 
+  // returs a string enumerating potential pieces that do not have their orientation defined
   public String ignoredOrientationsString() {
     final StringBuilder s = new StringBuilder();
     final EnumSet<Edge> unknownEdges = EnumSet.complementOf(getKnownMask(edges, Edge.class));
@@ -118,6 +125,7 @@ public final class CubeState {
     return s.toString();
   }
 
+  // returns a set of pieces that have their position defined
   private <T extends Enum<T>> EnumSet<T> getKnownMask(final T[] a, final Class<T> type) {
     final EnumSet<T> set = EnumSet.noneOf(type);
     for (final T ai : a)
@@ -126,6 +134,7 @@ public final class CubeState {
     return set;
   }
 
+  // returns a set of pieces that have both position and orientation defined
   private <T extends Enum<T>> EnumSet<T> getKnownOrientedMask(final T[] a, final int[] o, final Class<T> type) {
     final EnumSet<T> set = EnumSet.noneOf(type);
     for (int i = 0; i < a.length; i++)
@@ -135,6 +144,7 @@ public final class CubeState {
     return set;
   }
 
+  // counts how many unknown pieces have orientation defined
   private <T extends Enum<T>> int getUnknownOrientedCount(final T[] a, final int[] o) {
     int count = 0;
     for (int i = 0; i < a.length; i++)
@@ -144,6 +154,7 @@ public final class CubeState {
     return count;
   }
 
+  // counts how many pieces have neither position nor orientation defined
   private <T extends Enum<T>> int getUnknownUnorientedCount(final T[] a, final int[] o) {
     int count = 0;
     for (int i = 0; i < a.length; i++)
