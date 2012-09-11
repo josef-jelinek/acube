@@ -9,7 +9,6 @@ import acube.transform.EncodedCube;
 import acube.transform.Transform;
 import acube.transform.TransformB;
 
-
 public final class CubeState {
 
   // corners and edges are used to store permutations regardless of orientations of the pieces
@@ -19,7 +18,7 @@ public final class CubeState {
   private final int[] twists; // values mod 3: 0, 1, 3 (-1 for ignored)
   private final int[] flips;  // values mod 2: 0, 1 (-1 for ignored)
 
-  public CubeState(final Corner[] corners, final Edge[] edges, final int[] twists, final int[] flips) {
+  public CubeState(Corner[] corners, Edge[] edges, int[] twists, int[] flips) {
     this.corners = corners;
     this.edges = edges;
     this.twists = twists;
@@ -28,64 +27,73 @@ public final class CubeState {
   }
 
   private void checkValidity() {
+    // for fully defined orientation the sum of orientations mod 3 (for corners, mod 2 for edges) must be zero
+    // if the orientations are not all specified than we can always solve the remaining orientations
     if (CoderTools.valuesUsed(twists) == twists.length && CoderTools.totalOrientation(twists, 3) != 0)
       throw new RuntimeException("Unsolvable corner twists");
     if (CoderTools.valuesUsed(flips) == flips.length && CoderTools.totalOrientation(flips, 2) != 0)
       throw new RuntimeException("Unsolvable edge flips");
-    final int[] c = Corner.ordinals(corners);
-    final int[] e = Edge.ordinals(edges);
+    // if all positions of corners/edges are known (or just one missing -> it is determined anyway)
+    // we need the two parities to match (for every piece swap there must be another piece swap)
+    int[] c = Corner.ordinals(corners);
+    int[] e = Edge.ordinals(edges);
     if (CoderTools.valuesUsed(c) >= c.length - 1 && CoderTools.valuesUsed(e) >= e.length - 1)
       if (CoderTools.permutationParity(c) != CoderTools.permutationParity(e))
         throw new RuntimeException("Unsolvable corner and edge swaps");
   }
 
-  public void solve(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
-      final Reporter r) {
+  public void solve(Metric metric, EnumSet<Turn> turns, int maxLength, boolean findAll, Reporter r) {
     r.solvingStarted(reidString());
-    final EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
-    final EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
-    final EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
-    final EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
-    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
-    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
-    final TwoPhaseSolver solver = new TwoPhaseSolver(turns, metric, r);
+    // extract generic information from this configuration that fully specifies transformation and pruning tables
+    // the tables can be reused for many similar configurations (with the same sets ignored etc.)
+    EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
+    EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
+    EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
+    EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
+    int unknownTwisted = getUnknownOrientedCount(corners, twists);
+    int unknownFlipped = getUnknownOrientedCount(edges, flips);
+    // create a solver and configure it with transformation and pruning tables
+    TwoPhaseSolver solver = new TwoPhaseSolver(turns, metric, r);
     solver.setFindAll(findAll);
     solver.setMaxSearchLength(maxLength);
-    final Transform transform =
-        new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
-    final PruneA pruneA = new PruneA(transform, r);
-    final TransformB transformB = new TransformB(knownCorners, knownEdges, r);
-    final PruneB pruneB = new PruneB(transformB, r);
+    Transform transform = new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
+    PruneA pruneA = new PruneA(transform, r);
+    TransformB transformB = new TransformB(knownCorners, knownEdges, r);
+    PruneB pruneB = new PruneB(transformB, r);
     solver.setTables(transform, transformB, pruneA, pruneB);
+    // run the solver with this particular configuration - encoded by the tables used to a compact one
     solver.solve(encodeCube(transform));
   }
 
-  public void solveOptimal(final Metric metric, final EnumSet<Turn> turns, final int maxLength, final boolean findAll,
-      final Reporter r) {
+  public void solveOptimal(Metric metric, EnumSet<Turn> turns, int maxLength, boolean findAll, Reporter r) {
     r.solvingStarted(reidString());
-    final EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
-    final EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
-    final EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
-    final EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
-    final int unknownTwisted = getUnknownOrientedCount(corners, twists);
-    final int unknownFlipped = getUnknownOrientedCount(edges, flips);
-    final OptimalSolver solver = new OptimalSolver(turns, metric, r);
+    // optimal solver does not use Phase B, so it creates less tables
+    EnumSet<Corner> knownCorners = getKnownMask(corners, Corner.class);
+    EnumSet<Edge> knownEdges = getKnownMask(edges, Edge.class);
+    EnumSet<Corner> knownTwisted = getKnownOrientedMask(corners, twists, Corner.class);
+    EnumSet<Edge> knownFlipped = getKnownOrientedMask(edges, flips, Edge.class);
+    int unknownTwisted = getUnknownOrientedCount(corners, twists);
+    int unknownFlipped = getUnknownOrientedCount(edges, flips);
+    OptimalSolver solver = new OptimalSolver(turns, metric, r);
     solver.setFindAll(findAll);
     solver.setMaxSearchLength(maxLength);
-    final Transform transform =
-        new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
-    final Prune prune = new Prune(transform, r);
+    Transform transform = new Transform(knownCorners, knownEdges, knownTwisted, knownFlipped, unknownTwisted, unknownFlipped, r);
+    Prune prune = new Prune(transform, r);
     solver.setTables(transform, prune);
     solver.solve(encodeCube(transform));
   }
 
-  private EncodedCube encodeCube(final Transform transform) {
+  // makes the cube representation compact
+  // solver does not use arrays for the configuration (for efficiency reasons)
+  // it uses a vecor in the state space
+  // each axis of the vector is one number representing e.g. corner permutation, edge orientation, ...
+  private EncodedCube encodeCube(Transform transform) {
     return transform.encode(SymTransform.I, corners, edges, twists, flips);
   }
 
   // string representation in extended 'Reid' notation (used by other programs)
   public String reidString() {
-    final StringBuilder s = new StringBuilder();
+    StringBuilder s = new StringBuilder();
     for (int i = 0; i < edges.length; i++)
       s.append(' ').append(Edge.name(edges[i], flips[i]));
     for (int i = 0; i < corners.length; i++)
@@ -95,22 +103,22 @@ public final class CubeState {
 
   // returns string enumerating all pieces that have their positions ignored
   public String ignoredPositionsString() {
-    final StringBuilder s = new StringBuilder();
-    for (final Edge e : EnumSet.complementOf(getKnownMask(edges, Edge.class)))
+    StringBuilder s = new StringBuilder();
+    for (Edge e : EnumSet.complementOf(getKnownMask(edges, Edge.class)))
       s.append(' ').append(e.toString());
-    for (final Corner c : EnumSet.complementOf(getKnownMask(corners, Corner.class)))
+    for (Corner c : EnumSet.complementOf(getKnownMask(corners, Corner.class)))
       s.append(' ').append(c.toString());
     return s.length() > 0 ? s.substring(1) : "";
   }
 
   // returs a string enumerating potential pieces that do not have their orientation defined
   public String ignoredOrientationsString() {
-    final StringBuilder s = new StringBuilder();
-    final EnumSet<Edge> unknownEdges = EnumSet.complementOf(getKnownMask(edges, Edge.class));
-    final EnumSet<Corner> unknownCorners = EnumSet.complementOf(getKnownMask(corners, Corner.class));
+    StringBuilder s = new StringBuilder();
+    EnumSet<Edge> unknownEdges = EnumSet.complementOf(getKnownMask(edges, Edge.class));
+    EnumSet<Corner> unknownCorners = EnumSet.complementOf(getKnownMask(corners, Corner.class));
     if (unknownEdges.size() > 0) {
       s.append(getUnknownUnorientedCount(edges, flips)).append(" of {");
-      for (final Edge e : unknownEdges)
+      for (Edge e : unknownEdges)
         s.append(" ").append(e.toString());
       s.append(" }");
     }
@@ -118,7 +126,7 @@ public final class CubeState {
       if (s.length() > 0)
         s.append(", ");
       s.append(getUnknownUnorientedCount(corners, twists)).append(" of {");
-      for (final Corner c : unknownCorners)
+      for (Corner c : unknownCorners)
         s.append(" ").append(c.toString());
       s.append(" }");
     }
@@ -126,17 +134,17 @@ public final class CubeState {
   }
 
   // returns a set of pieces that have their position defined
-  private <T extends Enum<T>> EnumSet<T> getKnownMask(final T[] a, final Class<T> type) {
-    final EnumSet<T> set = EnumSet.noneOf(type);
-    for (final T ai : a)
+  private <T extends Enum<T>> EnumSet<T> getKnownMask(T[] a, Class<T> type) {
+    EnumSet<T> set = EnumSet.noneOf(type);
+    for (T ai : a)
       if (ai != null)
         set.add(ai);
     return set;
   }
 
   // returns a set of pieces that have both position and orientation defined
-  private <T extends Enum<T>> EnumSet<T> getKnownOrientedMask(final T[] a, final int[] o, final Class<T> type) {
-    final EnumSet<T> set = EnumSet.noneOf(type);
+  private <T extends Enum<T>> EnumSet<T> getKnownOrientedMask(T[] a, int[] o, Class<T> type) {
+    EnumSet<T> set = EnumSet.noneOf(type);
     for (int i = 0; i < a.length; i++)
       if (o[i] >= 0)
         if (a[i] != null)
@@ -145,7 +153,7 @@ public final class CubeState {
   }
 
   // counts how many unknown pieces have orientation defined
-  private <T extends Enum<T>> int getUnknownOrientedCount(final T[] a, final int[] o) {
+  private <T extends Enum<T>> int getUnknownOrientedCount(T[] a, int[] o) {
     int count = 0;
     for (int i = 0; i < a.length; i++)
       if (o[i] >= 0)
@@ -155,7 +163,7 @@ public final class CubeState {
   }
 
   // counts how many pieces have neither position nor orientation defined
-  private <T extends Enum<T>> int getUnknownUnorientedCount(final T[] a, final int[] o) {
+  private <T extends Enum<T>> int getUnknownUnorientedCount(T[] a, int[] o) {
     int count = 0;
     for (int i = 0; i < a.length; i++)
       if (o[i] < 0)
