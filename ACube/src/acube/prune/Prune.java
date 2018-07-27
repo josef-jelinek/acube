@@ -35,12 +35,30 @@ public final class Prune {
     uEdgePos = createPruneTable(transform.uEdgePosTable);
     reporter.tableCreationStarted("pruning table (D edge position)");
     dEdgePos = createPruneTable(transform.dEdgePosTable);
-    final boolean combine_ct_ef = twist.stateSize() * flip.stateSize() <= MAX_TABLE_SIZE;
+    boolean combine_ct_ef;
+    try {
+      combine_ct_ef = Math.multiplyExact(twist.stateSize(), flip.stateSize()) <= MAX_TABLE_SIZE;
+    } catch(ArithmeticException e) {
+      combine_ct_ef = false;
+    }
     merged_twist_flip = combine_ct_ef ? new MoveTable2in1(transform.twistTable, transform.flipTable) : null;
-    final boolean combine_ct_cp = twist.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
+    
+    boolean combine_ct_cp;
+    try {
+      combine_ct_cp = Math.multiplyExact(twist.stateSize(), cornerPos.stateSize()) <= MAX_TABLE_SIZE;  
+    } catch(ArithmeticException e) {
+      combine_ct_cp = false;
+    } 
     merged_twist_cornerPos = combine_ct_cp ? new MoveTable2in1(transform.twistTable, transform.cornerPosTable) : null;
-    final boolean combine_ef_cp = flip.stateSize() * cornerPos.stateSize() <= MAX_TABLE_SIZE;
+    
+    boolean combine_ef_cp;
+    try {
+      combine_ef_cp = Math.multiplyExact(flip.stateSize(), cornerPos.stateSize()) <= MAX_TABLE_SIZE;      
+    } catch(ArithmeticException e) {
+      combine_ef_cp = false;
+    }
     merged_flip_cornerPos = combine_ef_cp ? new MoveTable2in1(transform.flipTable, transform.cornerPosTable) : null;
+    
     reporter.tableCreationStarted("pruning table (corner twist + edge flip)");
     twist_flip = createPruneTable(merged_twist_flip);
     reporter.tableCreationStarted("pruning table (corner twist + corner position)");
